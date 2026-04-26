@@ -44,3 +44,9 @@ add_custom_target(test-arena
   DEPENDS arena_alphabet arena_align
   COMMENT "Running arena tests..."
 )
+
+add_custom_target(test-pool
+  COMMAND ${CMAKE_CTEST_COMMAND} -L pool --output-on-failure
+  DEPENDS pool_bounce pool_exhaust pool_recycle
+  COMMENT "Running pool tests..."
+)
