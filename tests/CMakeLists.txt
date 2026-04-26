@@ -12,6 +12,13 @@ target_link_libraries(arena_align PRIVATE oo_alloc)
 add_test(NAME ArenaAlign COMMAND arena_align)
 set_tests_properties(ArenaAlign PROPERTIES LABELS "arena")
 
+# POOL:
+
+# TEST 1
+add_executable(pool_bounce pool_bounce.cpp)
+target_link_libraries(pool_bounce PRIVATE oo_alloc)
+add_test(NAME PoolBounce COMMAND pool_bounce)
+set_tests_properties(PoolBounce PROPERTIES LABELS "pool")
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
