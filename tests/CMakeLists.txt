@@ -25,6 +25,13 @@ add_executable(pool_exhaust pool_exhaust.cpp)
 target_link_libraries(pool_exhaust PRIVATE oo_alloc)
 add_test(NAME PoolExhaust COMMAND pool_exhaust)
 set_tests_properties(PoolExhaust PROPERTIES LABELS "pool")
+
+# TEST 3
+add_executable(pool_recycle pool_recycle.cpp)
+target_link_libraries(pool_recycle PRIVATE oo_alloc)
+add_test(NAME PoolRecycle COMMAND pool_recycle)
+set_tests_properties(PoolRecycle PROPERTIES LABELS "pool")
+
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
