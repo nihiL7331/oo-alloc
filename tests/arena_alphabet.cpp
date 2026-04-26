@@ -1,0 +1,22 @@
+#include "ArenaAllocator.hpp"
+#include <cassert>
+
+int main() {
+  oo_alloc::ArenaAllocator arena;
+  bool succ = arena.init(1024);
+  assert(succ && "Failed to initialize");
+
+  char* data[26];
+  for (int i = 0; i < 26; ++i) {
+    data[i] = static_cast<char *>(arena.alloc(sizeof(char), alignof(char)));
+    *data[i] = 'A' + i;
+  }
+
+  for (int i = 0; i < 26; ++i)
+    assert(*data[i] == 'A' + i && "Char data mismatch");
+
+  arena.clear();
+
+  void* start_ptr = arena.alloc(sizeof(char), alignof(char));
+  assert(start_ptr != nullptr && "Failed to alloc after clear");
+}

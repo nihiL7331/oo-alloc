@@ -18,6 +18,10 @@ target_include_directories(oo_alloc PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
 
+enable_testing()
+
+add_subdirectory(tests)
+
 target_compile_options(oo_alloc PRIVATE
   $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
   $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
