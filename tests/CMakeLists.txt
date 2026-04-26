@@ -15,10 +15,12 @@ set_tests_properties(ArenaAlign PROPERTIES LABELS "arena")
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+  DEPENDS arena_alphabet arena_align
   COMMENT "Running all tests..."
 )
 
 add_custom_target(test-arena
   COMMAND ${CMAKE_CTEST_COMMAND} -L arena --output-on-failure
+  DEPENDS arena_alphabet arena_align
   COMMENT "Running arena tests..."
 )
