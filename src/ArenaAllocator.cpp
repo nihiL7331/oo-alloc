@@ -1,4 +1,7 @@
 #include "ArenaAllocator.hpp"
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 
 namespace oo_alloc {
