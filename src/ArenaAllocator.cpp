@@ -31,5 +31,14 @@ void ArenaAllocator::free(void* ptr) {
   (void)ptr;
 }
 
+bool ArenaAllocator::init(std::size_t size) {
+  m_start_ptr = std::malloc(size);
+  if (m_start_ptr == nullptr)
+    return false;
+
+  m_total_size = size;
+  m_offset = 0;
+  return true;
+}
    
 }
