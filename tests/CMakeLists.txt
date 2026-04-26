@@ -19,6 +19,12 @@ add_executable(pool_bounce pool_bounce.cpp)
 target_link_libraries(pool_bounce PRIVATE oo_alloc)
 add_test(NAME PoolBounce COMMAND pool_bounce)
 set_tests_properties(PoolBounce PROPERTIES LABELS "pool")
+
+# TEST 2
+add_executable(pool_exhaust pool_exhaust.cpp)
+target_link_libraries(pool_exhaust PRIVATE oo_alloc)
+add_test(NAME PoolExhaust COMMAND pool_exhaust)
+set_tests_properties(PoolExhaust PROPERTIES LABELS "pool")
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
