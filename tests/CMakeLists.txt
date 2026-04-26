@@ -10,6 +10,7 @@ set_tests_properties(ArenaAlphabet PROPERTIES LABELS "arena")
 add_executable(arena_align arena_align.cpp)
 target_link_libraries(arena_align PRIVATE oo_alloc)
 add_test(NAME ArenaAlign COMMAND arena_align)
+set_tests_properties(ArenaAlign PROPERTIES LABELS "arena")
 
 # TARGETS
 add_custom_target(test-all
