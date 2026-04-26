@@ -14,7 +14,7 @@ public:
   ~ArenaAllocator() override;
 
   void* alloc(std::size_t size, std::uint8_t align) override;
-  void  free(void* ptr) override;
+  void  free(void* ptr) override; // WARN: noop
   bool  init(std::size_t size) override;
 
   void clear();
