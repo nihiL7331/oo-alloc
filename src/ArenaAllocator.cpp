@@ -11,5 +11,9 @@ ArenaAllocator::~ArenaAllocator() {
     std::free(m_start_ptr);
 }
 
+void ArenaAllocator::free(void* ptr) {
+  (void)ptr;
+}
+
    
 }
