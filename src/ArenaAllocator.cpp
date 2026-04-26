@@ -43,5 +43,9 @@ bool ArenaAllocator::init(std::size_t size) {
   m_offset = 0;
   return true;
 }
+
+void ArenaAllocator::clear() {
+  m_offset = 0;
+}
    
 }
