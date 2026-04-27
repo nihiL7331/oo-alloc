@@ -1,5 +1,7 @@
 # oo-alloc
 
+A collection of custom C++ allocators.
+
 ## Roadmap
 
 * [x] Implement a explicit free-list allocator.
