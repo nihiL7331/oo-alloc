@@ -1,5 +1,13 @@
 # oo-alloc
 
+## Roadmap
+
+* [ ] Add realloc functionality.
+* [ ] Move free-list allocator to a size buckets implementation.
+* [ ] Implement a pow-of-two buddy allocator.
+* [ ] Write a description for each allocator.
+* [ ] Benchmark cache misses via perf.
+
 ## Sources
 
 * [Linear Allocator from Nicholas Frechette's Blog](https://nfrechette.github.io/2015/05/21/linear_allocator/)
