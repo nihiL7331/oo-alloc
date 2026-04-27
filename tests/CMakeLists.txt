@@ -58,6 +58,14 @@ target_link_libraries(stack_clear PRIVATE oo_alloc)
 add_test(NAME StackClear COMMAND stack_clear)
 set_tests_properties(StackClear PROPERTIES LABELS "stack")
 
+# TRACK:
+
+# TEST 1
+add_executable(track_pass track_pass.cpp)
+target_link_libraries(track_pass PRIVATE oo_alloc)
+add_test(NAME TrackPass COMMAND track_pass)
+set_tests_properties(TrackPass PROPERTIES LABELS "track")
+
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
