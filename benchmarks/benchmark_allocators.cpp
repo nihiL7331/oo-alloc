@@ -1,4 +1,7 @@
 #include "IAllocator.hpp"
+#include "PoolAllocator.hpp"
+#include "StackAllocator.hpp"
+#include "ArenaAllocator.hpp"
 #include <chrono>
 #include <iostream>
 #include <string>
@@ -53,3 +56,50 @@ void run_test(oo_alloc::IAllocator& allocator, const std::string& name, int iter
 #define ITERS 100000
 #endif
 
+int main() {
+  std::size_t large_size = 1024;
+  std::uint8_t large_align = 16;
+  std::size_t large_total_mem = ITERS * (large_size + 16);
+
+  // std::malloc large
+  MallocAllocator large_malloc;
+  run_test(large_malloc, "std::malloc (L)", ITERS, large_size, large_align);
+
+  // arena large
+  oo_alloc::ArenaAllocator large_arena;
+  large_arena.init(large_total_mem);
+  run_test(large_arena, "arena (L)", ITERS, large_size, large_align);
+
+  // pool large
+  oo_alloc::PoolAllocator large_pool(large_size, large_align);
+  large_pool.init(large_total_mem);
+  run_test(large_pool, "pool (L)", ITERS, large_size, large_align);
+
+  // stack large
+  oo_alloc::StackAllocator large_stack;
+  large_stack.init(large_total_mem);
+  run_test(large_stack, "stack (L)", ITERS, large_size, large_align);
+
+  std::size_t small_size = 32;
+  std::uint8_t small_align = 8;
+  std::size_t small_total_mem = ITERS * (small_size + 16);
+
+  // std::malloc small
+  MallocAllocator small_malloc;
+  run_test(small_malloc, "std::malloc (S)", ITERS, small_size, small_align);
+
+  // arena small
+  oo_alloc::ArenaAllocator small_arena;
+  small_arena.init(small_total_mem);
+  run_test(small_arena, "arena (S)", ITERS, small_size, small_align);
+
+  // pool small
+  oo_alloc::PoolAllocator small_pool(small_size, small_align);
+  small_pool.init(small_total_mem);
+  run_test(small_pool, "pool (S)", ITERS, small_size, small_align);
+
+  // stack small
+  oo_alloc::StackAllocator small_stack;
+  small_stack.init(small_total_mem);
+  run_test(small_stack, "stack (S)", ITERS, small_size, small_align);
+}
