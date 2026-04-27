@@ -6,3 +6,5 @@
 * [Writing My Own Malloc in C by Tsoding](https://youtu.be/sZ8GJ1TiMdk?si=j0XnG7UxBTVji-NJ)
 * [mtrebi's memory-allocators repository](https://github.com/mtrebi/memory-allocators)
 * [gingerBill's Memory Allocation Strategies - Article Series](https://www.gingerbill.org/series/memory-allocation-strategies/)
+* [CS107 - Explicit Free List Allocator, Stanford University](https://web.stanford.edu/class/archive/cs/cs107/cs107.1246/lectures/24/Lecture24.pdf)
+* [MallocInternals from glibc wiki](https://sourceware.org/glibc/wiki/MallocInternals)
