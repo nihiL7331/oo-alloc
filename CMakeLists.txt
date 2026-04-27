@@ -13,6 +13,7 @@ set(SOURCE_FILES
   src/PoolAllocator.cpp
   src/StackAllocator.cpp
   src/TrackingAllocator.cpp
+  src/FreeListAllocator.cpp
 )
 
 add_library(oo_alloc STATIC ${SOURCE_FILES})
