@@ -52,6 +52,12 @@ target_link_libraries(stack_exhaust PRIVATE oo_alloc)
 add_test(NAME StackExhaust COMMAND stack_exhaust)
 set_tests_properties(StackExhaust PROPERTIES LABELS "stack")
 
+# TEST 4
+add_executable(stack_clear stack_clear.cpp)
+target_link_libraries(stack_clear PRIVATE oo_alloc)
+add_test(NAME StackClear COMMAND stack_clear)
+set_tests_properties(StackClear PROPERTIES LABELS "stack")
+
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
