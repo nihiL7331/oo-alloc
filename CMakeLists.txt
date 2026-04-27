@@ -24,6 +24,7 @@ target_include_directories(oo_alloc PUBLIC
 enable_testing()
 
 add_subdirectory(tests)
+add_subdirectory(benchmarks)
 
 target_compile_options(oo_alloc PRIVATE
   $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
