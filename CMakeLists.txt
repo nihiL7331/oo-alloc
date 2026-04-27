@@ -11,6 +11,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(SOURCE_FILES
   src/ArenaAllocator.cpp
   src/PoolAllocator.cpp
+  src/StackAllocator.cpp
 )
 
 add_library(oo_alloc STATIC ${SOURCE_FILES})
