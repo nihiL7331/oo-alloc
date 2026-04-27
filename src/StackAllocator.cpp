@@ -44,3 +44,19 @@ void StackAllocator::free(void* ptr) {
   std::size_t target_offset = *(reinterpret_cast<std::size_t *>(ptr) - 1);
   m_offset = target_offset;
 }
+
+bool StackAllocator::init(std::size_t size) {
+  m_start_ptr = std::malloc(size);
+  if (m_start_ptr == nullptr)
+    return false;
+
+  m_total_size = size;
+  m_offset = 0;
+  return true;
+}
+
+void StackAllocator::clear() {
+  m_offset = 0;
+}
+
+}
