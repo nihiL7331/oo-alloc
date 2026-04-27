@@ -40,6 +40,12 @@ target_link_libraries(stack_align PRIVATE oo_alloc)
 add_test(NAME StackAlign COMMAND stack_align)
 set_tests_properties(StackAlign PROPERTIES LABELS "stack")
 
+# TEST 2
+add_executable(stack_lifo stack_lifo.cpp)
+target_link_libraries(stack_lifo PRIVATE oo_alloc)
+add_test(NAME StackLIFO COMMAND stack_lifo)
+set_tests_properties(StackLIFO PROPERTIES LABELS "stack")
+
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
