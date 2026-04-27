@@ -79,3 +79,9 @@ add_custom_target(test-pool
   DEPENDS pool_bounce pool_exhaust pool_recycle
   COMMENT "Running pool tests..."
 )
+
+add_custom_target(test-stack
+  COMMAND ${CMAKE_CTEST_COMMAND} -L stack --output-on-failure
+  DEPENDS stack_align stack_lifo stack_exhaust stack_clear
+  COMMENT "Running stack tests..."
+)
