@@ -12,4 +12,7 @@ TrackingAllocator::~TrackingAllocator() {
               << std::endl;
 }
 
+bool TrackingAllocator::init(std::size_t size) {
+  return m_base_allocator.init(size);
 }
+
