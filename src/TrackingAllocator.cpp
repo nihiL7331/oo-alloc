@@ -26,6 +26,22 @@ void* TrackingAllocator::alloc(std::size_t size, std::uint8_t align) {
   return base_alloc_ptr;
 }
 
+void TrackingAllocator::free(void* ptr) {
+  if (ptr == nullptr)
+    return;
+
+  // src: https://cplusplus.com/reference/unordered_map/unordered_map/find/
+  auto got = m_active_allocs.find(ptr);
+  if (got == m_active_allocs.end())
+    return;
+
+  std::size_t ptr_size = got->second;
+  m_curr_alloced_bytes -= ptr_size;
+  m_active_allocs.erase(got);
+
+  m_base_allocator.free(ptr);
+}
+
 bool TrackingAllocator::init(std::size_t size) {
   return m_base_allocator.init(size);
 }
