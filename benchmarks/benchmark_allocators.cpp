@@ -1,6 +1,8 @@
+#include "IAllocator.hpp"
 #include <chrono>
 #include <iostream>
 #include <string>
+#include <cstdlib>
 class Stopwatch {
 private:
   std::string m_name;
@@ -18,6 +20,18 @@ public:
     std::cout << m_name << " took: " << dur << "us\n";
   }
 };
+
+// wrapper for built-in malloc for comparison
+class MallocAllocator : public oo_alloc::IAllocator {
+public:
+  ~MallocAllocator() override = default;
+
+  void* alloc(std::size_t size, std::uint8_t _) override { return std::malloc(size); }
+  void  free(void* ptr) override { std::free(ptr); }
+  bool  init(std::size_t _) override { return true; }
+  void clear() override {}
+};
+
 #ifndef ITERS
 #define ITERS 100000
 #endif
