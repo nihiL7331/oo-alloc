@@ -61,7 +61,10 @@ set_tests_properties(StackClear PROPERTIES LABELS "stack")
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-  DEPENDS arena_alphabet arena_align pool_bounce pool_exhaust pool_recycle
+  DEPENDS 
+    arena_alphabet arena_align 
+    pool_bounce pool_exhaust pool_recycle
+    stack_align stack_lifo stack_exhaust stack_clear
   COMMENT "Running all tests..."
 )
 
