@@ -85,6 +85,7 @@ add_custom_target(test-all
     arena_alphabet arena_align 
     pool_bounce pool_exhaust pool_recycle
     stack_align stack_lifo stack_exhaust stack_clear
+    track_pass track_peak track_clear
   COMMENT "Running all tests..."
 )
 
