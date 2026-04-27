@@ -12,6 +12,20 @@ TrackingAllocator::~TrackingAllocator() {
               << std::endl;
 }
 
+void* TrackingAllocator::alloc(std::size_t size, std::uint8_t align) {
+  void* base_alloc_ptr = m_base_allocator.alloc(size, align);
+  if (base_alloc_ptr == nullptr)
+    return nullptr;
+
+  m_active_allocs[base_alloc_ptr] = size;
+  m_curr_alloced_bytes += size;
+
+  if (m_curr_alloced_bytes > m_peak_alloced_bytes)
+    m_peak_alloced_bytes = m_curr_alloced_bytes;
+
+  return base_alloc_ptr;
+}
+
 bool TrackingAllocator::init(std::size_t size) {
   return m_base_allocator.init(size);
 }
