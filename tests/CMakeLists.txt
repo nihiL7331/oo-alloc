@@ -106,6 +106,7 @@ add_custom_target(test-all
     pool_bounce pool_exhaust pool_recycle
     stack_align stack_lifo stack_exhaust stack_clear
     track_pass track_peak track_clear
+    free_ooo free_recover free_merge
   COMMENT "Running all tests..."
 )
 
