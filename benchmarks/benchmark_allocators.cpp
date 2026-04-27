@@ -2,6 +2,7 @@
 #include "oo_alloc/PoolAllocator.hpp"
 #include "oo_alloc/StackAllocator.hpp"
 #include "oo_alloc/ArenaAllocator.hpp"
+#include "oo_alloc/FreeListAllocator.hpp"
 #include <chrono>
 #include <iostream>
 #include <string>
@@ -94,6 +95,11 @@ int main() {
   large_stack.init(large_total_mem);
   run_test(large_stack, "stack (L)", ITERS, large_size, large_align);
 
+  // free-list large
+  oo_alloc::FreeListAllocator large_free;
+  large_free.init(large_total_mem);
+  run_test(large_free, "free-list (L)", ITERS, large_size, large_align);
+
   std::size_t small_size = 32;
   std::uint8_t small_align = 8;
   std::size_t small_total_mem = ITERS * (small_size + 16);
@@ -116,4 +122,9 @@ int main() {
   oo_alloc::StackAllocator small_stack;
   small_stack.init(small_total_mem);
   run_test(small_stack, "stack (S)", ITERS, small_size, small_align);
+
+  // free-list small
+  oo_alloc::FreeListAllocator small_free;
+  small_free.init(small_total_mem);
+  run_test(small_free, "free-list (S)", ITERS, small_size, small_align);
 }
