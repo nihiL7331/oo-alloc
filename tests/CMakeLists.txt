@@ -78,6 +78,13 @@ target_link_libraries(track_clear PRIVATE oo_alloc)
 add_test(NAME TrackClear COMMAND track_clear)
 set_tests_properties(TrackClear PROPERTIES LABELS "track")
 
+# FREE:
+
+# TEST 1
+add_executable(free_ooo free_ooo.cpp)
+target_link_libraries(free_ooo PRIVATE oo_alloc)
+add_test(NAME FreeOOO COMMAND free_ooo)
+set_tests_properties(FreeOOO PROPERTIES LABELS "free")
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
