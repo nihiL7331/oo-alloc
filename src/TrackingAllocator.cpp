@@ -46,3 +46,10 @@ bool TrackingAllocator::init(std::size_t size) {
   return m_base_allocator.init(size);
 }
 
+void TrackingAllocator::clear() {
+  m_curr_alloced_bytes = 0;
+  m_active_allocs.clear();
+  m_base_allocator.clear();
+}
+
+}
