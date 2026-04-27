@@ -18,3 +18,4 @@
 * [gingerBill's Memory Allocation Strategies - Article Series](https://www.gingerbill.org/series/memory-allocation-strategies/)
 * [CS107 - Explicit Free List Allocator, Stanford University](https://web.stanford.edu/class/archive/cs/cs107/cs107.1246/lectures/24/Lecture24.pdf)
 * [MallocInternals from glibc wiki](https://sourceware.org/glibc/wiki/MallocInternals)
+* [Slab allocation Wikipedia page](https://en.wikipedia.org/wiki/Slab_allocation)
