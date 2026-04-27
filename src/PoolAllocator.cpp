@@ -54,7 +54,7 @@ void PoolAllocator::clear() {
   if (m_start_ptr == nullptr)
     return;
 
-  uint8_t* raw_mem = reinterpret_cast<uint8_t*>(m_start_ptr);
+  std::uint8_t* raw_mem = reinterpret_cast<std::uint8_t*>(m_start_ptr);
   std::size_t num_chunks = m_total_size / m_chunk_size;
 
   for (std::size_t i = 0; i < num_chunks - 1; ++i) {
