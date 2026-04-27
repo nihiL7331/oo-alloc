@@ -2,11 +2,13 @@
 
 ## Roadmap
 
+* [x] Implement a explicit free-list allocator.
 * [ ] Add realloc functionality.
 * [ ] Move free-list allocator to a size buckets implementation.
 * [ ] Implement a pow-of-two buddy allocator.
 * [ ] Write a description for each allocator.
 * [ ] Benchmark cache misses via perf.
+* [ ] Implement a slab allocator.
 
 ## Sources
 
