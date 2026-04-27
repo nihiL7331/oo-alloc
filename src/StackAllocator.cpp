@@ -36,3 +36,11 @@ void* StackAllocator::alloc(std::size_t size, std::uint8_t align) {
 
   return reinterpret_cast<void *>(data_ptr);
 }
+
+void StackAllocator::free(void* ptr) {
+  if (ptr == nullptr)
+    return;
+
+  std::size_t target_offset = *(reinterpret_cast<std::size_t *>(ptr) - 1);
+  m_offset = target_offset;
+}
