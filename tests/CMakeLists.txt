@@ -66,6 +66,12 @@ target_link_libraries(track_pass PRIVATE oo_alloc)
 add_test(NAME TrackPass COMMAND track_pass)
 set_tests_properties(TrackPass PROPERTIES LABELS "track")
 
+# TEST 2
+add_executable(track_peak track_peak.cpp)
+target_link_libraries(track_peak PRIVATE oo_alloc)
+add_test(NAME TrackPeak COMMAND track_peak)
+set_tests_properties(TrackPeak PROPERTIES LABELS "track")
+
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
