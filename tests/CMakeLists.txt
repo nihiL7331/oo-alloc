@@ -106,3 +106,9 @@ add_custom_target(test-stack
   DEPENDS stack_align stack_lifo stack_exhaust stack_clear
   COMMENT "Running stack tests..."
 )
+
+add_custom_target(test-track
+  COMMAND ${CMAKE_CTEST_COMMAND} -L track --output-on-failure
+  DEPENDS track_pass track_peak track_clear
+  COMMENT "Running track tests..."
+)
