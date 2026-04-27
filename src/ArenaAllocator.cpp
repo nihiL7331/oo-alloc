@@ -15,15 +15,15 @@ ArenaAllocator::~ArenaAllocator() {
 }
 
 void* ArenaAllocator::alloc(std::size_t size, std::uint8_t align) {
-  uintptr_t base_ptr = reinterpret_cast<uintptr_t>(m_start_ptr);
-  uintptr_t curr_ptr = base_ptr + m_offset;
+  std::uintptr_t base_ptr = reinterpret_cast<std::uintptr_t>(m_start_ptr);
+  std::uintptr_t curr_ptr = base_ptr + m_offset;
 
-  uintptr_t pad = (align - (curr_ptr & (align - 1))) & (align - 1);
+  std::uintptr_t pad = (align - (curr_ptr & (align - 1))) & (align - 1);
 
   if (m_offset + pad + size > m_total_size)
     return nullptr;
 
-  uintptr_t align_ptr = curr_ptr + pad;
+  std::uintptr_t align_ptr = curr_ptr + pad;
 
   m_offset += (pad + size);
 
