@@ -92,6 +92,12 @@ target_link_libraries(free_recover PRIVATE oo_alloc)
 add_test(NAME FreeRecover COMMAND free_recover)
 set_tests_properties(FreeRecover PROPERTIES LABELS "free")
 
+# TEST 3
+add_executable(free_merge free_merge.cpp)
+target_link_libraries(free_merge PRIVATE oo_alloc)
+add_test(NAME FreeMerge COMMAND free_merge)
+set_tests_properties(FreeMerge PROPERTIES LABELS "free")
+
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
