@@ -25,8 +25,7 @@ public:
   void* alloc(std::size_t size, std::uint8_t align) override;
   void  free(void* ptr) override;
   bool  init(std::size_t size) override;
-
-  void clear();
+  void clear() override;
 };
 
 }
