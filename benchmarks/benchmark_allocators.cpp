@@ -56,7 +56,21 @@ void run_test(oo_alloc::IAllocator& allocator, const std::string& name, int iter
 #define ITERS 100000
 #endif
 
+void run_warmup(int iters) {
+  std::vector<void*> ptrs(iters, nullptr);
+  
+  for (int i = 0; i < iters; ++i) {
+    ptrs[i] = std::malloc(32);
+  }
+  
+  for (int i = iters - 1; i >= 0; --i) {
+    std::free(ptrs[i]);
+  }
+}
+
 int main() {
+  run_warmup(ITERS);
+
   std::size_t large_size = 1024;
   std::uint8_t large_align = 16;
   std::size_t large_total_mem = ITERS * (large_size + 16);
