@@ -46,6 +46,12 @@ target_link_libraries(stack_lifo PRIVATE oo_alloc)
 add_test(NAME StackLIFO COMMAND stack_lifo)
 set_tests_properties(StackLIFO PROPERTIES LABELS "stack")
 
+# TEST 3
+add_executable(stack_exhaust stack_exhaust.cpp)
+target_link_libraries(stack_exhaust PRIVATE oo_alloc)
+add_test(NAME StackExhaust COMMAND stack_exhaust)
+set_tests_properties(StackExhaust PROPERTIES LABELS "stack")
+
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
