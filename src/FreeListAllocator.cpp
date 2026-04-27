@@ -70,3 +70,60 @@ void* FreeListAllocator::alloc(std::size_t size, std::uint8_t align) {
 
   return nullptr;
 }
+
+void  FreeListAllocator::free(void* ptr) {
+  if (ptr == nullptr)
+    return;
+
+  std::size_t header_size = sizeof(AllocHeader);
+
+  // step backwards to get the header
+  std::uint8_t* data_ptr = reinterpret_cast<std::uint8_t *>(ptr);
+  AllocHeader* header_ptr = reinterpret_cast<AllocHeader *>(data_ptr - header_size);
+
+  // step backwards again to origin
+  std::size_t size = header_ptr->size;
+  std::uint8_t pad = header_ptr->pad;
+  std::uint8_t* orig_ptr = reinterpret_cast<std::uint8_t *>(header_ptr) - pad;
+  FreeBlock* new_free_ptr = reinterpret_cast<FreeBlock *>(orig_ptr);
+  new_free_ptr->size = size;
+
+  // insert back to free list
+
+  // find position
+  FreeBlock* prev_ptr = nullptr;
+  FreeBlock* curr_ptr = m_free_list_head;
+  while(curr_ptr != nullptr && curr_ptr < new_free_ptr) {
+    prev_ptr = curr_ptr;
+    curr_ptr = curr_ptr->next;
+  }
+
+  // insert
+  if (prev_ptr != nullptr) {
+    prev_ptr->next = new_free_ptr;
+    new_free_ptr->next = curr_ptr;
+  } else { // free is head
+    new_free_ptr->next = curr_ptr;
+    m_free_list_head = new_free_ptr;
+  }
+
+  // coalescence
+  // merge new with curr first to avoid mismatches if merging both
+
+  // merge new with curr (next)
+  if (curr_ptr != nullptr) {
+    std::uint8_t* raw_curr_ptr = reinterpret_cast<std::uint8_t *>(curr_ptr);
+    if (orig_ptr + size == raw_curr_ptr) {
+      new_free_ptr->size += curr_ptr->size;
+      new_free_ptr->next = curr_ptr->next;
+    }
+  }
+  // merge prev with new
+  if (prev_ptr != nullptr) {
+    std::uint8_t* raw_prev_ptr = reinterpret_cast<std::uint8_t *>(prev_ptr);
+    if (raw_prev_ptr + prev_ptr->size == orig_ptr) { 
+      prev_ptr->size += new_free_ptr->size;
+      prev_ptr->next = new_free_ptr->next;
+    }
+  }
+}
