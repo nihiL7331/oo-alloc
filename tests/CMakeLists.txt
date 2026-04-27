@@ -133,3 +133,9 @@ add_custom_target(test-track
   DEPENDS track_pass track_peak track_clear
   COMMENT "Running track tests..."
 )
+
+add_custom_target(test-free
+  COMMAND ${CMAKE_CTEST_COMMAND} -L free --output-on-failure
+  DEPENDS free_ooo free_recover free_merge
+  COMMENT "Running free-list tests..."
+)
