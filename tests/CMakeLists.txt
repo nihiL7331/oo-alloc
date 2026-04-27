@@ -85,6 +85,13 @@ add_executable(free_ooo free_ooo.cpp)
 target_link_libraries(free_ooo PRIVATE oo_alloc)
 add_test(NAME FreeOOO COMMAND free_ooo)
 set_tests_properties(FreeOOO PROPERTIES LABELS "free")
+
+# TEST 2
+add_executable(free_recover free_recover.cpp)
+target_link_libraries(free_recover PRIVATE oo_alloc)
+add_test(NAME FreeRecover COMMAND free_recover)
+set_tests_properties(FreeRecover PROPERTIES LABELS "free")
+
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
