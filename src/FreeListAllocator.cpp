@@ -127,3 +127,31 @@ void  FreeListAllocator::free(void* ptr) {
     }
   }
 }
+
+bool FreeListAllocator::init(std::size_t size) {
+  if (size < sizeof(FreeBlock)) // too small to allocate anything
+    return false;
+
+  m_start_ptr = std::malloc(size);
+  if (m_start_ptr == nullptr)
+    return false;
+
+  m_total_size = size;
+
+  clear();
+
+  return true;
+}
+
+// initializes the whole memory as a large free block
+void FreeListAllocator::clear() {
+  if (m_start_ptr == nullptr)
+    return;
+
+  FreeBlock* start_ptr = reinterpret_cast<FreeBlock *>(m_start_ptr);
+  start_ptr->size = m_total_size;
+  start_ptr->next = nullptr;
+  m_free_list_head = start_ptr;
+}
+
+}
