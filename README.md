@@ -290,6 +290,7 @@ When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the poi
 * [ ] Benchmark cache misses via perf.
 * [ ] Implement a slab allocator.
 * [ ] Add a benchmark/performance README section.
+* [ ] Add realloc description in README.
 * [x] Add a build README section.
 * [x] Write a description for each allocator.
 * [x] Implement a explicit free-list allocator.
