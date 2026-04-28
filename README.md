@@ -104,6 +104,18 @@ When `alloc` is called, the allocator calculates the required padding for alignm
 
 On `free`, the allocator simply reads the header immediately before the given pointer and restores `m_offset` to the value stored in it, hence deallocating the block. Since we don't need to search for the data, it's also an *O(1)* operation.
 
+<p align="center">
+  <img src="docs/assets/stack_active.svg" alt="stack allocator active state">
+  <br>
+  <em>Stack allocator after two allocations. The hidden headers (h1, h2) are placed immediately before the user data.</em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/stack_free.svg" alt="stack allocator after free">
+  <br>
+  <em>After calling free() on data 2, the allocator reads h2 and instantly snaps m_offset back to the end of data 1.</em>
+</p>
+
 ## Roadmap
 
 * [x] Implement a explicit free-list allocator.
