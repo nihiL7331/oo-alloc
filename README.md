@@ -215,6 +215,24 @@ If they touch, their sizes are summed together, and the second block is physical
 To prevent pointer invalidation bugs, it is best practice to always coalesce a block with its next neighbor before coalescing with its previous neighbor. 
 Because finding the correct insertion point in the address-sorted list requires traversal, `free` also carries an *O(n)* time complexity.
 
+<p align="center">
+  <img src="docs/assets/freelist_active.svg" alt="free list allocator active state">
+  <br>
+  <em><sub>Free list in a highly fragmented state.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/freelist_split.svg" alt="free list allocator block splitting">
+  <br>
+  <em><sub>After calling alloc() for 20B, the allocator uses "first-fit" to slice 50B (header + data 3) off free 1. The remainder of free 1 shrinks to 70B.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/freelist_coalesce.svg" alt="free list allocator coalescing">
+  <br>
+  <em><sub>After calling free() on data 2, the allocator detects that free 2, the newly freed block, and free 3 are adjacent. It coalesces them into a single 250B block.</sub></em>
+</p>
+
 ## Roadmap
 
 * [x] Implement a explicit free-list allocator.
