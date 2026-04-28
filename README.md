@@ -2,6 +2,17 @@
 
 A collection of custom C++ allocators.
 
+## Introduction
+
+Custom allocators are tightly coupled with certain 
+data structures, access patterns and object lifetimes. 
+Just like choosing the right data structure,
+picking the correct allocation strategy can grant noticeable performance gains.
+Each allocator comes with its own quirks: 
+different time complexities, memory overheads and optional constraints.
+It is crucial to pick the right tool for the job. 
+The overview available below can help you do exactly that.
+
 ## Roadmap
 
 * [x] Implement a explicit free-list allocator.
