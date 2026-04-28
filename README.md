@@ -15,14 +15,14 @@ The overview available below can help you do exactly that.
 
 ## Overview
 
-| Type          | `alloc`  | `free`   | `clear` | `realloc` | Overhead | Best for | Constraints |
-| :---          | :---:    | :---:    | :---:   | :---:     | :---:    | :---     | :---        |
-| **Arena**     | $O(1)$   | N/A      | $O(1)$  | $O(1)$*   | OB       | ...      | ...         |
-| **Stack**     | $O(1)$   | $O(1)$*  | $O(1)$  | N/A       | ~8B      | ...      | ...         |
-| **Pool**      | $O(1)$   | $O(1)$   | $O(1)$  | N/A       | 0B       | ...      | ...         |
-| **Free List** | $O(n)$** | $O(n)$** | $O(1)$  | $O(n)$**  | 16B+     | ...      | ...         |
-| *Buddy****    | $O(1)$   | $O(1)$   | $O(1)$  | $O(1)$    | 0B       | ...      | ...         |
-| *Slab****     | $O(1)$   | $O(1)$   | $O(1)$  | N/A       | OB       | ...      | ...         |
+| Type          | `alloc`  | `free`   | `clear` | `realloc` | Overhead | Best for          | Constraints         |
+| :---          | :---:    | :---:    | :---:   | :---:     | :---:    | :---              | :---                |
+| **Arena**     | $O(1)$   | N/A      | $O(1)$  | $O(1)$*   | OB       | Bulk allocations  | No individual frees |
+| **Stack**     | $O(1)$   | $O(1)$*  | $O(1)$  | N/A       | ~8B      | Temporary data    | Strict LIFO         |
+| **Pool**      | $O(1)$   | $O(1)$   | $O(1)$  | N/A       | 0B       | Identical objects | Fixed sizes         |
+| **Free List** | $O(n)$** | $O(n)$** | $O(1)$  | $O(n)$**  | 16B+     | General purpose   | Fragmentation (in)  |
+| *Buddy****    | $O(1)$   | $O(1)$   | $O(1)$  | $O(1)$    | 0B       | OS memory         | Fragmentation (ex)  |
+| *Slab****     | $O(1)$   | $O(1)$   | $O(1)$  | N/A       | OB       | Object caching    | Single type         |
 
 <sub>\*You can only operate on the top-most allocation.</sub><br>
 <sub>\*\*Using a size segregated free-list (size buckets) implementation, it's possible to achieve O(1) time complexity.</sub><br>
