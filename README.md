@@ -15,17 +15,17 @@ The overview available below can help you do exactly that.
 
 ## Overview
 
-| Type          | `alloc`  | `free`   | `clear` | `realloc` | Overhead | Best for          | Constraints         |
-| :---          | :---:    | :---:    | :---:   | :---:     | :---:    | :---              | :---                |
-| **Arena**     | O(1)     | N/A      | O(1)    | O(1)*     | OB       | Bulk allocations  | No individual frees |
-| **Stack**     | O(1)     | O(1)*    | O(1)    | N/A       | ~8B      | Temporary data    | Strict LIFO         |
-| **Pool**      | O(1)     | O(1)     | O(1)    | N/A       | 0B       | Identical objects | Fixed sizes         |
-| **Free List** | O(n)**   | O(n)**   | O(1)    | O(n)**    | 16B+     | General purpose   | Fragmentation (in)  |
-| *Buddy****    | O(1)     | O(1)     | O(1)    | O(1)      | 0B       | OS memory         | Fragmentation (ex)  |
-| *Slab****     | O(1)     | O(1)     | O(1)    | N/A       | OB       | Object caching    | Single type         |
+| Type          | `alloc`    | `free`     | `clear`   | `realloc`   | Overhead | Best for          | Constraints         |
+| :---          | :---:      | :---:      | :---:     | :---:       | :---:    | :---              | :---                |
+| **Arena**     | *O(1)*     | *N/A*      | *O(1)*    | *O(1)**     | OB       | Bulk allocations  | No individual frees |
+| **Stack**     | *O(1)*     | *O(1)**    | *O(1)*    | *N/A*       | ~8B      | Temporary data    | Strict LIFO         |
+| **Pool**      | *O(1)*     | *O(1)*     | *O(1)*    | *N/A*       | 0B       | Identical objects | Fixed sizes         |
+| **Free List** | *O(n)***   | *O(n)***   | *O(1)*    | *O(n)***    | 16B+     | General purpose   | Fragmentation (in)  |
+| *Buddy****    | *O(1)*     | *O(1)*     | *O(1)*    | *O(1)*      | 0B       | OS memory         | Fragmentation (ex)  |
+| *Slab****     | *O(1)*     | *O(1)*     | *O(1)*    | *N/A*       | OB       | Object caching    | Single type         |
 
 <sub>\*You can only operate on the top-most allocation.</sub><br>
-<sub>\*\*Using a size segregated free-list (size buckets) implementation, it's possible to achieve O(1) time complexity.</sub><br>
+<sub>\*\*Using a size segregated free-list (size buckets) implementation, it's possible to achieve *O(1)* time complexity.</sub><br>
 <sub>\*\*\*Not yet available in this repository (in development).</sub>
 
 ## Implementation
@@ -56,10 +56,10 @@ public:
 ```
 
 When `alloc` is called, it calculates the memory alignment, adds the requested `size` plus the alignment to the `m_offset`, and returns the previous address.
-This makes `alloc` an instant O(1) operation.
+This makes `alloc` an instant *O(1)* operation.
 
 Because it only tracks a single forward-moving offset, you can't free individual objects.
-You can only clear the entire arena, which is done by resetting `m_offset` to zero, resulting in a O(1) `clear` time complexity.
+You can only clear the entire arena, which is done by resetting `m_offset` to zero, resulting in a *O(1)* `clear` time complexity.
 
 <p align="center">
   <img src="docs/assets/arena_active.svg" alt="arena allocator active state">
