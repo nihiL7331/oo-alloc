@@ -233,6 +233,41 @@ Because finding the correct insertion point in the address-sorted list requires 
   <em><sub>After calling free() on data 2, the allocator detects that free 2, the newly freed block, and free 3 are adjacent. It coalesces them into a single 250B block.</sub></em>
 </p>
 
+### Tracking allocator
+
+Unlike the previous allocators, the Tracking allocator does not manage memory directly. Instead, it acts as a wrapper around any other existing allocator. Its primary purpose is debugging. 
+
+It intercepts calls to `alloc` and `free`, records memory metrics, and then forwards the request to the allocator. It is a great tool for profiling memory usage, detecting leaks, and measuring peak memory consumption during app runtime.
+
+#### Internal structure
+
+```cpp
+class TrackingAllocator {
+private:
+  IAllocator& m_base_allocator;
+
+  std::unordered_map<void *, std::size_t> m_active_allocs;
+  std::size_t m_curr_alloced_bytes = 0;
+  std::size_t m_peak_alloced_bytes = 0;
+
+public:
+  TrackingAllocator(IAllocator& base_allocator);
+
+  void* alloc(std::size_t size, std::uint8_t align);
+  void  free(void* ptr);
+  bool  init(std::size_t size);
+  void  clear();
+
+  std::size_t get_curr_bytes() const { return m_curr_alloced_bytes; }
+  std::size_t get_peak_bytes() const { return m_peak_alloced_bytes; }
+  std::size_t get_active_allocs_cnt() const { return m_active_allocs.size(); }
+};
+```
+
+When `alloc` is called, it increments its internal counters, calculates if a new `m_peak_alloced_bytes` has been reached, and then simply returns the result of `m_base_allocator->alloc()`.
+
+When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the pointer to `m_base_allocator->free()`. Because it only performs basic arithmetic before delegating the actual work, the overhead is extremely minimal, maintaining the time complexity of the underlying allocator.
+
 ## Roadmap
 
 * [x] Implement a explicit free-list allocator.
