@@ -116,6 +116,40 @@ On `free`, the allocator simply reads the header immediately before the given po
   <em><sub>After calling free() on data 2, the allocator reads h2 and instantly snaps m_offset back to the end of data 1.</sub></em>
 </p>
 
+### Pool allocator
+
+It's a very limited, but exceptionally fast and simple allocator.
+It works by dividing up its entire memory block into equally sized segments, reffered to as **chunks**.
+
+To track free memory, it uses a singly linked list.
+To achieve zero memory overhead, it uses a intrusive list. 
+It stores the "next" pointer directly inside the free chunks themselves. 
+When a chunk is free, it acts as a list node. 
+When it is allocated, that pointer is overwritten by the users data.
+
+#### Internal structure
+```cpp
+class PoolAllocator {
+private:
+  std::size_t m_chunk_size;
+  std::size_t m_chunk_align;
+  void*       m_start_ptr;
+  std::size_t m_total_size;
+  void*       m_free_list_head;
+
+public:
+  void* alloc(std::size_t size, std::uint8_t align);
+  void  free(void* ptr);
+  bool  init(std::size_t size);
+  void  clear();
+};
+```
+
+When `alloc` is called, it pops the `m_free_list_head`, updates the head to point to the next free chunk in the list, and returns the popped address.
+Since there is no list traversal required, this is an instant *O(1)* operation.
+
+On `free`, it casts the passed `ptr` into a list node, sets its "next" pointer to the current `m_free_list_head`, and then updates `m_free_list_head` to point to `ptr`. This frees the chunk in *O(1)* time.
+
 ## Roadmap
 
 * [x] Implement a explicit free-list allocator.
