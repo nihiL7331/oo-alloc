@@ -73,6 +73,37 @@ You can only clear the entire arena, which is done by resetting `m_offset` to ze
   <em>Arena allocator after clear() is called. It holds no data.</em>
 </p>
 
+### Stack allocator
+
+As the name suggests, it treats the memory as a stack. 
+It builds upon the Arena allocator. 
+Contrary to the Arena, it supports individual `free` operations, but due to the strict Last-In First-Out (LIFO) restrictions, you can only "pop" the most recently allocated element. 
+
+Its definition is practically identical to the arena allocator, but it has an additional method `free`.
+What differs is that each allocated block has a header before it, which stores the previous `m_offset`.
+
+
+#### Internal structure
+
+```cpp
+class StackAllocator {
+private:
+  void*       m_start_ptr;
+  std::size_t m_offset;
+  std::size_t m_total_size;
+
+public:
+  void* alloc(std::size_t size, std::uint8_t align);
+  void  free(void* ptr);
+  bool  init(std::size_t size);
+  void  clear();
+};
+```
+
+When `alloc` is called, the allocator calculates the required padding for alignment, reserves space for both the header and the requested `size`, and writes the previous `m_offset` into the header just behind the returned pointer. This makes `alloc` an instant *O(1)* operation.
+
+On `free`, the allocator simply reads the header immediately before the given pointer and restores `m_offset` to the value stored in it, hence deallocating the block. Since we don't need to search for the data, it's also an *O(1)* operation.
+
 ## Roadmap
 
 * [x] Implement a explicit free-list allocator.
