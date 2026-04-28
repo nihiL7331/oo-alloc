@@ -128,6 +128,7 @@ When a chunk is free, it acts as a list node.
 When it is allocated, that pointer is overwritten by the users data.
 
 #### Internal structure
+
 ```cpp
 class PoolAllocator {
 private:
@@ -161,6 +162,58 @@ On `free`, it casts the passed `ptr` into a list node, sets its "next" pointer t
   <br>
   <em><sub>After calling free() on data 1, it gets pushed to the front of the intrusive linked list. The head pointer is updated in O(1) time.</sub></em>
 </p>
+
+### Free list allocator
+
+It's a general purpose allocator, that is widely used under the hood for heap memory management.
+It gained its popularity due to it having essentially no restrictions. 
+It's implementation and performance may vary greatly, based on the level of complexity:
+- It achieves *O(n)* `alloc`/`free`/`realloc` with a singly-linked or doubly-linked list implementation,
+- It achieves *O(log n)* `alloc`/`free`/`realloc` with a Red-Black tree implementation,
+- It achieves (mostly) *O(1)* `alloc`/`free`/`realloc` with a size-segregated (bucketed) implementation.
+
+The implementation below uses a **singly-linked** list to store addresses of free memory blocks.
+The list is sorted by memory address (ascending), and is intrusive, just like in the Pool allocator.
+What differs, is that compared to the Pool allocator, the free block stores more data. 
+It stores `size` of the free data, and the address to the next free block.
+
+When a chunk of memory is allocated, it is prefixed with a `AllocHeader`, which holds the `size` and `pad`, required to align the data.
+
+#### Internal structure
+
+```cpp
+class FreeListAllocator {
+private:
+  struct FreeBlock {
+    std::size_t size;
+    FreeBlock *next;
+  };
+  struct AllocHeader {
+    std::size_t size;
+    std::uint8_t pad;
+  };
+  void*       m_start_ptr;
+  std::size_t m_total_size;
+  FreeBlock*  m_free_list_head;
+
+public:
+  void* alloc(std::size_t size, std::uint8_t align);
+  void  free(void* ptr);
+  bool  init(std::size_t size);
+  void  clear();
+};
+```
+
+When `alloc` is called, it traverses through the list of free blocks, picking one matching the wanted size the closest (**best-fit**), or the first that can contain the memory to allocate (**first-fit**), and allocates the data with the hidden header before it. 
+Due to the required list traversal, the time complexity is *O(n)*.
+
+When `free` is called, reads the `size` and `pad` from the hidden header, and casts the memory back into a `FreeBlock`.
+To prevent external fragmentation, it then **coalesces** neighboring free memory blocks.
+
+Coalescence is achieved by checking if the end of one free block perfectly touches the start of the next. 
+If they touch, their sizes are summed together, and the second block is physically removed from the linked list. 
+To prevent pointer invalidation bugs, it is best practice to always coalesce a block with its next neighbor before coalescing with its previous neighbor. 
+Because finding the correct insertion point in the address-sorted list requires traversal, `free` also carries an *O(n)* time complexity.
 
 ## Roadmap
 
