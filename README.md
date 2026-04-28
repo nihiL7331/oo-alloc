@@ -291,6 +291,7 @@ When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the poi
 * [ ] Implement a slab allocator.
 * [ ] Add a benchmark/performance README section.
 * [ ] Add realloc description in README.
+* [ ] Move from malloc to mmap/VirtualAlloc.
 * [x] Add a build README section.
 * [x] Write a description for each allocator.
 * [x] Implement a explicit free-list allocator.
