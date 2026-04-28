@@ -64,13 +64,13 @@ You can only clear the entire arena, which is done by resetting `m_offset` to ze
 <p align="center">
   <img src="docs/assets/arena_active.svg" alt="arena allocator active state">
   <br>
-  <em>Arena allocator after two allocations. The offset points to the start of the free space.</em>
+  <em><sub>Arena allocator after two allocations. The offset points to the start of the free space.</sub></em>
 </p>
 
 <p align="center">
   <img src="docs/assets/arena_clear.svg" alt="arena allocator after clear">
   <br>
-  <em>Arena allocator after clear() is called. It holds no data.</em>
+  <em><sub>Arena allocator after clear() is called. It holds no data.</sub></em>
 </p>
 
 ### Stack allocator
@@ -107,13 +107,13 @@ On `free`, the allocator simply reads the header immediately before the given po
 <p align="center">
   <img src="docs/assets/stack_active.svg" alt="stack allocator active state">
   <br>
-  <em>Stack allocator after two allocations. The hidden headers (h1, h2) are placed immediately before the user data.</em>
+  <em><sub>Stack allocator after two allocations. The hidden headers (h1, h2) are placed immediately before the user data.</sub></em>
 </p>
 
 <p align="center">
   <img src="docs/assets/stack_free.svg" alt="stack allocator after free">
   <br>
-  <em>After calling free() on data 2, the allocator reads h2 and instantly snaps m_offset back to the end of data 1.</em>
+  <em><sub>After calling free() on data 2, the allocator reads h2 and instantly snaps m_offset back to the end of data 1.</sub></em>
 </p>
 
 ## Roadmap
