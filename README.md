@@ -283,14 +283,16 @@ When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the poi
 
 ## Roadmap
 
-* [x] Implement a explicit free-list allocator.
 * [ ] Add realloc functionality.
 * [ ] Implement a red-black tree free list allocator.
 * [ ] Implement a size segregated free list allocator.
 * [ ] Implement a pow-of-two buddy allocator.
-* [x] Write a description for each allocator.
 * [ ] Benchmark cache misses via perf.
 * [ ] Implement a slab allocator.
+* [ ] Add a benchmark/performance README section.
+* [x] Add a build README section.
+* [x] Write a description for each allocator.
+* [x] Implement a explicit free-list allocator.
 
 ## Sources
 
