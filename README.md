@@ -150,6 +150,18 @@ Since there is no list traversal required, this is an instant *O(1)* operation.
 
 On `free`, it casts the passed `ptr` into a list node, sets its "next" pointer to the current `m_free_list_head`, and then updates `m_free_list_head` to point to `ptr`. This frees the chunk in *O(1)* time.
 
+<p align="center">
+  <img src="docs/assets/pool_active.svg" alt="pool allocator active state">
+  <br>
+  <em><sub>Pool allocator in a fragmented state. The free chunks store "next" pointers directly inside their empty space.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/pool_free.svg" alt="pool allocator after free">
+  <br>
+  <em><sub>After calling free() on data 1, it gets pushed to the front of the intrusive linked list. The head pointer is updated in O(1) time.</sub></em>
+</p>
+
 ## Roadmap
 
 * [x] Implement a explicit free-list allocator.
