@@ -37,9 +37,9 @@
   stack(
     dir: ltr,
     mem-block(chunk-w, col-used, "data 1"),
-    mem-block(chunk-w, col-free, "free 1", subtext: "next -> free 2"),
-    mem-block(chunk-w, col-used, "data 2"),
-    mem-block(chunk-w, col-free, "free 2", subtext: "next -> null"),
+    mem-block(chunk-w, col-free, "free 2", subtext: "next -> free 4"),
+    mem-block(chunk-w, col-used, "data 3"),
+    mem-block(chunk-w, col-free, "free 4", subtext: "next -> null"),
   ),
 
   grid(
