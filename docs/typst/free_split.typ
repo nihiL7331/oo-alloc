@@ -50,7 +50,7 @@
     mem-block(f1_rem, col-free, "free 1", subtext: "sz:70|nxt:f2"),
     mem-block(h1-w, col-header, "h"),
     mem-block(d1-w, col-used, "data 1"),
-    mem-block(f2-w, col-free, "free 2", subtext: "size:100 | next:f3"),
+    mem-block(f2-w, col-free, "free 2", subtext: "size:100|next:free3"),
     mem-block(h2-w, col-header, "h"),
     mem-block(d2-w, col-used, "d2"),
     mem-block(f3-w, col-free, "free 3", subtext: "sz:70|nxt:na"),
