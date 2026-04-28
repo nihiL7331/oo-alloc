@@ -12,6 +12,7 @@ public:
   virtual void free(void* ptr) = 0;
   virtual bool init(std::size_t size) = 0;
   virtual void clear() = 0;
+  virtual void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::uint8_t align) = 0;
 };
 
 }
