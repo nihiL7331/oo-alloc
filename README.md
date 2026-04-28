@@ -32,10 +32,11 @@ The overview available below can help you do exactly that.
 
 ### Arena (linear) allocator
 
-The simplest allocator. \
-It keeps a pointer to the starting address of the large, contiguous block allocated on `init`. \
-Also stores an `m_offset` integer, which holds the relative position of the last allocated memory from the pointer. \
-Each time `alloc` is called, size of said allocation is added to the `m_offset`. \
+The simplest allocator.
+It keeps a pointer to the starting address of the large, contiguous block allocated on `init`.
+Also stores an `m_offset` integer, which holds the relative position of the last allocated memory from the pointer.
+
+Each time `alloc` is called, size of said allocation is added to the `m_offset`.
 Minimal fragmentation is achieved due to the sequential allocation - the only space wasted is used for alignment.
 
 #### Internal structure
@@ -54,9 +55,10 @@ public:
 };
 ```
 
-When `alloc` is called, it calculates the memory alignment, adds the requested `size` plus the alignment to the `m_offset`, and returns the previous address. \
-This makes `alloc` an instant $O(1)$ operation. \
-Because it only tracks a single forward-moving offset, you can't free individual objects. \
+When `alloc` is called, it calculates the memory alignment, adds the requested `size` plus the alignment to the `m_offset`, and returns the previous address.
+This makes `alloc` an instant $O(1)$ operation.
+
+Because it only tracks a single forward-moving offset, you can't free individual objects.
 You can only clear the entire arena, which is done by resetting `m_offset` to zero, resulting in a $O(1)$ `clear` time complexity.
 
 ## Roadmap
