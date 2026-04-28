@@ -13,6 +13,18 @@ different time complexities, memory overheads and optional constraints.
 It is crucial to pick the right tool for the job. 
 The overview available below can help you do exactly that.
 
+## Overview
+
+| Type          | `alloc`  | `free`   | `clear` | `realloc` | Overhead | Best for | Constraints |
+| :---          | :---:    | :---:    | :---:   | :---:     | :---     | :---     | :---        |
+| **Arena**     | $O(1)$   | N/A      | $O(1)$  | $O(1)$*   | OB       | ...      | ...         |
+| **Stack**     | $O(1)$   | $O(1)$*  | $O(1)$  | N/A       | ~8B      | ...      | ...         |
+| **Pool**      | $O(1)$   | $O(1)$   | $O(1)$  | N/A       | 0B       | ...      | ...         |
+| **Free List** | $O(n)$** | $O(n)$** | $O(1)$  | $O(n)$**  | 16B+     | ...      | ...         |
+
+<sub>\*You can only operate on the top-most allocation.</sub><br>
+<sub>\*\*Using a size segregated free-list (size buckets) implementation, it's possible to achieve $O(1)$ time complexity.</sub>
+
 ## Roadmap
 
 * [x] Implement a explicit free-list allocator.
