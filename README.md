@@ -21,9 +21,12 @@ The overview available below can help you do exactly that.
 | **Stack**     | $O(1)$   | $O(1)$*  | $O(1)$  | N/A       | ~8B      | ...      | ...         |
 | **Pool**      | $O(1)$   | $O(1)$   | $O(1)$  | N/A       | 0B       | ...      | ...         |
 | **Free List** | $O(n)$** | $O(n)$** | $O(1)$  | $O(n)$**  | 16B+     | ...      | ...         |
+| *Buddy****    | $O(1)$   | $O(1)$   | $O(1)$  | $O(1)$    | 0B       | ...      | ...         |
+| *Slab****     | $O(1)$   | $O(1)$   | $O(1)$  | N/A       | OB       | ...      | ...         |
 
 <sub>\*You can only operate on the top-most allocation.</sub><br>
-<sub>\*\*Using a size segregated free-list (size buckets) implementation, it's possible to achieve O(1) time complexity.</sub>
+<sub>\*\*Using a size segregated free-list (size buckets) implementation, it's possible to achieve O(1) time complexity.</sub><br>
+<sub>\*\*\*Not yet available in this repository (in development).</sub>
 
 ## Roadmap
 
