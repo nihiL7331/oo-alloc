@@ -12,6 +12,12 @@ target_link_libraries(arena_align PRIVATE oo_alloc)
 add_test(NAME ArenaAlign COMMAND arena_align)
 set_tests_properties(ArenaAlign PROPERTIES LABELS "arena")
 
+# TEST 3
+add_executable(arena_realloc arena_realloc.cpp)
+target_link_libraries(arena_realloc PRIVATE oo_alloc)
+add_test(NAME ArenaRealloc COMMAND arena_realloc)
+set_tests_properties(ArenaRealloc PROPERTIES LABELS "arena")
+
 # POOL:
 
 # TEST 1
@@ -102,7 +108,7 @@ set_tests_properties(FreeMerge PROPERTIES LABELS "free")
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
   DEPENDS 
-    arena_alphabet arena_align 
+    arena_alphabet arena_align arena_realloc
     pool_bounce pool_exhaust pool_recycle
     stack_align stack_lifo stack_exhaust stack_clear
     track_pass track_peak track_clear
