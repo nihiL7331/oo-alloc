@@ -124,7 +124,7 @@ add_custom_target(test-all
 
 add_custom_target(test-arena
   COMMAND ${CMAKE_CTEST_COMMAND} -L arena --output-on-failure
-  DEPENDS arena_alphabet arena_align
+  DEPENDS arena_alphabet arena_align arena_realloc
   COMMENT "Running arena tests..."
 )
 
