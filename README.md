@@ -44,14 +44,14 @@ Minimal fragmentation is achieved due to the sequential allocation - the only sp
 ```cpp
 class ArenaAllocator {
 private:
-  void*  m_start_ptr;
+  void*       m_start_ptr;
   std::size_t m_total_size;
   std::size_t m_offset;
 
 public:
   void* alloc(std::size_t size, std::uint8_t align);
   bool  init(std::size_t size);
-  void clear();
+  void  clear();
 };
 ```
 
@@ -60,6 +60,18 @@ This makes `alloc` an instant $O(1)$ operation.
 
 Because it only tracks a single forward-moving offset, you can't free individual objects.
 You can only clear the entire arena, which is done by resetting `m_offset` to zero, resulting in a $O(1)$ `clear` time complexity.
+
+<p align="center">
+  <img src="docs/assets/arena_active.svg" alt="arena allocator active state">
+  <br>
+  <em>Arena allocator after two allocations. The offset points to the start of the free space.</em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/arena_clear.svg" alt="arena allocator after clear">
+  <br>
+  <em>Arena allocator after clear() is called. It holds no data.</em>
+</p>
 
 ## Roadmap
 
