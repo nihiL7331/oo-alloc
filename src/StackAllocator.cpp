@@ -1,5 +1,6 @@
 #include "oo_alloc/StackAllocator.hpp"
 #include <algorithm>
+#include <cassert>
 #include <cstdlib>
 
 namespace oo_alloc {
@@ -57,6 +58,16 @@ bool StackAllocator::init(std::size_t size) {
 
 void StackAllocator::clear() {
   m_offset = 0;
+}
+
+void *StackAllocator::realloc(void *ptr, std::size_t old_size,
+                              std::size_t new_size, std::uint8_t align) {
+  (void)ptr;
+  (void)old_size;
+  (void)new_size;
+  (void)align;
+  assert(false && "TODO");
+  return nullptr;
 }
 
 }

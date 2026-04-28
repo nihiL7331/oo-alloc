@@ -25,6 +25,7 @@ public:
   void  free(void* ptr) override;
   bool  init(std::size_t size) override;
   void  clear() override;
+  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::uint8_t align) override;
 };
 
 }

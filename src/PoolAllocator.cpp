@@ -70,4 +70,14 @@ void PoolAllocator::clear() {
   m_free_list_head = m_start_ptr;
 }
    
+void *PoolAllocator::realloc(void *ptr, std::size_t old_size,
+                              std::size_t new_size, std::uint8_t align) {
+  (void)ptr;
+  (void)old_size;
+  (void)new_size;
+  (void)align;
+  assert(false && "TODO");
+  return nullptr;
+}
+
 }

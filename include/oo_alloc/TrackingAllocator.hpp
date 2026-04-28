@@ -21,6 +21,7 @@ public:
   void  free(void* ptr) override;
   bool  init(std::size_t size) override;
   void clear() override;
+  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::uint8_t align) override;
 
   std::size_t get_curr_bytes() const { return m_curr_alloced_bytes; }
   std::size_t get_peak_bytes() const { return m_peak_alloced_bytes; }

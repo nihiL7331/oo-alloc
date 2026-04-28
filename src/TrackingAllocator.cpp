@@ -1,4 +1,5 @@
 #include "oo_alloc/TrackingAllocator.hpp"
+#include <cassert>
 #include <iostream>
 
 namespace oo_alloc {
@@ -50,6 +51,16 @@ void TrackingAllocator::clear() {
   m_curr_alloced_bytes = 0;
   m_active_allocs.clear();
   m_base_allocator.clear();
+}
+
+void *TrackingAllocator::realloc(void *ptr, std::size_t old_size,
+                              std::size_t new_size, std::uint8_t align) {
+  (void)ptr;
+  (void)old_size;
+  (void)new_size;
+  (void)align;
+  assert(false && "TODO");
+  return nullptr;
 }
 
 }

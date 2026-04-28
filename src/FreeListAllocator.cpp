@@ -1,4 +1,5 @@
 #include "oo_alloc/FreeListAllocator.hpp"
+#include <cassert>
 #include <cstdint>
 #include <cstdlib>
 
@@ -152,6 +153,16 @@ void FreeListAllocator::clear() {
   start_ptr->size = m_total_size;
   start_ptr->next = nullptr;
   m_free_list_head = start_ptr;
+}
+
+void *FreeListAllocator::realloc(void *ptr, std::size_t old_size,
+                              std::size_t new_size, std::uint8_t align) {
+  (void)ptr;
+  (void)old_size;
+  (void)new_size;
+  (void)align;
+  assert(false && "TODO");
+  return nullptr;
 }
 
 }
