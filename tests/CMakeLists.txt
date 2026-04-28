@@ -64,6 +64,12 @@ target_link_libraries(stack_clear PRIVATE oo_alloc)
 add_test(NAME StackClear COMMAND stack_clear)
 set_tests_properties(StackClear PROPERTIES LABELS "stack")
 
+# TEST 5
+add_executable(stack_realloc stack_realloc.cpp)
+target_link_libraries(stack_realloc PRIVATE oo_alloc)
+add_test(NAME StackRealloc COMMAND stack_realloc)
+set_tests_properties(StackRealloc PROPERTIES LABELS "stack")
+
 # TRACK:
 
 # TEST 1
@@ -110,7 +116,7 @@ add_custom_target(test-all
   DEPENDS 
     arena_alphabet arena_align arena_realloc
     pool_bounce pool_exhaust pool_recycle
-    stack_align stack_lifo stack_exhaust stack_clear
+    stack_align stack_lifo stack_exhaust stack_clear stack_realloc
     track_pass track_peak track_clear
     free_ooo free_recover free_merge
   COMMENT "Running all tests..."
@@ -130,7 +136,7 @@ add_custom_target(test-pool
 
 add_custom_target(test-stack
   COMMAND ${CMAKE_CTEST_COMMAND} -L stack --output-on-failure
-  DEPENDS stack_align stack_lifo stack_exhaust stack_clear
+  DEPENDS stack_align stack_lifo stack_exhaust stack_clear stack_realloc
   COMMENT "Running stack tests..."
 )
 
