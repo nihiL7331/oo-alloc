@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
+#include <cstring>
 
 namespace oo_alloc {
 
@@ -62,12 +63,29 @@ void StackAllocator::clear() {
 
 void *StackAllocator::realloc(void *ptr, std::size_t old_size,
                               std::size_t new_size, std::uint8_t align) {
-  (void)ptr;
-  (void)old_size;
-  (void)new_size;
-  (void)align;
-  assert(false && "TODO");
-  return nullptr;
+  if (new_size <= old_size)
+    return ptr;
+
+  std::uint8_t *raw_mem_ptr = reinterpret_cast<std::uint8_t *>(ptr);
+  std::uint8_t *raw_start_ptr = reinterpret_cast<std::uint8_t *>(m_start_ptr);
+
+  // only do anything if ptr is the last elem
+  if (raw_start_ptr + m_offset == raw_mem_ptr + old_size) {
+    std::size_t new_offset = m_offset + new_size - old_size;
+    if (new_offset > m_total_size)
+      return nullptr;
+
+    m_offset = new_offset;
+
+    return ptr;
+  } else {
+    void* new_ptr = this->alloc(new_size, align);
+
+    if (new_ptr != nullptr)
+      std::memcpy(new_ptr, ptr, old_size);
+
+    return new_ptr;
+  } 
 }
 
 }
