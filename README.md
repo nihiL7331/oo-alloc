@@ -28,6 +28,37 @@ The overview available below can help you do exactly that.
 <sub>\*\*Using a size segregated free-list (size buckets) implementation, it's possible to achieve O(1) time complexity.</sub><br>
 <sub>\*\*\*Not yet available in this repository (in development).</sub>
 
+## Implementation
+
+### Arena (linear) allocator
+
+The simplest allocator. \
+It keeps a pointer to the starting address of the large, contiguous block allocated on `init`. \
+Also stores an `m_offset` integer, which holds the relative position of the last allocated memory from the pointer. \
+Each time `alloc` is called, size of said allocation is added to the `m_offset`. \
+Minimal fragmentation is achieved due to the sequential allocation - the only space wasted is used for alignment.
+
+#### Internal structure
+
+```cpp
+class ArenaAllocator {
+private:
+  void*  m_start_ptr;
+  std::size_t m_total_size;
+  std::size_t m_offset;
+
+public:
+  void* alloc(std::size_t size, std::uint8_t align);
+  bool  init(std::size_t size);
+  void clear();
+};
+```
+
+When `alloc` is called, it calculates the memory alignment, adds the requested `size` plus the alignment to the `m_offset`, and returns the previous address. \
+This makes `alloc` an instant $O(1)$ operation. \
+Because it only tracks a single forward-moving offset, you can't free individual objects. \
+You can only clear the entire arena, which is done by resetting `m_offset` to zero, resulting in a $O(1)$ `clear` time complexity.
+
 ## Roadmap
 
 * [x] Implement a explicit free-list allocator.
