@@ -28,18 +28,19 @@ The overview available below can help you do exactly that.
 
 ## Overview
 
-| Type          | `alloc`    | `free`     | `clear`   | `realloc`      | Overhead | Best for          | Constraints         |
-| :---          | :---:      | :---:      | :---:     | :---:          | :---:    | :---              | :---                |
-| **Arena**     | `O(1)`     | *N/A*      | `O(1)`    | `O(1)`*/`O(n)` | 0B       | Bulk allocations  | No individual frees |
-| **Stack**     | `O(1)`     | `O(1)`*    | `O(1)`    | `O(1)`*/`O(n)` | ~8B      | Temporary data    | Strict LIFO         |
-| **Pool**      | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Identical objects | Fixed sizes         |
-| **Free List** | `O(n)`**   | `O(n)`**   | `O(1)`    | `O(n)`**       | 16B+     | General purpose   | Fragmentation (ex)  |
-| **Buddy*****  | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | 0B       | OS memory         | Fragmentation (in)  |
-| **Slab*****   | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Object caching    | Single type         |
+| Type             | `alloc`    | `free`     | `clear`   | `realloc`      | Overhead | Best for          | Constraints             |
+| :---             | :---:      | :---:      | :---:     | :---:          | :---:    | :---              | :---                    |
+| **Arena**        | `O(1)`     | *N/A*      | `O(1)`    | `O(1)`*/`O(n)` | 0B       | Bulk allocations  | No individual frees     |
+| **Stack**        | `O(1)`     | `O(1)`*    | `O(1)`    | `O(1)`*/`O(n)` | ~8B      | Temporary data    | Strict LIFO             |
+| **Pool**         | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Identical objects | Fixed sizes             |
+| **Free List**    | `O(n)`     | `O(n)`     | `O(1)`    | `O(n)`         | ~16B     | General purpose   | Slow search / coalesce  |
+| **Free Tree****  | `O(log n)` | `O(log n)` | `O(log n)`| `O(log n)`     | ~32B     | General purpose   | High block overhead     |
+| **Segregated**** | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | ~16B     | General purpose   | Complex to tune         |
+| **Buddy****      | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | 0B       | OS memory         | Fragmentation (in)      |
+| **Slab****       | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Object caching    | Single type             |
 
 <sub>\*You can only operate on the top-most allocation.</sub><br>
-<sub>\*\*Using a size segregated free-list (size buckets) implementation, it's possible to achieve *O(1)* time complexity.</sub><br>
-<sub>\*\*\*Not yet available in this repository (in development).</sub>
+<sub>\*\*Not yet available in this repository (in development).</sub>
 
 ## Implementation
 
@@ -181,17 +182,15 @@ On `free`, it casts the passed `ptr` into a list node, sets its "next" pointer t
 
 ### Free list allocator
 
-It's a general purpose allocator, that is widely used under the hood for heap memory management.
-It gained its popularity due to it having essentially no restrictions. 
-It's implementation and performance may vary greatly, based on the level of complexity:
-- It achieves *O(n)* `alloc`/`free`/`realloc` with a singly-linked or doubly-linked list implementation,
-- It achieves *O(log n)* `alloc`/`free`/`realloc` with a Red-Black tree implementation,
-- It achieves (mostly) *O(1)* `alloc`/`free`/`realloc` with a size-segregated (bucketed) implementation.
+It's a specific type of general-purpose dynamic allocator, widely used under the hood for heap memory management. General-purpose allocators gained popularity due to having essentially no restrictions on allocation size or order. However, their performance varies greatly based on the underlying data structure used to track the free blocks:
+- **Free List**: Achieves *O(n)* time complexity using a singly-linked or doubly-linked list.
+- **Free Tree**: Achieves *O(log n)* time complexity using a bin search tree (e.g, Red-black tree).
+- **Segregated Fits**: Achieves (mostly) *O(1)* time complexity using an array of size-segregated free lists (buckets).
 
-The implementation below uses a **singly-linked** list to store addresses of free memory blocks.
-The list is sorted by memory address (ascending), and is intrusive, just like in the Pool allocator.
-What differs, is that compared to the Pool allocator, the free block stores more data. 
-It stores `size` of the free data, and the address to the next free block.
+The implementation below details the **singly-linked free list**. 
+The list is sorted by memory address (ascending), and is intrusive, just like in the Pool allocator. 
+What differs is that compared to the Pool allocator, the free block stores more data. 
+It stores the `size` of the free data, and the address to the `next` free block.
 
 When a chunk of memory is allocated, it is prefixed with a `AllocHeader`, which holds the `size` and `pad`, required to align the data.
 
