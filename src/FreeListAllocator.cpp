@@ -135,11 +135,10 @@ bool FreeListAllocator::init(std::size_t size) {
   if (size < sizeof(FreeBlock)) // too small to allocate anything
     return false;
 
-  m_start_ptr = std::malloc(size);
+  m_total_size = utils::align_up(size, utils::PAGE_SIZE);
+  m_start_ptr = utils::os_alloc(m_total_size);
   if (m_start_ptr == nullptr)
     return false;
-
-  m_total_size = size;
 
   clear();
 
