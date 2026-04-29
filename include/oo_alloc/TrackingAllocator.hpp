@@ -22,6 +22,7 @@ public:
   bool  init(std::size_t size) override;
   void clear() override;
   void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) override;
+  std::size_t capacity() const override { return m_base_allocator.capacity(); }
 
   std::size_t get_curr_bytes() const { return m_curr_alloced_bytes; }
   std::size_t get_peak_bytes() const { return m_peak_alloced_bytes; }
