@@ -63,10 +63,72 @@ void RBTree::rotate_r(Node* node) {
 //
 // when insert_fix is called, we're shortly
 // after inserting a new red node.
-// there's no certainty that it has only black children.
-//
-void RBTree::insert_fix(Node* node) {
+// at this point, the tree violates at most ONE property:
+// 1. 'new_node == m_root', violating 
+//    'm_root->red = false' rule, 
+//    OR
+// 2. 'new_node->parent->red', violating 
+//    'new_node->red => !new_node->parent->red'
+void RBTree::insert_fix(Node* new_node) {
+  Node* uncle = &m_sentinel;
 
+  while (new_node->parent->red) {
+    Node* parent = new_node->parent;
+    Node* grandparent = parent->parent;
+
+    if (parent == grandparent->left) {
+      uncle = grandparent->right;
+
+      // case 1: 'uncle' is red
+      if (uncle->red) {
+        parent->red = false;
+        uncle->red = false;
+        grandparent->red = true;
+        new_node = grandparent;
+      } else {
+        // case 2: 'uncle' is black,
+        //         'new_node' is a right child
+        if (new_node == parent->right) {
+          new_node = parent;
+          rotate_l(new_node);
+          // after rotation, 'new_node' is a left child
+          // that's why case 2 falls through to case 3
+        }
+
+        // case 3: 'uncle' is black,
+        //         'new_node' is a left child
+        new_node->parent->red = false;
+        new_node->parent->parent->red = true;
+        rotate_r(new_node->parent->parent);
+      } 
+    } else {
+      uncle = grandparent->left;
+
+      // case 1: 'uncle' is red
+      if (uncle->red) {
+        parent->red = false;
+        uncle->red = false;
+        grandparent->red = true;
+        new_node = grandparent;
+      } else {
+        // case 2: 'uncle' is black,
+        //         'new_node' is a left child
+        if (new_node == parent->left) {
+          new_node = parent;
+          rotate_r(new_node);
+          // after rotation, 'new_node' is a right child
+          // that's why case 2 falls through to case 3
+        }
+
+        // case 3: 'uncle' is black,
+        //         'new_node' is a right child
+        new_node->parent->red = false;
+        new_node->parent->parent->red = true;
+        rotate_l(new_node->parent->parent);
+      } 
+    }
+  }
+  m_root->red = false;
 }
 
 void RBTree::delete_fix(Node* node, Node* node_parent) {
