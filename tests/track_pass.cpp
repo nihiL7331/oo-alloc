@@ -11,7 +11,7 @@ int main() {
 
   void* p1 = track.alloc(32, 8);
   assert(p1 != nullptr && "Failed to return mem from base");
-  assert(track.get_curr_bytes() == 32 && "Curr bytes wrong");
-  assert(track.get_active_allocs_cnt() == 1 && "Active count wrong");
-  assert(track.get_peak_bytes() == 32 && "Peak bytes wrong");
+  assert(track.curr_bytes() == 32 && "Curr bytes wrong");
+  assert(track.active_allocs() == 1 && "Active count wrong");
+  assert(track.peak_bytes() == 32 && "Peak bytes wrong");
 }

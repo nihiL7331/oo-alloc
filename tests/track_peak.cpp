@@ -11,12 +11,12 @@ int main() {
 
   void* p1 = track.alloc(32, 8);
   void* p2 = track.alloc(32, 8);
-  assert(track.get_curr_bytes() == 64 && "Curr bytes wrong");
-  assert(track.get_active_allocs_cnt() == 2 && "Active count wrong");
-  assert(track.get_peak_bytes() == 64 && "Peak bytes wrong");
+  assert(track.curr_bytes() == 64 && "Curr bytes wrong");
+  assert(track.active_allocs() == 2 && "Active count wrong");
+  assert(track.peak_bytes() == 64 && "Peak bytes wrong");
 
   track.free(p1);
-  assert(track.get_curr_bytes() == 32 && "Curr bytes wrong post free()");
-  assert(track.get_active_allocs_cnt() == 1 && "Active count wrong post free()");
-  assert(track.get_peak_bytes() == 64 && "Peak bytes wrong post free()");
+  assert(track.curr_bytes() == 32 && "Curr bytes wrong post free()");
+  assert(track.active_allocs() == 1 && "Active count wrong post free()");
+  assert(track.peak_bytes() == 64 && "Peak bytes wrong post free()");
 }

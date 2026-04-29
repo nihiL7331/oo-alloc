@@ -15,7 +15,7 @@ int main() {
   track.alloc(32, 8);
 
   track.clear();
-  assert(track.get_curr_bytes() == 0 && "Curr bytes wrong post clear()");
-  assert(track.get_active_allocs_cnt() == 0 && "Active count wrong post clear()");
-  assert(track.get_peak_bytes() == 128 && "Peak bytes wrong post clear()");
+  assert(track.curr_bytes() == 0 && "Curr bytes wrong post clear()");
+  assert(track.active_allocs() == 0 && "Active count wrong post clear()");
+  assert(track.peak_bytes() == 128 && "Peak bytes wrong post clear()");
 }
