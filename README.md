@@ -271,9 +271,9 @@ public:
   bool  init(std::size_t size);
   void  clear();
 
-  std::size_t get_curr_bytes() const { return m_curr_alloced_bytes; }
-  std::size_t get_peak_bytes() const { return m_peak_alloced_bytes; }
-  std::size_t get_active_allocs_cnt() const { return m_active_allocs.size(); }
+  std::size_t curr_bytes() const { return m_curr_alloced_bytes; }
+  std::size_t peak_bytes() const { return m_peak_alloced_bytes; }
+  std::size_t active_allocs() const { return m_active_allocs.size(); }
 };
 ```
 
