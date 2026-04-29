@@ -65,6 +65,7 @@ public:
   void* alloc(std::size_t size, std::size_t align);
   bool  init(std::size_t size);
   void  clear();
+  std::size_t capacity() const;
 };
 ```
 
@@ -110,6 +111,7 @@ public:
   void  free(void* ptr);
   bool  init(std::size_t size);
   void  clear();
+  std::size_t capacity() const;
 };
 ```
 
@@ -156,6 +158,7 @@ public:
   void  free(void* ptr);
   bool  init(std::size_t size);
   void  clear();
+  std::size_t capacity() const;
 };
 ```
 
@@ -214,6 +217,7 @@ public:
   void  free(void* ptr);
   bool  init(std::size_t size);
   void  clear();
+  std::size_t capacity() const;
 };
 ```
 
@@ -270,6 +274,7 @@ public:
   void  free(void* ptr);
   bool  init(std::size_t size);
   void  clear();
+  std::size_t capacity() const;
 
   std::size_t curr_bytes() const { return m_curr_alloced_bytes; }
   std::size_t peak_bytes() const { return m_peak_alloced_bytes; }
