@@ -8,8 +8,10 @@
 namespace oo_alloc {
 
 PoolAllocator::~PoolAllocator() {
-  if (m_start_ptr != nullptr)
-    std::free(m_start_ptr);
+  if (m_start_ptr != nullptr) {
+    utils::os_free(m_start_ptr, m_total_size);
+    m_start_ptr = nullptr;
+  }
 }
 
 void* PoolAllocator::alloc(std::size_t size, std::size_t align) {

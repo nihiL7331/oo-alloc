@@ -12,8 +12,10 @@ ArenaAllocator::ArenaAllocator()
     : m_start_ptr(nullptr), m_total_size(0), m_offset(0) {}
 
 ArenaAllocator::~ArenaAllocator() {
-  if (m_start_ptr != nullptr)
-    std::free(m_start_ptr);
+  if (m_start_ptr != nullptr) {
+    utils::os_free(m_start_ptr, m_total_size);
+    m_start_ptr = nullptr;
+  }
 }
 
 void *ArenaAllocator::alloc(std::size_t size, std::size_t align) {
