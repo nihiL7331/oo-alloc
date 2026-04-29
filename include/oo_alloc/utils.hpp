@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
+#include <unistd.h>
 
 #if defined(_WIN32)
   #include <windows.h>
@@ -25,7 +26,7 @@ inline std::size_t calc_pad(std::uintptr_t ptr, std::size_t align) {
 }
 
 // memory page size (minimum init size)
-const std::size_t PAGE_SIZE = 4096;
+const std::size_t PAGE_SIZE = sysconf(_SC_PAGESIZE);
 
 // OS call for memory page
 inline void* os_alloc(std::size_t size) {
