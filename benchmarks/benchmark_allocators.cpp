@@ -37,6 +37,7 @@ public:
   bool  init(std::size_t _) override { return true; }
   void clear() override {}
   void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) override { return std::realloc(ptr, old_size); };
+  std::size_t capacity() const override { return 0; }
 };
 
 void run_test(oo_alloc::IAllocator& allocator, const std::string& name, int iters, std::size_t alloc_size, std::uint8_t align) {
