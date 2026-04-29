@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #if defined(_WIN32)
+  #define NOMINMAX
   #include <windows.h>
   #include <memoryapi.h>
 #else
@@ -56,6 +57,7 @@ inline void os_free(void* ptr, std::size_t size) {
     return;
 
 #if defined(_WIN32)
+  (void)size;
   VirtualFree(ptr, 0, MEM_RELEASE);
 #else
   munmap(ptr, size);
