@@ -22,7 +22,7 @@ private:
   void rotate_l(Node* node);
   void rotate_r(Node* node);
   void insert_fix(Node* new_node);
-  void remove_fix(Node* node);
+  void remove_fix(Node* replacement_node);
   void transplant(Node* replaced_node, Node* replacement_node);
   Node* min(Node* root_node);
 
@@ -36,7 +36,7 @@ public:
   }
 
   void insert(Node* new_node);
-  void remove(Node* node);
+  void remove(Node* node_to_remove);
   Node* find_best(std::size_t req_size) const;
 
   bool empty() const { return m_root == nullptr; }
