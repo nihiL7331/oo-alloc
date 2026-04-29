@@ -305,3 +305,5 @@ When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the poi
 * [CS107 - Explicit Free List Allocator, Stanford University](https://web.stanford.edu/class/archive/cs/cs107/cs107.1246/lectures/24/Lecture24.pdf)
 * [MallocInternals from glibc wiki](https://sourceware.org/glibc/wiki/MallocInternals)
 * [Slab allocation Wikipedia page](https://en.wikipedia.org/wiki/Slab_allocation)
+* [Red-black tree Wikipedia page](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree)
+* [Data Structures and Algorithms - Red-black trees, University of Michigan](https://www.eecs.umich.edu/courses/eecs380/ALG/red_black.html)
