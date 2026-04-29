@@ -32,11 +32,11 @@ class MallocAllocator : public oo_alloc::IAllocator {
 public:
   ~MallocAllocator() override = default;
 
-  void* alloc(std::size_t size, std::uint8_t _) override { return std::malloc(size); }
+  void* alloc(std::size_t size, std::size_t _) override { return std::malloc(size); }
   void  free(void* ptr) override { std::free(ptr); }
   bool  init(std::size_t _) override { return true; }
   void clear() override {}
-  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::uint8_t align) override { return std::realloc(ptr, old_size); };
+  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) override { return std::realloc(ptr, old_size); };
 };
 
 void run_test(oo_alloc::IAllocator& allocator, const std::string& name, int iters, std::size_t alloc_size, std::uint8_t align) {
