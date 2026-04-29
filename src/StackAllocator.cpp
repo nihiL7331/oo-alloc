@@ -1,4 +1,5 @@
 #include "oo_alloc/StackAllocator.hpp"
+#include "oo_alloc/utils.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
@@ -24,7 +25,7 @@ void* StackAllocator::alloc(std::size_t size, std::uint8_t align) {
   std::uint8_t actual_align = std::max(align, header_align);
 
   std::uintptr_t unalign_ptr = curr_ptr + header_size;
-  std::uint8_t pad = (actual_align - (unalign_ptr & (actual_align - 1))) & (actual_align - 1);
+  std::uint8_t pad = utils::calc_pad(unalign_ptr, actual_align);
   std::uintptr_t data_ptr = unalign_ptr + pad;
 
   std::size_t alloc_size = header_size + pad + size;

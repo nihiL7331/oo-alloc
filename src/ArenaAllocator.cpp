@@ -1,4 +1,5 @@
 #include "oo_alloc/ArenaAllocator.hpp"
+#include "oo_alloc/utils.hpp"
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -19,7 +20,7 @@ void *ArenaAllocator::alloc(std::size_t size, std::uint8_t align) {
   std::uintptr_t base_ptr = reinterpret_cast<std::uintptr_t>(m_start_ptr);
   std::uintptr_t curr_ptr = base_ptr + m_offset;
 
-  std::uintptr_t pad = (align - (curr_ptr & (align - 1))) & (align - 1);
+  std::uint8_t pad = utils::calc_pad(curr_ptr, align);
 
   if (m_offset + pad + size > m_total_size)
     return nullptr;

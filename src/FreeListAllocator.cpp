@@ -1,4 +1,5 @@
 #include "oo_alloc/FreeListAllocator.hpp"
+#include "oo_alloc/utils.hpp"
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
@@ -27,7 +28,7 @@ void* FreeListAllocator::alloc(std::size_t size, std::uint8_t align) {
     std::uintptr_t curr_addr = reinterpret_cast<std::uintptr_t>(curr_ptr);
     std::uintptr_t unalign_ptr = curr_addr + header_size;
 
-    std::uint8_t pad = (align - (unalign_ptr & (align - 1))) & (align - 1);
+    std::uint8_t pad = utils::calc_pad(unalign_ptr, align);
 
     std::size_t required_size = size + header_size + pad;
     std::size_t free_size = curr_ptr->size;
