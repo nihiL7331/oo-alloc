@@ -1,4 +1,5 @@
 #include "oo_alloc/PoolAllocator.hpp"
+#include "oo_alloc/utils.hpp"
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -39,11 +40,10 @@ bool PoolAllocator::init(std::size_t size) {
   if (size % m_chunk_size != 0)
     return false;
 
-  m_start_ptr = std::malloc(size);
+  m_total_size = utils::align_up(size, utils::PAGE_SIZE);
+  m_start_ptr = utils::os_alloc(m_total_size);
   if (m_start_ptr == nullptr)
     return false;
-
-  m_total_size = size;
 
   clear();
 
