@@ -35,7 +35,7 @@ The overview available below can help you do exactly that.
 | **Pool**      | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Identical objects | Fixed sizes         |
 | **Free List** | `O(n)`**   | `O(n)`**   | `O(1)`    | `O(n)`**       | 16B+     | General purpose   | Fragmentation (ex)  |
 | **Buddy*****  | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | 0B       | OS memory         | Fragmentation (in)  |
-| **Slab*****   | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | OB       | Object caching    | Single type         |
+| **Slab*****   | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Object caching    | Single type         |
 
 <sub>\*You can only operate on the top-most allocation.</sub><br>
 <sub>\*\*Using a size segregated free-list (size buckets) implementation, it's possible to achieve *O(1)* time complexity.</sub><br>
