@@ -110,6 +110,12 @@ target_link_libraries(free_merge PRIVATE oo_alloc)
 add_test(NAME FreeMerge COMMAND free_merge)
 set_tests_properties(FreeMerge PROPERTIES LABELS "free")
 
+# TEST 4
+add_executable(free_realloc free_realloc.cpp)
+target_link_libraries(free_realloc PRIVATE oo_alloc)
+add_test(NAME FreeRealloc COMMAND free_realloc)
+set_tests_properties(FreeRealloc PROPERTIES LABELS "free")
+
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
@@ -118,7 +124,7 @@ add_custom_target(test-all
     pool_bounce pool_exhaust pool_recycle
     stack_align stack_lifo stack_exhaust stack_clear stack_realloc
     track_pass track_peak track_clear
-    free_ooo free_recover free_merge
+    free_ooo free_recover free_merge free_realloc
   COMMENT "Running all tests..."
 )
 
@@ -148,6 +154,6 @@ add_custom_target(test-track
 
 add_custom_target(test-free
   COMMAND ${CMAKE_CTEST_COMMAND} -L free --output-on-failure
-  DEPENDS free_ooo free_recover free_merge
+  DEPENDS free_ooo free_recover free_merge free_realloc
   COMMENT "Running free-list tests..."
 )
