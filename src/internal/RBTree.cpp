@@ -154,6 +154,13 @@ void RBTree::transplant(Node* replaced_node, Node* replacement_node) {
   replacement_node->parent = replaced_node->parent;
 }
 
+// Returns the minimum (left-most) node of a sub-tree.
+RBTree::Node* RBTree::min(Node* root_node) {
+  while (root_node->left != &m_sentinel)
+    root_node = root_node->left;
+  return root_node;
+}
+
 // the implementation of insert
 // for the red-black tree is similar
 // to bst, but with some small tweaks

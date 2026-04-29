@@ -24,6 +24,7 @@ private:
   void insert_fix(Node* new_node);
   void remove_fix(Node* node);
   void transplant(Node* replaced_node, Node* replacement_node);
+  Node* min(Node* root_node);
 
 public:
   RBTree() : m_root(nullptr) {
