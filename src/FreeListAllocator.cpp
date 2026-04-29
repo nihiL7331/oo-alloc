@@ -249,8 +249,6 @@ void *FreeListAllocator::realloc(void *ptr, std::size_t old_size,
           prev_ptr->next = new_curr_ptr;
       }
 
-      AllocHeader *header_ptr =
-          reinterpret_cast<AllocHeader *>(raw_ptr - sizeof(AllocHeader));
       header_ptr->size = align_new_size;
       return ptr;
     } else if (touches_left && prev_ptr->size >= align_new_size - old_size) {
