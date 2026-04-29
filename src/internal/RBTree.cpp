@@ -200,9 +200,57 @@ void RBTree::insert(Node* new_node) {
   insert_fix(new_node);
 }
 
-void RBTree::remove(Node* node) {
-  (void)node;
-  assert(false && "TODO");
+void RBTree::remove(Node* node_to_remove) {
+  // 'replaced_node' stores the node to remove
+  Node* replaced_node = node_to_remove;
+  // 'replaced_node's color might change, so we store it
+  bool orig_red = replaced_node->red;
+  // `replacement_node` will move into 
+  // `replaced_node`s position
+  Node* replacement_node;
+
+  // if 'node_to_remove' doesn't have a left child,
+  // replace `node_to_remove` with its right child
+  if (node_to_remove->left == &m_sentinel) {
+    replacement_node = node_to_remove->right;
+    transplant(node_to_remove, replacement_node);
+  // if `node_to_remove` doesn't have a right child,
+  // replace `node_to_remove` with its left child
+  } else if (node_to_remove->right == &m_sentinel) {
+    replacement_node = node_to_remove->left;
+    transplant(node_to_remove, replacement_node);
+  // if 'node_to_remove' has both children,
+  // get its successor and transplant it to
+  // `node_to_remove`s position.
+  } else {
+    // get 'node_to_remove's successor
+    replaced_node = min(node_to_remove->right);
+    orig_red = replaced_node->red;
+    replacement_node = replaced_node->right;
+    // remove successor from its original position
+    if (replaced_node->parent == node_to_remove)
+      replacement_node->parent = replaced_node;
+    else {
+      transplant(replaced_node, replaced_node->right);
+      replaced_node->right = node_to_remove->right;
+      replaced_node->right->parent = replaced_node;
+    }
+    // place it on the `node_to_remove` position
+    transplant(node_to_remove, replaced_node);
+    replaced_node->left = node_to_remove->left;
+    replaced_node->left->parent = replaced_node;
+
+    // copy `node_to_remove`s color to its replacement
+    replaced_node->red = node_to_remove->red;
+  }
+
+  // if 'node_to_remove' was black,
+  // might have violated red-black properties:
+  // 1. possible red adjacent nodes,
+  // 2. possible red nodes with red children,
+  // 3. possible changes in black-height.
+  if (!orig_red)
+    remove_fix(replacement_node);
 }
 
 RBTree::Node* RBTree::find_best(std::size_t req_size) const {
