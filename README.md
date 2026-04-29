@@ -311,3 +311,4 @@ When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the poi
 * [Slab allocation Wikipedia page](https://en.wikipedia.org/wiki/Slab_allocation)
 * [Red-black tree Wikipedia page](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree)
 * [Data Structures and Algorithms - Red-black trees, University of Michigan](https://www.eecs.umich.edu/courses/eecs380/ALG/red_black.html)
+* [Red-Black Trees chapter from Introduction to Algorithms by Cormen, Leiserson, Rivest and Stein](https://www.cs.mcgill.ca/~akroit/math/compsci/Cormen%20Introduction%20to%20Algorithms.pdf)
