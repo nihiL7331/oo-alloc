@@ -5,8 +5,29 @@ namespace oo_alloc {
 namespace internal {
 
 void RBTree::rotate_l(Node* node) {
-  (void)node;
-  assert(false && "TODO");
+  Node* child_r = node->right;
+
+  // 1. place the left child of 'child_r'
+  // in the place of 'child_r'
+  node->right = child_r->left;
+  child_r->left->parent = node;
+
+  // 2. place 'child_r' in the place of 'node'
+  child_r->parent = node->parent;
+
+  // if 'node' has no parent, 'child_r' is the new root
+  if (node->parent == &m_sentinel)
+    m_root = child_r;
+  // place child_r accordingly
+  else if (node == node->parent->left)
+    node->parent->left = child_r;
+  else
+    node->parent->right = child_r;
+
+  // 3. place 'node' as the left child of 'child_r'
+  // (move 'node' bottom-left)
+  child_r->left = node;
+  node->parent = child_r;
 }
 
 void RBTree::rotate_r(Node* node) {
