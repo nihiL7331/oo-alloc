@@ -57,6 +57,9 @@ void RBTree::rotate_r(Node* node) {
   node->parent = child_l;
 }
 
+// responsible for "fixing" the tree
+// structure after insertion.
+// it recolors nodes and performs rotations
 void RBTree::insert_fix(Node* node) {
   (void)node;
   assert(false && "TODO");
@@ -72,9 +75,41 @@ void RBTree::transplant(Node* node1, Node* node2) {
   assert(false && "TODO");
 }
 
-void RBTree::insert(Node* node) {
-  (void)node;
-  assert(false && "TODO");
+// the implementation of insert
+// for the red-black tree is similar
+// to bst, but with some small tweaks
+void RBTree::insert(Node* new_node) {
+  Node* parent = &m_sentinel;
+  Node* current = m_root;
+
+  // 1. traverse down the tree,
+  // searching for the target position
+  // just like in bst
+  while (current != &m_sentinel) {
+    parent = current;
+    if (new_node->size <= current->size)
+      current = current->left;
+    else
+      current = current->right;
+  }
+
+  // 2. place the inserted node
+  // also, just like in bst
+  new_node->parent = parent;
+  if (parent == &m_sentinel)
+    m_root = new_node;
+  else if (new_node->size <= parent->size)
+    parent->left = new_node;
+  else
+    parent->right = new_node;
+
+  new_node->left = &m_sentinel;
+  new_node->right = &m_sentinel;
+
+  // 3. set the inserted nodes
+  // color to red, and "fix" the tree
+  new_node->red = true;
+  insert_fix(new_node);
 }
 
 void RBTree::remove(Node* node) {
