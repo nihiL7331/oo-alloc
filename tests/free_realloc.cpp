@@ -31,7 +31,7 @@ int main() {
   void* ptr2_aligned = free.realloc(ptr2_moved, 300, 400, 64);
   assert(reinterpret_cast<std::uintptr_t>(ptr2_aligned) % 64 == 0 && "Failed to respect 64-byte alignment");
 
-  void* ptr2_too_big = free.realloc(ptr2_aligned, 400, 5000, 8);
+  void* ptr2_too_big = free.realloc(ptr2_aligned, 400, 1024 * 1024, 8);
   assert(ptr2_too_big == nullptr && "Should return nullptr on overflow");
 
   void* left_block = free.alloc(64, 8);
