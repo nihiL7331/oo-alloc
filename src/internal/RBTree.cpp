@@ -136,9 +136,22 @@ void RBTree::remove_fix(Node* node, Node* node_parent) {
   assert(false && "TODO");
 }
 
-void RBTree::transplant(Node* node1, Node* node2) {
-  (void)node1; (void)node2;
-  assert(false && "TODO");
+// this procedure acts as a helper for the 'delete' function. 
+// it leaves `replaced_node` dangling,
+// setting up `replacement_node` to take its place.
+void RBTree::transplant(Node* replaced_node, Node* replacement_node) {
+  // if 'replaced_node' has no parent,
+  // 'replacement_node' is the new 'm_root'
+  if (replaced_node->parent == &m_sentinel)
+    m_root = replacement_node;
+  // else place 'replacement_node' in 'replaced_node's position
+  else if (replaced_node == replaced_node->parent->left)
+    replaced_node->parent->left = replacement_node;
+  else
+    replaced_node->parent->right = replacement_node;
+
+  // set `replacement_node`s parent
+  replacement_node->parent = replaced_node->parent;
 }
 
 // the implementation of insert
