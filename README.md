@@ -62,7 +62,7 @@ private:
   std::size_t m_offset;
 
 public:
-  void* alloc(std::size_t size, std::uint8_t align);
+  void* alloc(std::size_t size, std::size_t align);
   bool  init(std::size_t size);
   void  clear();
 };
@@ -106,7 +106,7 @@ private:
   std::size_t m_total_size;
 
 public:
-  void* alloc(std::size_t size, std::uint8_t align);
+  void* alloc(std::size_t size, std::size_t align);
   void  free(void* ptr);
   bool  init(std::size_t size);
   void  clear();
@@ -152,7 +152,7 @@ private:
   void*       m_free_list_head;
 
 public:
-  void* alloc(std::size_t size, std::uint8_t align);
+  void* alloc(std::size_t size, std::size_t align);
   void  free(void* ptr);
   bool  init(std::size_t size);
   void  clear();
@@ -203,14 +203,14 @@ private:
   };
   struct AllocHeader {
     std::size_t size;
-    std::uint8_t pad;
+    std::size_t pad;
   };
   void*       m_start_ptr;
   std::size_t m_total_size;
   FreeBlock*  m_free_list_head;
 
 public:
-  void* alloc(std::size_t size, std::uint8_t align);
+  void* alloc(std::size_t size, std::size_t align);
   void  free(void* ptr);
   bool  init(std::size_t size);
   void  clear();
@@ -266,7 +266,7 @@ private:
 public:
   TrackingAllocator(IAllocator& base_allocator);
 
-  void* alloc(std::size_t size, std::uint8_t align);
+  void* alloc(std::size_t size, std::size_t align);
   void  free(void* ptr);
   bool  init(std::size_t size);
   void  clear();
