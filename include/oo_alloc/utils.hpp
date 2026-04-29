@@ -1,13 +1,13 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
-#include <unistd.h>
 
 #if defined(_WIN32)
   #include <windows.h>
   #include <memoryapi.h>
 #else
   #include <sys/mman.h>
+  #include <unistd.h>
 #endif
 
 namespace oo_alloc {
@@ -26,7 +26,13 @@ inline std::size_t calc_pad(std::uintptr_t ptr, std::size_t align) {
 }
 
 // memory page size (minimum init size)
-const std::size_t PAGE_SIZE = sysconf(_SC_PAGESIZE);
+#if defined(_WIN32)
+  SYSTEM_INFO sysInfo;
+  GetSystemInfo(&sysInfo);
+  const std::size_t PAGE_SIZE = sysInfo.dwPageSize;
+#else
+  const std::size_t PAGE_SIZE = sysconf(_SC_PAGESIZE);
+#endif
 
 // OS call for memory page
 inline void* os_alloc(std::size_t size) {
