@@ -51,7 +51,7 @@ void StackAllocator::free(void* ptr) {
 }
 
 bool StackAllocator::init(std::size_t size) {
-  m_total_size = utils::align_up(size, utils::PAGE_SIZE);
+  m_total_size = utils::align_up(size, utils::page_size());
   m_start_ptr = utils::os_alloc(m_total_size);
   if (m_start_ptr == nullptr)
     return false;

@@ -26,13 +26,18 @@ inline std::size_t calc_pad(std::uintptr_t ptr, std::size_t align) {
 }
 
 // memory page size (minimum init size)
+inline std::size_t page_size() {
+  static const std::size_t size = []() {
 #if defined(_WIN32)
-  SYSTEM_INFO sysInfo;
-  GetSystemInfo(&sysInfo);
-  const std::size_t PAGE_SIZE = sysInfo.dwPageSize;
+    SYSTEM_INFO sysInfo;
+    GetSystemInfo(&sysInfo);
+    return static_cast<std::size_t>(sysInfo.dwPageSize);
 #else
-  const std::size_t PAGE_SIZE = sysconf(_SC_PAGESIZE);
+    return static_cast<std::size_t>(sysconf(_SC_PAGESIZE));
 #endif
+  }();
+  return size;
+}
 
 // OS call for memory page
 inline void* os_alloc(std::size_t size) {

@@ -42,7 +42,7 @@ bool PoolAllocator::init(std::size_t size) {
   if (size % m_chunk_size != 0)
     return false;
 
-  m_total_size = utils::align_up(size, utils::PAGE_SIZE);
+  m_total_size = utils::align_up(size, utils::page_size());
   m_start_ptr = utils::os_alloc(m_total_size);
   if (m_start_ptr == nullptr)
     return false;

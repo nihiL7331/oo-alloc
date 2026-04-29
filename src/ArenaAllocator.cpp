@@ -37,7 +37,7 @@ void *ArenaAllocator::alloc(std::size_t size, std::size_t align) {
 void ArenaAllocator::free(void *ptr) { (void)ptr; }
 
 bool ArenaAllocator::init(std::size_t size) {
-  m_total_size = utils::align_up(size, utils::PAGE_SIZE);
+  m_total_size = utils::align_up(size, utils::page_size());
 
   m_start_ptr = utils::os_alloc(m_total_size);
   if (m_start_ptr == nullptr)
