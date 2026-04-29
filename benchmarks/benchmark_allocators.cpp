@@ -8,6 +8,8 @@
 #include <string>
 #include <cstdlib>
 #include <vector>
+#include <algorithm>
+#include <random>
 
 class Stopwatch {
 private:
@@ -40,18 +42,32 @@ public:
   std::size_t capacity() const override { return 0; }
 };
 
-void run_test(oo_alloc::IAllocator& allocator, const std::string& name, int iters, std::size_t alloc_size, std::uint8_t align) {
+void run_test(oo_alloc::IAllocator& allocator, const std::string& name, int iters, std::size_t alloc_size, std::size_t align, bool is_stack_or_arena = false) {
   // pre-alloc to not get vector overhead in benchmark
   std::vector<void *> ptrs(iters, nullptr);
 
   {
     Stopwatch timer(name);
 
-    for (int i = 0; i < iters; ++i)
+    for (int i = 0; i < iters; ++i) {
       ptrs[i] = allocator.alloc(alloc_size, align);
+      
+      // volatile to discourage any optimizations
+      if (ptrs[i] != nullptr) {
+          *static_cast<volatile char*>(ptrs[i]) = 'x'; 
+      }
+    }
 
-    for (int i = iters - 1; i >= 0; --i)
+    // force fragmentation for freelist and malloc
+    if (!is_stack_or_arena) {
+        // deterministic seed so that every allocator gets equally shuffled
+        std::mt19937 gen(42); 
+        std::shuffle(ptrs.begin(), ptrs.end(), gen);
+    }
+
+    for (int i = 0; i < iters; ++i) {
       allocator.free(ptrs[i]);
+    }
   }
 }
 
