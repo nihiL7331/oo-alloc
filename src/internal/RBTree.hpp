@@ -22,8 +22,8 @@ private:
   void rotate_l(Node* node);
   void rotate_r(Node* node);
   void insert_fix(Node* new_node);
-  void delete_fix(Node* node, Node* node_parent);
   void transplant(Node* node1, Node* node2);
+  void remove_fix(Node* node, Node* node_parent);
 
 public:
   RBTree() : m_root(nullptr) {

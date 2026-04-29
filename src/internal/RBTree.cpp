@@ -131,7 +131,7 @@ void RBTree::insert_fix(Node* new_node) {
   m_root->red = false;
 }
 
-void RBTree::delete_fix(Node* node, Node* node_parent) {
+void RBTree::remove_fix(Node* node, Node* node_parent) {
   (void)node; (void)node_parent;
   assert(false && "TODO");
 }
