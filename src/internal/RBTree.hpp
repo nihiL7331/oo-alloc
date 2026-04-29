@@ -22,7 +22,7 @@ private:
   void rotate_l(Node* node);
   void rotate_r(Node* node);
   void insert_fix(Node* new_node);
-  void remove_fix(Node* node, Node* node_parent);
+  void remove_fix(Node* node);
   void transplant(Node* replaced_node, Node* replacement_node);
 
 public:
