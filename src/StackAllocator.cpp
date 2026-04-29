@@ -15,17 +15,17 @@ StackAllocator::~StackAllocator() {
     std::free(m_start_ptr);
 }
 
-void* StackAllocator::alloc(std::size_t size, std::uint8_t align) {
+void* StackAllocator::alloc(std::size_t size, std::size_t align) {
   std::uintptr_t base_ptr = reinterpret_cast<std::uintptr_t>(m_start_ptr);
   std::uintptr_t curr_ptr = base_ptr + m_offset;
 
-  std::uint8_t header_align = alignof(std::size_t);
-  std::uint8_t header_size = sizeof(std::size_t);
+  std::size_t header_align = alignof(std::size_t);
+  std::size_t header_size = sizeof(std::size_t);
 
-  std::uint8_t actual_align = std::max(align, header_align);
+  std::size_t actual_align = std::max(align, header_align);
 
   std::uintptr_t unalign_ptr = curr_ptr + header_size;
-  std::uint8_t pad = utils::calc_pad(unalign_ptr, actual_align);
+  std::size_t pad = utils::calc_pad(unalign_ptr, actual_align);
   std::uintptr_t data_ptr = unalign_ptr + pad;
 
   std::size_t alloc_size = header_size + pad + size;
@@ -63,7 +63,7 @@ void StackAllocator::clear() {
 }
 
 void *StackAllocator::realloc(void *ptr, std::size_t old_size,
-                              std::size_t new_size, std::uint8_t align) {
+                              std::size_t new_size, std::size_t align) {
   if (new_size <= old_size)
     return ptr;
 

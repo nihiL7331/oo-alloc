@@ -20,8 +20,8 @@ constexpr inline std::size_t align_up(std::size_t size, std::uint8_t align) {
 
 // calculates amount of padding bytes required to align a mem address
 // NOTE: align must be a power of 2.
-inline std::uint8_t calc_pad(std::uintptr_t ptr, std::uint8_t align) {
-  return static_cast<std::uint8_t>((align - (ptr & (align - 1))) & (align - 1));
+inline std::size_t calc_pad(std::uintptr_t ptr, std::size_t align) {
+  return static_cast<std::size_t>((align - (ptr & (align - 1))) & (align - 1));
 }
 
 // OS call for memory page

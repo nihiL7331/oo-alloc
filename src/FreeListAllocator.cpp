@@ -19,7 +19,7 @@ FreeListAllocator::~FreeListAllocator() {
  * pad       | header | data        (when allocated)
  * free_size | next*  | empty space (when not allocated) 
  */
-void* FreeListAllocator::alloc(std::size_t size, std::uint8_t align) {
+void* FreeListAllocator::alloc(std::size_t size, std::size_t align) {
   std::size_t header_size = sizeof(AllocHeader);
 
   FreeBlock* prev_ptr = nullptr;
@@ -29,7 +29,7 @@ void* FreeListAllocator::alloc(std::size_t size, std::uint8_t align) {
     std::uintptr_t curr_addr = reinterpret_cast<std::uintptr_t>(curr_ptr);
     std::uintptr_t unalign_ptr = curr_addr + header_size;
 
-    std::uint8_t pad = utils::calc_pad(unalign_ptr, align);
+    std::size_t pad = utils::calc_pad(unalign_ptr, align);
 
     std::size_t required_size = size + header_size + pad;
     std::size_t free_size = curr_ptr->size;
@@ -86,7 +86,7 @@ void  FreeListAllocator::free(void* ptr) {
 
   // step backwards again to origin
   std::size_t size = header_ptr->size;
-  std::uint8_t pad = header_ptr->pad;
+  std::size_t pad = header_ptr->pad;
   std::uint8_t* orig_ptr = reinterpret_cast<std::uint8_t *>(header_ptr) - pad;
   FreeBlock* new_free_ptr = reinterpret_cast<FreeBlock *>(orig_ptr);
   new_free_ptr->size = size;
@@ -158,7 +158,7 @@ void FreeListAllocator::clear() {
 }
 
 void *FreeListAllocator::realloc(void *ptr, std::size_t old_size,
-                                 std::size_t new_size, std::uint8_t align) {
+                                 std::size_t new_size, std::size_t align) {
   // NOTE: this implementation isn't fast.
   // if the block has to left-expand, it has to use std::memmove
   // which is slow.

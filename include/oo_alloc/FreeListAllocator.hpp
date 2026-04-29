@@ -1,5 +1,4 @@
 #include "oo_alloc/IAllocator.hpp"
-#include <cstdint>
 
 namespace oo_alloc {
 
@@ -11,7 +10,7 @@ private:
   };
   struct AllocHeader {
     std::size_t size;
-    std::uint8_t pad;
+    std::size_t pad;
   };
   void*       m_start_ptr;
   std::size_t m_total_size;
@@ -21,11 +20,11 @@ public:
   FreeListAllocator();
   ~FreeListAllocator() override;
 
-  void* alloc(std::size_t size, std::uint8_t align) override;
+  void* alloc(std::size_t size, std::size_t align) override;
   void  free(void* ptr) override;
   bool  init(std::size_t size) override;
   void  clear() override;
-  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::uint8_t align) override;
+  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) override;
 };
 
 }

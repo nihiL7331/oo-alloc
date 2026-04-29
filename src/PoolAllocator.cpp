@@ -11,7 +11,7 @@ PoolAllocator::~PoolAllocator() {
     std::free(m_start_ptr);
 }
 
-void* PoolAllocator::alloc(std::size_t size, std::uint8_t align) {
+void* PoolAllocator::alloc(std::size_t size, std::size_t align) {
   if (size != m_chunk_size || align != m_chunk_align)
     return nullptr;
   if (m_free_list_head == nullptr)
@@ -71,7 +71,7 @@ void PoolAllocator::clear() {
 }
    
 void *PoolAllocator::realloc(void *ptr, std::size_t old_size,
-                              std::size_t new_size, std::uint8_t align) {
+                              std::size_t new_size, std::size_t align) {
   (void)old_size;
   (void)align;
   if (new_size > m_chunk_size)

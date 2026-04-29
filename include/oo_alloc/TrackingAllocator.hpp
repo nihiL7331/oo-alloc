@@ -17,11 +17,11 @@ public:
     : m_base_allocator(base_allocator) {}
   ~TrackingAllocator() override;
 
-  void* alloc(std::size_t size, std::uint8_t align) override;
+  void* alloc(std::size_t size, std::size_t align) override;
   void  free(void* ptr) override;
   bool  init(std::size_t size) override;
   void clear() override;
-  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::uint8_t align) override;
+  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) override;
 
   std::size_t get_curr_bytes() const { return m_curr_alloced_bytes; }
   std::size_t get_peak_bytes() const { return m_peak_alloced_bytes; }

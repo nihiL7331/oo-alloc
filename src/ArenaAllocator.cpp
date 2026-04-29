@@ -16,11 +16,11 @@ ArenaAllocator::~ArenaAllocator() {
     std::free(m_start_ptr);
 }
 
-void *ArenaAllocator::alloc(std::size_t size, std::uint8_t align) {
+void *ArenaAllocator::alloc(std::size_t size, std::size_t align) {
   std::uintptr_t base_ptr = reinterpret_cast<std::uintptr_t>(m_start_ptr);
   std::uintptr_t curr_ptr = base_ptr + m_offset;
 
-  std::uint8_t pad = utils::calc_pad(curr_ptr, align);
+  std::size_t pad = utils::calc_pad(curr_ptr, align);
 
   if (m_offset + pad + size > m_total_size)
     return nullptr;
@@ -47,7 +47,7 @@ bool ArenaAllocator::init(std::size_t size) {
 void ArenaAllocator::clear() { m_offset = 0; }
 
 void *ArenaAllocator::realloc(void *ptr, std::size_t old_size,
-                              std::size_t new_size, std::uint8_t align) {
+                              std::size_t new_size, std::size_t align) {
   if (new_size <= old_size)
     return ptr;
 

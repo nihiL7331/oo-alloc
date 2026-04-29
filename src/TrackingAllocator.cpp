@@ -13,7 +13,7 @@ TrackingAllocator::~TrackingAllocator() {
               << std::endl;
 }
 
-void* TrackingAllocator::alloc(std::size_t size, std::uint8_t align) {
+void* TrackingAllocator::alloc(std::size_t size, std::size_t align) {
   void* base_alloc_ptr = m_base_allocator.alloc(size, align);
   if (base_alloc_ptr == nullptr)
     return nullptr;
@@ -54,7 +54,7 @@ void TrackingAllocator::clear() {
 }
 
 void *TrackingAllocator::realloc(void *ptr, std::size_t old_size,
-                              std::size_t new_size, std::uint8_t align) {
+                              std::size_t new_size, std::size_t align) {
   (void)ptr;
   (void)old_size;
   (void)new_size;
