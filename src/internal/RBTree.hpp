@@ -21,7 +21,7 @@ private:
 
   void rotate_l(Node* node);
   void rotate_r(Node* node);
-  void insert_fix(Node* node);
+  void insert_fix(Node* new_node);
   void delete_fix(Node* node, Node* node_parent);
   void transplant(Node* node1, Node* node2);
 
@@ -34,7 +34,7 @@ public:
     m_sentinel.right = &m_sentinel;
   }
 
-  void insert(Node* node);
+  void insert(Node* new_node);
   void remove(Node* node);
   Node* find_best(std::size_t req_size) const;
 
