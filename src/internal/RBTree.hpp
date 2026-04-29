@@ -17,6 +17,7 @@ public:
   
 private:
   Node* m_root;
+  Node m_sentinel; // implementation concept from ItA
 
   void rotate_l(Node* node);
   void rotate_r(Node* node);
@@ -25,7 +26,13 @@ private:
   void transplant(Node* node1, Node* node2);
 
 public:
-  RBTree() : m_root(nullptr) {}
+  RBTree() : m_root(nullptr) {
+    m_sentinel.size = 0;
+    m_sentinel.red = false;
+    m_sentinel.parent = &m_sentinel;
+    m_sentinel.left = &m_sentinel;
+    m_sentinel.right = &m_sentinel;
+  }
 
   void insert(Node* node);
   void remove(Node* node);
