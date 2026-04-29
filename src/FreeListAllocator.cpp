@@ -214,7 +214,7 @@ void *FreeListAllocator::realloc(void *ptr, std::size_t old_size,
   }
 
   AllocHeader* header_ptr = reinterpret_cast<AllocHeader *>(raw_ptr - sizeof(AllocHeader));
-  std::size_t align_new_size = align_up(new_size, align);
+  std::size_t align_new_size = utils::align_up(new_size, align);
 
   if (curr_ptr != nullptr) {
     bool touches_left = (prev_ptr != nullptr) &&
