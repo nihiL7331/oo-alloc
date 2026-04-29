@@ -283,7 +283,6 @@ When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the poi
 
 ## Roadmap
 
-* [ ] Add realloc functionality.
 * [ ] Implement a red-black tree free list allocator.
 * [ ] Implement a size segregated free list allocator.
 * [ ] Implement a pow-of-two buddy allocator.
@@ -292,6 +291,7 @@ When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the poi
 * [ ] Add a benchmark/performance README section.
 * [ ] Add realloc description in README.
 * [ ] Move from malloc to mmap/VirtualAlloc.
+* [x] Add realloc functionality.
 * [x] Add a build README section.
 * [x] Write a description for each allocator.
 * [x] Implement a explicit free-list allocator.
