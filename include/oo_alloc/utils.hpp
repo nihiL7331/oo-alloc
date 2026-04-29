@@ -14,7 +14,7 @@ namespace utils {
 
 // aligns a size/address to the nearest multiple of align
 // NOTE: align must be a power of 2.
-constexpr inline std::size_t align_up(std::size_t size, std::uint8_t align) {
+constexpr inline std::size_t align_up(std::size_t size, std::size_t align) {
   return (size + (align - 1)) & ~(align - 1);
 }
 
