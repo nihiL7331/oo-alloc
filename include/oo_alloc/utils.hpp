@@ -2,6 +2,13 @@
 #include <cstddef>
 #include <cstdint>
 
+#if defined(_WIN32)
+  #include <windows.h>
+  #include <memoryapi.h>
+#else
+  #include <sys/mman.h>
+#endif
+
 namespace oo_alloc {
 namespace utils {
 
@@ -15,6 +22,29 @@ constexpr inline std::size_t align_up(std::size_t size, std::uint8_t align) {
 // NOTE: align must be a power of 2.
 inline std::uint8_t calc_pad(std::uintptr_t ptr, std::uint8_t align) {
   return static_cast<std::uint8_t>((align - (ptr & (align - 1))) & (align - 1));
+}
+
+// OS call for memory page
+inline void* os_alloc(std::size_t size) {
+#if defined(_WIN32)
+  void* ptr = VirtualAlloc(nullptr, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+  return ptr;
+#else
+  void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
+  return (ptr == MAP_FAILED) ? nullptr : ptr;
+#endif
+}
+
+// OS call for free
+inline void os_free(void* ptr, std::size_t size) {
+  if (!ptr) 
+    return;
+
+#if defined(_WIN32)
+  VirtualFree(ptr, 0, MEM_RELEASE);
+#else
+  munmap(ptr, size);
+#endif
 }
 
 }
