@@ -24,6 +24,9 @@ inline std::size_t calc_pad(std::uintptr_t ptr, std::size_t align) {
   return static_cast<std::size_t>((align - (ptr & (align - 1))) & (align - 1));
 }
 
+// memory page size (minimum init size)
+const std::size_t PAGE_SIZE = 4096;
+
 // OS call for memory page
 inline void* os_alloc(std::size_t size) {
 #if defined(_WIN32)
