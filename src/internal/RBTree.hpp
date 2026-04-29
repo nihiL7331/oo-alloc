@@ -17,7 +17,7 @@ public:
   
 private:
   Node* m_root;
-  Node m_sentinel; // implementation concept from ItA
+  Node m_sentinel; // implementation concept from CLRS
 
   void rotate_l(Node* node);
   void rotate_r(Node* node);
