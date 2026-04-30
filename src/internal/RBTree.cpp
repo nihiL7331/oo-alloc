@@ -342,9 +342,22 @@ void RBTree::remove(Node* node_to_remove) {
     remove_fix(replacement_node);
 }
 
+// this function is just a simple binary search tree search.
 RBTree::Node* RBTree::find_best(std::size_t req_size) const {
-  (void)req_size;
-  assert(false && "TODO");
+  Node* current = m_root;
+  Node* best = nullptr;
+
+  while (current != &m_sentinel) {
+    if (current->size == req_size)
+      return current;
+    else if (current->size > req_size) {
+      best = current;
+      current = current->left;
+    } else
+      current = current->right;
+  }
+
+  return best;
 }
 
 }
