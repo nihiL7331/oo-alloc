@@ -7,9 +7,6 @@
 
 namespace oo_alloc {
 
-FreeListAllocator::FreeListAllocator()
-  : m_start_ptr(nullptr), m_total_size(0), m_free_list_head(nullptr) {}
-
 FreeListAllocator::~FreeListAllocator() {
   if (m_start_ptr != nullptr) {
     utils::os_free(m_start_ptr, m_total_size);
