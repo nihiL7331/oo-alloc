@@ -11,14 +11,18 @@ class RBTree;
 
 class FreeTreeAllocator: public IAllocator {
 private:
-  struct AllocHeader {
-    std::size_t size;
+  struct BlockMetadata {
+    std::size_t size_and_flags;
+
+    std::size_t size() const noexcept { return size_and_flags & ~7ULL; }
+    bool allocated() const noexcept { return size_and_flags & 1; }
+    void state(std::size_t new_size, bool allocated) { size_and_flags = new_size | static_cast<std::size_t>(allocated); }
+  };
+  struct AllocHeader: public BlockMetadata {
     std::size_t pad;
   };
-  struct AllocFooter {
-    std::size_t size;
-    // is_free = LSB(size)
-  };
+  using AllocFooter = BlockMetadata;
+
   void*             m_start_ptr;
   std::size_t       m_total_size;
   internal::RBTree* m_free_tree;
