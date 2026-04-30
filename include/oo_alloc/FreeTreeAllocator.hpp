@@ -1,5 +1,6 @@
 #pragma once
 #include "oo_alloc/IAllocator.hpp"
+#include <cstdint>
 
 namespace oo_alloc {
 
@@ -11,23 +12,9 @@ class RBTree;
 
 class FreeTreeAllocator: public IAllocator {
 private:
-  struct BlockMetadata {
-    std::size_t size_and_flags;
-
-    std::size_t size() const noexcept { return size_and_flags & ~7ULL; }
-    bool allocated() const noexcept { return size_and_flags & 1; }
-    void state(std::size_t new_size, bool allocated) { size_and_flags = new_size | static_cast<std::size_t>(allocated); }
-  };
-  struct AllocHeader: public BlockMetadata {
-    std::size_t pad;
-  };
-  using AllocFooter = BlockMetadata;
-
   void*             m_start_ptr;
   std::size_t       m_total_size;
   internal::RBTree* m_free_tree;
-
-  AllocHeader* coalesce(AllocHeader* header);
 
 public:
   FreeTreeAllocator() 
@@ -39,7 +26,24 @@ public:
   bool  init(std::size_t size) override;
   void  clear() override;
   void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) override;
-  std::size_t capacity() const noexcept override { return m_total_size; }
-};
 
+  std::size_t capacity() const noexcept override { return m_total_size; }
+
+private: // metadata management
+  struct BlockMetadata {
+    std::size_t size_and_flags;
+
+    std::size_t size() const noexcept { return size_and_flags & ~7ULL; }
+    bool allocated() const noexcept { return size_and_flags & 1; }
+    void state(std::size_t new_size, bool allocated) { size_and_flags = new_size | static_cast<std::size_t>(allocated); }
+  };
+
+  struct AllocHeader: public BlockMetadata {
+    std::size_t pad;
+  };
+  using AllocFooter = BlockMetadata;
+
+
+  AllocHeader* coalesce(AllocHeader* header);
+};
 }
