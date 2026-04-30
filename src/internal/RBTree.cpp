@@ -4,7 +4,7 @@
 namespace oo_alloc {
 namespace internal {
 
-void RBTree::rotate_l(Node* node) {
+void RBTree::rotate_l(Node* node) noexcept {
   Node* child_r = node->right;
 
   // 1. place the left child of 'child_r'
@@ -31,7 +31,7 @@ void RBTree::rotate_l(Node* node) {
 }
 
 // mirrored version of rotate_l
-void RBTree::rotate_r(Node* node) {
+void RBTree::rotate_r(Node* node) noexcept {
   Node* child_l = node->left;
 
   // 1. place the right child of 'child_l'
@@ -69,7 +69,7 @@ void RBTree::rotate_r(Node* node) {
 //    OR
 // 2. 'new_node->parent->red', violating 
 //    'new_node->red => !new_node->parent->red'
-void RBTree::insert_fix(Node* new_node) {
+void RBTree::insert_fix(Node* new_node) noexcept {
   Node* uncle = &m_sentinel;
 
   while (new_node->parent->red) {
@@ -136,7 +136,7 @@ void RBTree::insert_fix(Node* new_node) {
 // - the root is black,
 // - if a node is red, then both its children are black.
 // (via CLRS)
-void RBTree::remove_fix(Node* replacement_node) {
+void RBTree::remove_fix(Node* replacement_node) noexcept {
   while (replacement_node != m_root && !replacement_node->red) {
     Node* parent = replacement_node->parent;
 
@@ -228,7 +228,7 @@ void RBTree::remove_fix(Node* replacement_node) {
 // this procedure acts as a helper for the 'delete' function. 
 // it leaves `replaced_node` dangling,
 // setting up `replacement_node` to take its place.
-void RBTree::transplant(Node* replaced_node, Node* replacement_node) {
+void RBTree::transplant(Node* replaced_node, Node* replacement_node) noexcept {
   // if 'replaced_node' has no parent,
   // 'replacement_node' is the new 'm_root'
   if (replaced_node->parent == &m_sentinel)
@@ -244,7 +244,7 @@ void RBTree::transplant(Node* replaced_node, Node* replacement_node) {
 }
 
 // Returns the minimum (left-most) node of a sub-tree.
-RBTree::Node* RBTree::min(Node* root_node) {
+RBTree::Node* RBTree::min(Node* root_node) noexcept {
   while (root_node->left != &m_sentinel)
     root_node = root_node->left;
   return root_node;
@@ -253,7 +253,7 @@ RBTree::Node* RBTree::min(Node* root_node) {
 // the implementation of insert
 // for the red-black tree is similar
 // to bst, but with some small tweaks
-void RBTree::insert(Node* new_node) {
+void RBTree::insert(Node* new_node) noexcept {
   Node* parent = &m_sentinel;
   Node* current = m_root;
 
@@ -289,7 +289,7 @@ void RBTree::insert(Node* new_node) {
   insert_fix(new_node);
 }
 
-void RBTree::remove(Node* node_to_remove) {
+void RBTree::remove(Node* node_to_remove) noexcept {
   // 'replaced_node' stores the node to remove
   Node* replaced_node = node_to_remove;
   // 'replaced_node's color might change, so we store it
@@ -343,7 +343,7 @@ void RBTree::remove(Node* node_to_remove) {
 }
 
 // this function is just a simple binary search tree search.
-RBTree::Node* RBTree::find_best(std::size_t req_size) const {
+RBTree::Node* RBTree::find_best(std::size_t req_size) const noexcept {
   Node* current = m_root;
   Node* best = nullptr;
 
