@@ -19,12 +19,12 @@ private:
   Node* m_root;
   Node m_sentinel; // implementation concept from CLRS
 
-  inline void rotate_l(Node* node) noexcept;
-  inline void rotate_r(Node* node) noexcept;
+  void rotate_l(Node* node) noexcept;
+  void rotate_r(Node* node) noexcept;
   void insert_fix(Node* new_node) noexcept;
   void remove_fix(Node* replacement_node) noexcept;
-  inline void transplant(Node* replaced_node, Node* replacement_node) noexcept;
-  inline Node* min(Node* root_node) noexcept;
+  void transplant(Node* replaced_node, Node* replacement_node) noexcept;
+  Node* min(Node* root_node) noexcept;
 
 public:
   RBTree() : m_root(nullptr) {
