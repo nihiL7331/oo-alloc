@@ -27,7 +27,7 @@ private:
   Node* min(Node* root_node) noexcept;
 
 public:
-  RBTree() : m_root(nullptr) {
+  RBTree() : m_root(&m_sentinel) {
     m_sentinel.size = 0;
     m_sentinel.red = false;
     m_sentinel.parent = &m_sentinel;
@@ -39,7 +39,7 @@ public:
   void remove(Node* node_to_remove) noexcept;
   Node* find_best(std::size_t req_size) const noexcept;
 
-  inline bool empty() const noexcept { return m_root == nullptr; }
+  inline bool empty() const noexcept { return m_root == &m_sentinel; }
 };
 
 }
