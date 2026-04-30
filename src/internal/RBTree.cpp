@@ -131,9 +131,98 @@ void RBTree::insert_fix(Node* new_node) {
   m_root->red = false;
 }
 
-void RBTree::remove_fix(Node* node) {
-  (void)node;
-  assert(false && "TODO");
+// this procedure restores the following red-black properties:
+// - every node is either red or black,
+// - the root is black,
+// - if a node is red, then both its children are black.
+// (via CLRS)
+void RBTree::remove_fix(Node* replacement_node) {
+  while (replacement_node != m_root && !replacement_node->red) {
+    Node* parent = replacement_node->parent;
+
+    if (replacement_node == parent->left) {
+      Node* sibling = parent->right;
+
+      // case 1: 
+      // it's main purpose is to restructure
+      // the tree in a way, where the properties
+      // aren't altered, but 'sibling->red == false'.
+      //
+      // if 'sibling' is red, it must have black children,
+      // so we can make 'sibling' black and 
+      // 'parent' red, and perform a rotate_l on 'parent'.
+      // the new 'sibling' is black.
+      if (sibling->red) {
+        sibling->red = false;
+        parent->red = true;
+        rotate_l(parent);
+        sibling = parent->right;
+      }
+
+      // case 2:
+      // 'sibling' and it's children are black,
+      // make the 'sibling' red and re-iterate the loop.
+      if (!sibling->left->red && !sibling->right->red) {
+        sibling->red = true;
+        replacement_node = parent;
+      } else {
+
+        // case 3:
+        // 'sibling' and 'sibling->right' are black, 
+        // 'sibling->left' is red.
+        // swap the colors of 'sibling' and 'sibling->left',
+        // perform a rotate_r on 'sibling' without violating
+        // the properties.
+        // it transforms case 3 to case 4.
+        if (!sibling->right->red) {
+          sibling->left->red = false;
+          sibling->red = true;
+          rotate_r(sibling);
+          sibling = parent->right;
+        }
+
+        // case 4:
+        // 'sibling' is black, 'sibling->right' is red.
+        // we make the following color changes
+        // and a rotate_l on 'parent', hence
+        // removing the extra black on 'replacement_node'.
+        sibling->red = parent->red;
+        parent->red = false;
+        sibling->right->red = false;
+        rotate_l(parent);
+        break;
+      }
+    } else { // mirror image of the first half
+      Node* sibling = parent->left;
+
+      if (sibling->red) {
+        sibling->red = false;
+        parent->red = true;
+        rotate_r(parent);
+        sibling = parent->left;
+      }
+
+      if (!sibling->left->red && !sibling->right->red) {
+        sibling->red = true;
+        replacement_node = parent;
+      } else {
+        if(!sibling->left->red) {
+          sibling->right->red = false;
+          sibling->red = true;
+          rotate_l(sibling);
+          sibling = parent->left;
+        }
+
+        sibling->red = parent->red;
+        parent->red = false;
+        sibling->left->red = false;
+        rotate_r(parent);
+        break;
+      }
+    }
+  }
+
+  replacement_node->red = false;
 }
 
 // this procedure acts as a helper for the 'delete' function. 
