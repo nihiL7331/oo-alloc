@@ -58,7 +58,29 @@ bool FreeTreeAllocator::init(std::size_t size) {
 }
 
 void FreeTreeAllocator::clear() {
-  assert(false && "TODO");
+  // clear the tree
+  m_free_tree->clear();
+
+  // calculate where the actual data starts
+  std::uint8_t* start_ptr = reinterpret_cast<std::uint8_t *>(m_start_ptr) + sizeof(internal::RBTree);
+
+  // calculate remaining space.
+  // in init we assured that its enough
+  // to contain a RBTree::Node.
+  std::size_t total_remain_space = m_total_size - sizeof(internal::RBTree);
+  std::size_t data_remain_space = total_remain_space - sizeof(AllocHeader) - sizeof(AllocFooter);
+  
+  // setup header and footer
+  AllocHeader* header_ptr = reinterpret_cast<AllocHeader *>(start_ptr);
+  update_block(header_ptr, data_remain_space, false);
+  header_ptr->pad = 0;
+
+  // cast payload space to a r-b tree node
+  internal::RBTree::Node* tree_node = reinterpret_cast<internal::RBTree::Node *>(start_ptr + sizeof(AllocHeader));
+  tree_node->size = data_remain_space;
+
+  // insert block to tree
+  m_free_tree->insert(tree_node);
 }
 
 void* FreeTreeAllocator::realloc(void* ptr, std::size_t old_size, 
