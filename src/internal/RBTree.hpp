@@ -40,6 +40,7 @@ public:
   Node* find_best(std::size_t req_size) const noexcept;
 
   inline bool empty() const noexcept { return m_root == &m_sentinel; }
+  inline void clear() noexcept { m_root = &m_sentinel; }
 };
 
 }
