@@ -27,6 +27,8 @@ private:
   std::size_t       m_total_size;
   internal::RBTree* m_free_tree;
 
+  AllocHeader* coalesce(AllocHeader* header);
+
 public:
   FreeTreeAllocator() 
     : m_start_ptr(nullptr), m_total_size(0), m_free_tree(nullptr) {}

@@ -13,6 +13,11 @@ FreeTreeAllocator::~FreeTreeAllocator() {
   }
 }
 
+FreeTreeAllocator::AllocHeader* FreeTreeAllocator::coalesce(AllocHeader* header) {
+  (void)header;
+  assert(false && "TODO");
+}
+
 void* FreeTreeAllocator::alloc(std::size_t size, std::size_t align) {
   (void)size; (void)align;
   assert(false && "TODO");
