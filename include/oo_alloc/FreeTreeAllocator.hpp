@@ -43,6 +43,15 @@ private: // metadata management
   };
   using AllocFooter = BlockMetadata;
 
+  inline void update_block(AllocHeader* header, std::size_t new_size, bool allocated) noexcept {
+    header->state(new_size, allocated);
+
+    AllocFooter* footer = reinterpret_cast<AllocFooter *>(
+      reinterpret_cast<std::uint8_t *>(header) + sizeof(AllocHeader) + new_size
+    );
+
+    footer->state(new_size, allocated);
+  }
 
   AllocHeader* coalesce(AllocHeader* header);
 };
