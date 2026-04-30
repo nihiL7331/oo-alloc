@@ -92,9 +92,30 @@ void* FreeTreeAllocator::alloc(std::size_t size, std::size_t align) {
   return reinterpret_cast<void *>(align_ptr);
 }
 
+// thanks to the back_ptr,
+// the time complexity of free is O(1).
 void FreeTreeAllocator::free(void* ptr) {
-  (void)ptr;
-  assert(false && "TODO");
+  if (ptr == nullptr)
+    return;
+
+  // read back pointer
+  AllocHeader** back_ptr = reinterpret_cast<AllocHeader **>(ptr) - 1;
+
+  // dereference 'back_ptr' to get header pointer
+  AllocHeader* header_ptr = *back_ptr;
+
+  // mark the block as free
+  update_block(header_ptr, header_ptr->size(), false);
+
+  // coalesce with neighbors
+  AllocHeader* free_header_ptr = coalesce(header_ptr);
+  
+  // create free block structure
+  internal::RBTree::Node* tree_node = reinterpret_cast<internal::RBTree::Node *>(free_header_ptr + 1);
+  tree_node->size = free_header_ptr->size();
+
+  // insert new free block
+  m_free_tree->insert(tree_node);
 }
 
 bool FreeTreeAllocator::init(std::size_t size) {
