@@ -18,6 +18,10 @@ FreeTreeAllocator::AllocHeader* FreeTreeAllocator::coalesce(AllocHeader* header)
   assert(false && "TODO");
 }
 
+/* memory layout
+ * if allocated: [ header ] [ data ] [ footer ]
+ * if free:      [ header ] [ tree node ] [ garbage ] [ footer ]
+ */
 void* FreeTreeAllocator::alloc(std::size_t size, std::size_t align) {
   (void)size; (void)align;
   assert(false && "TODO");
