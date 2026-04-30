@@ -295,6 +295,7 @@ When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the poi
 * [ ] Add a benchmark/performance README section.
 * [ ] Add realloc description in README.
 * [ ] Move benchmarks to google/benchmark.
+* [ ] Move from hand-written tests to proper stress testing.
 * [x] Move from malloc to mmap/VirtualAlloc.
 * [x] Add realloc functionality.
 * [x] Add a build README section.
