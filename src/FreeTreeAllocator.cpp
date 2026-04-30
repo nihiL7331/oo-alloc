@@ -1,11 +1,15 @@
 #include "oo_alloc/FreeTreeAllocator.hpp"
+#include "oo_alloc/utils.hpp"
 #include <cassert>
 
 namespace oo_alloc {
 
 
 FreeTreeAllocator::~FreeTreeAllocator() {
-
+  if (m_start_ptr != nullptr) {
+    utils::os_free(m_start_ptr, m_total_size);
+    m_start_ptr = nullptr;
+  }
 }
 
 void* FreeTreeAllocator::alloc(std::size_t size, std::size_t align) {
