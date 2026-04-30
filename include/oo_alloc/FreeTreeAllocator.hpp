@@ -38,9 +38,7 @@ private: // metadata management
     void state(std::size_t new_size, bool allocated) { size_and_flags = new_size | static_cast<std::size_t>(allocated); }
   };
 
-  struct AllocHeader: public BlockMetadata {
-    std::size_t pad;
-  };
+  using AllocHeader = BlockMetadata;
   using AllocFooter = BlockMetadata;
 
   inline void update_block(AllocHeader* header, std::size_t new_size, bool allocated) noexcept {

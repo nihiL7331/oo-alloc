@@ -73,7 +73,6 @@ void FreeTreeAllocator::clear() {
   // setup header and footer
   AllocHeader* header_ptr = reinterpret_cast<AllocHeader *>(start_ptr);
   update_block(header_ptr, data_remain_space, false);
-  header_ptr->pad = 0;
 
   // cast payload space to a r-b tree node
   internal::RBTree::Node* tree_node = reinterpret_cast<internal::RBTree::Node *>(start_ptr + sizeof(AllocHeader));
