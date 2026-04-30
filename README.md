@@ -34,7 +34,7 @@ The overview available below can help you do exactly that.
 | **Stack**        | `O(1)`     | `O(1)`*    | `O(1)`    | `O(1)`*/`O(n)` | ~8B      | Temporary data    | Strict LIFO             |
 | **Pool**         | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Identical objects | Fixed sizes             |
 | **Free List**    | `O(n)`     | `O(n)`     | `O(1)`    | `O(n)`         | ~16B     | General purpose   | Slow search / coalesce  |
-| **Free Tree****  | `O(log n)` | `O(log n)` | `O(log n)`| `O(log n)`     | ~32B     | General purpose   | High block overhead     |
+| **Free Tree****  | `O(log n)` | `O(log n)` | `O(1)`    | `O(log n)`     | ~32B     | General purpose   | High block overhead     |
 | **Segregated**** | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | ~16B     | General purpose   | Complex to tune         |
 | **Buddy****      | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | 0B       | OS memory         | Fragmentation (in)      |
 | **Slab****       | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Object caching    | Single type             |
