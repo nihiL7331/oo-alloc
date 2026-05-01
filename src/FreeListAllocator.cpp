@@ -164,18 +164,167 @@ void FreeListAllocator::clear() {
   m_free_list_head = start_ptr;
 }
 
+void* FreeListAllocator::shrink_in_place(void* ptr, AllocHeader* header, std::size_t old_size, std::size_t align_new_size) {
+  std::uint8_t *raw_ptr = static_cast<std::uint8_t *>(ptr);
+  header->size = align_new_size;
+
+  if (old_size - align_new_size >= sizeof(FreeBlock)) {
+    FreeBlock *free_ptr = reinterpret_cast<FreeBlock *>(raw_ptr + align_new_size);
+    free_ptr->size = old_size - align_new_size;
+
+    FreeBlock *prev_ptr = nullptr;
+    FreeBlock *curr_ptr = m_free_list_head;
+    while (curr_ptr != nullptr && curr_ptr < free_ptr) {
+      prev_ptr = curr_ptr;
+      curr_ptr = curr_ptr->next;
+    }
+
+    if (prev_ptr == nullptr)
+      m_free_list_head = free_ptr;
+    else
+      prev_ptr->next = free_ptr;
+    free_ptr->next = curr_ptr;
+  }
+
+  return ptr;
+}
+
+void* FreeListAllocator::expand_right(void* ptr, AllocHeader* header, std::size_t old_size, 
+                     std::size_t align_new_size, FreeBlock* right_block, FreeBlock* right_prev) {
+  std::size_t size_diff = align_new_size - old_size;
+  std::uint8_t* curr_cast_ptr = reinterpret_cast<std::uint8_t *>(right_block);
+
+  if (right_block->size - size_diff < sizeof(FreeBlock)) {
+    if (right_prev == nullptr)
+      m_free_list_head = right_block->next;
+    else
+      right_prev->next = right_block->next;
+  } else {
+    FreeBlock *new_curr_ptr =
+        reinterpret_cast<FreeBlock *>(curr_cast_ptr + size_diff);
+    new_curr_ptr->size = right_block->size - size_diff;
+    new_curr_ptr->next = right_block->next;
+
+    if (right_prev == nullptr)
+      m_free_list_head = new_curr_ptr;
+    else
+      right_prev->next = new_curr_ptr;
+  }
+
+  header->size = align_new_size;
+  return ptr;
+}
+
+void* FreeListAllocator::expand_left(void* ptr, AllocHeader* header, 
+                                     std::size_t old_size, std::size_t align_new_size, 
+                                     FreeBlock* left_block, FreeBlock* left_prev) {
+  std::size_t size_diff = align_new_size - old_size;
+  std::uint8_t* proposed_new_ptr = static_cast<std::uint8_t *>(ptr) - size_diff;
+
+  // if the left block is too small to split,
+  // consume the whole block
+  if (left_block->size - size_diff < sizeof(FreeBlock)) {
+    if (left_prev != nullptr)
+      left_prev->next = left_block->next;
+    else
+      m_free_list_head = left_block->next;
+
+    // shift left by full size of the block
+    std::uint8_t* new_ptr = static_cast<std::uint8_t *>(ptr) - left_block->size;
+
+    // write new metadata
+    AllocHeader* new_header = get_header(new_ptr);
+    new_header->size = old_size + left_block->size;
+    new_header->pad = header->pad;
+
+    std::memmove(new_ptr, ptr, old_size);
+    return new_ptr;
+  } else {
+    // left block is big enough to split,
+    // so just shrink the left block
+    left_block->size -= size_diff;
+    
+    // write new metadata
+    AllocHeader* new_header = get_header(proposed_new_ptr);
+    new_header->size = align_new_size;
+    new_header->pad = header->pad;
+    
+    std::memmove(proposed_new_ptr, ptr, old_size);
+    return proposed_new_ptr;
+  }
+}
+
+void* FreeListAllocator::expand_both(void* ptr, AllocHeader* header, 
+                                     std::size_t old_size, std::size_t align_new_size, 
+                                     FreeBlock* left_block, FreeBlock* left_prev, 
+                                     FreeBlock* right_block) {
+  std::size_t size_diff = align_new_size - old_size;
+  std::size_t right_size_diff = size_diff - left_block->size;
+
+  std::uint8_t* proposed_new_ptr = static_cast<std::uint8_t *>(ptr) - left_block->size;
+
+  // the remainder of the right block is too small,
+  // consume both the left and the right block
+  if (right_block->size - right_size_diff < sizeof(FreeBlock)) {
+    // bypass both blocks
+    if (left_prev != nullptr)
+      left_prev->next = right_block->next;
+    else
+      m_free_list_head = right_block->next;
+
+    // write new metadata
+    AllocHeader* new_header = get_header(proposed_new_ptr);
+    new_header->size = old_size + left_block->size + right_block->size;
+    new_header->pad = header->pad;
+
+    std::memmove(proposed_new_ptr, ptr, old_size);
+    return proposed_new_ptr;
+  } else {
+    // the right block is big enough to be split,
+    // consume the left block, shrink the right
+
+    // create new, smaller block shifted to the right
+    std::uint8_t* right_cast_ptr = reinterpret_cast<std::uint8_t *>(right_block);
+    FreeBlock* new_right_block = reinterpret_cast<FreeBlock *>(right_cast_ptr + right_size_diff);
+
+    new_right_block->size = right_block->size - right_size_diff;
+    new_right_block->next = right_block->next;
+
+    // bypass the 'left_block', go to the 'new_right_block'
+    if (left_prev != nullptr)
+      left_prev->next = new_right_block;
+    else
+      m_free_list_head = new_right_block;
+
+    // write new metadata
+    AllocHeader* new_header = get_header(proposed_new_ptr);
+    new_header->size = align_new_size;
+    new_header->pad = header->pad;
+
+    std::memmove(proposed_new_ptr, ptr, old_size);
+    return proposed_new_ptr;
+  }
+
+  return proposed_new_ptr;
+}
+
+/*
+ / NOTE: this implementation isn't fast.
+ / if the block has to left-expand, it has to use std::memmove
+ / which is slow.
+ / if it can right-expand, it's faster, but still requires
+ / list traversal.
+ / if it can't do either, it has to either:
+ / - allocate a completely fresh chunk of memory 
+ /   and call std::copy, as well as a free, or
+ / - do the combination of left&right expand,
+ /   which wastes less memory but is slower.
+ /
+ / it focuses on minimizing the fragmentation, contrary
+ / to the free tree implementation. 
+ */
 void *FreeListAllocator::realloc(void *ptr, std::size_t old_size,
                                  std::size_t new_size, std::size_t align) {
-  // NOTE: this implementation isn't fast.
-  // if the block has to left-expand, it has to use std::memmove
-  // which is slow.
-  // if it can right-expand, it's faster, but still requires
-  // list traversal.
-  // if it can't do either, it has to either:
-  // - allocate a completely fresh chunk of memory 
-  //   and call std::copy, as well as a free, or
-  // - do the combination of left&right expand,
-  //   which wastes less memory but is slower
   if (ptr == nullptr)
     return alloc(new_size, align);
   if (new_size == 0) {
@@ -183,160 +332,59 @@ void *FreeListAllocator::realloc(void *ptr, std::size_t old_size,
     return nullptr;
   }
 
-  // case 1: new size is smaller, change in place
-  // optionally create a new free block, coalesce it
-  if (new_size <= old_size) {
-    std::uint8_t *raw_ptr = static_cast<std::uint8_t *>(ptr);
-    AllocHeader *header_ptr =
-        reinterpret_cast<AllocHeader *>(raw_ptr - sizeof(AllocHeader));
-    header_ptr->size = new_size;
-
-    std::size_t align_new_size = utils::align_up(new_size, align);
-
-    if (old_size - align_new_size >= sizeof(FreeBlock)) {
-      FreeBlock *free_ptr = reinterpret_cast<FreeBlock *>(raw_ptr + align_new_size);
-      free_ptr->size = old_size - align_new_size;
-
-      FreeBlock *prev_ptr = nullptr;
-      FreeBlock *curr_ptr = m_free_list_head;
-      while (curr_ptr != nullptr && curr_ptr < free_ptr) {
-        prev_ptr = curr_ptr;
-        curr_ptr = curr_ptr->next;
-      }
-
-      if (prev_ptr == nullptr)
-        m_free_list_head = free_ptr;
-      else
-        prev_ptr->next = free_ptr;
-      free_ptr->next = curr_ptr;
-    }
-
-    return ptr;
-  }
-
-  // find closest free memory blocks
-  std::uint8_t *raw_ptr = static_cast<std::uint8_t *>(ptr);
-  FreeBlock *prev_prev_ptr = nullptr; // needed for case 3/4
-  FreeBlock *prev_ptr = nullptr;
-  FreeBlock *curr_ptr = m_free_list_head;
-  while (curr_ptr != nullptr &&
-         reinterpret_cast<std::uint8_t *>(curr_ptr) < raw_ptr) {
-    prev_prev_ptr = prev_ptr;
-    prev_ptr = curr_ptr;
-    curr_ptr = curr_ptr->next;
-  }
-
-  AllocHeader* header_ptr = reinterpret_cast<AllocHeader *>(raw_ptr - sizeof(AllocHeader));
+  AllocHeader* header_ptr = get_header(ptr);
   std::size_t align_new_size = utils::align_up(new_size, align);
 
-  if (curr_ptr != nullptr) {
-    bool touches_left = (prev_ptr != nullptr) &&
-                        (reinterpret_cast<std::uint8_t *>(prev_ptr) + prev_ptr->size 
-                        == reinterpret_cast<std::uint8_t *>(header_ptr));
+  // case 1: new size is smaller, change in place
+  // optionally create a new free block, coalesce it
+  if (align_new_size <= old_size)
+    return shrink_in_place(ptr, header_ptr, old_size, align_new_size);
 
-    bool touches_right = (curr_ptr != nullptr) &&
-                         (raw_ptr + old_size == reinterpret_cast<std::uint8_t *>(curr_ptr));
+  std::uint8_t* raw_ptr = static_cast<std::uint8_t *>(ptr);
+  FreeBlock* prev_prev_ptr = nullptr;
+  FreeBlock* left_neighbor = nullptr;
+  FreeBlock* right_neighbor = m_free_list_head;
 
+  while (right_neighbor != nullptr && reinterpret_cast<std::uint8_t *>(right_neighbor) < raw_ptr) {
+    prev_prev_ptr = left_neighbor;
+    left_neighbor = right_neighbor;
+    right_neighbor = right_neighbor->next;
+  }
 
-    std::uint8_t *curr_cast_ptr = reinterpret_cast<std::uint8_t *>(curr_ptr);
+  bool can_expand_right = touches_right(ptr, old_size, right_neighbor) && 
+                          (right_neighbor->size >= align_new_size - old_size);
+
+  bool can_expand_left = touches_left(left_neighbor, header_ptr) &&
+                        (left_neighbor->size >= align_new_size - old_size);
+
+  bool can_expand_both = touches_left(left_neighbor, header_ptr) &&
+                        touches_right(ptr, old_size, right_neighbor) &&
+                        (left_neighbor->size + right_neighbor->size >= align_new_size - old_size);
+
+  // case 2: there's a free block directly after reallocated memory,
+  // it has enough space, do a right-expand
+  if (can_expand_right)
+    return expand_right(ptr, header_ptr, old_size, align_new_size, right_neighbor, left_neighbor);
+  
+
+  // case 3: there's a free block directly before the allocated memory,
+  // it has enough space and the proposed ptr is correctly aligned, do a left-expand
+  // otherwise fallback to new alloc
+  if (can_expand_left) {
     std::size_t size_diff = align_new_size - old_size;
+    void* proposed_new_ptr = raw_ptr - size_diff;
 
-    if (touches_right && curr_ptr->size >= align_new_size - old_size) {
-      // case 2: there's a free block directly after reallocated memory,
-      // it has enough space, do a right-expand
+    if (aligned(proposed_new_ptr, align))
+      return expand_left(ptr, header_ptr, old_size, align_new_size, left_neighbor, prev_prev_ptr);
+  }
 
-      if (curr_ptr->size - size_diff < sizeof(FreeBlock)) {
-        if (prev_ptr == nullptr)
-          m_free_list_head = curr_ptr->next;
-        else
-          prev_ptr->next = curr_ptr->next;
-      } else {
-        FreeBlock *new_curr_ptr =
-            reinterpret_cast<FreeBlock *>(curr_cast_ptr + size_diff);
-        new_curr_ptr->size = curr_ptr->size - size_diff;
-        new_curr_ptr->next = curr_ptr->next;
+  // case 4: there are free block directly before AND after the allocated memory,
+  // they together can fit the reallocated memory, do a left-shift, right-expand
+  if (can_expand_both) {
+    void* proposed_new_ptr = raw_ptr - left_neighbor->size; // shift left as much as possible
 
-        if (prev_ptr == nullptr)
-          m_free_list_head = new_curr_ptr;
-        else
-          prev_ptr->next = new_curr_ptr;
-      }
-
-      header_ptr->size = align_new_size;
-      return ptr;
-    } else if (touches_left && prev_ptr->size >= align_new_size - old_size) {
-      // case 3: there's a free block directly before the allocated memory,
-      // it has enough space and the proposed ptr is correctly aligned, do a left-expand
-      // otherwise fallback to new alloc
-
-      std::uint8_t* proposed_new_ptr = reinterpret_cast<std::uint8_t *>(ptr) - size_diff;
-
-      if (reinterpret_cast<std::uintptr_t>(proposed_new_ptr) % align == 0) {
-        if (prev_ptr->size - size_diff < sizeof(FreeBlock)) {
-          if (prev_prev_ptr != nullptr)
-            prev_prev_ptr->next = curr_ptr;
-          else
-            m_free_list_head = curr_ptr;
-
-          std::uint8_t* new_ptr = reinterpret_cast<std::uint8_t *>(ptr) - prev_ptr->size;
-          AllocHeader* new_header_ptr = reinterpret_cast<AllocHeader *>(new_ptr - sizeof(AllocHeader));
-          new_header_ptr->size = old_size + prev_ptr->size;
-          new_header_ptr->pad = header_ptr->pad;
-
-          std::memmove(new_ptr, ptr, old_size);
-          return new_ptr;
-        } else {
-          prev_ptr->size -= size_diff;
-          
-          AllocHeader* new_header_ptr = reinterpret_cast<AllocHeader *>(proposed_new_ptr - sizeof(AllocHeader));
-          new_header_ptr->size = align_new_size;
-          new_header_ptr->pad = header_ptr->pad;
-          
-          std::memmove(proposed_new_ptr, ptr, old_size);
-          return proposed_new_ptr;
-        }
-      }
-    } else if (touches_left && touches_right && prev_ptr->size + curr_ptr->size >= align_new_size - old_size) {
-      // case 4: there are free block directly before AND after the allocated memory,
-      // they together can fit the reallocated memory, do a left-shift, right-expand
-      std::uint8_t* proposed_new_ptr = reinterpret_cast<std::uint8_t *>(ptr) - prev_ptr->size;
-
-      if (reinterpret_cast<std::uintptr_t>(proposed_new_ptr) % align == 0) {
-        std::size_t right_size_diff = size_diff - prev_ptr->size;
-
-        // 1. create new header
-        AllocHeader* new_header_ptr = reinterpret_cast<AllocHeader *>(proposed_new_ptr - sizeof(AllocHeader));
-        new_header_ptr->pad = header_ptr->pad;
-
-        // 2. move the data to new destination
-        std::memmove(proposed_new_ptr, ptr, old_size);
-
-        // 3. check if the right block will be deleted, if so just consume both blocks
-        if (curr_ptr->size - right_size_diff < sizeof(FreeBlock)) {
-          if (prev_prev_ptr == nullptr)
-            m_free_list_head = curr_ptr->next;
-          else
-            prev_prev_ptr->next = curr_ptr->next;
-
-          new_header_ptr->size = old_size + prev_ptr->size + curr_ptr->size;
-        } else {
-          // 4. consume left, shrink right 
-          FreeBlock *new_curr_ptr =
-              reinterpret_cast<FreeBlock *>(curr_cast_ptr + right_size_diff);
-          new_curr_ptr->size = curr_ptr->size - right_size_diff;
-          new_curr_ptr->next = curr_ptr->next;
-
-          if (prev_prev_ptr == nullptr)
-            m_free_list_head = new_curr_ptr;
-          else
-            prev_prev_ptr->next = new_curr_ptr;
-
-          new_header_ptr->size = align_new_size;
-        }
-
-        return proposed_new_ptr;
-      }
-    }
+    if (aligned(proposed_new_ptr, align))
+      return expand_both(ptr, header_ptr, old_size, align_new_size, left_neighbor, prev_prev_ptr, right_neighbor);
   }
 
   // case 5: there's not enough free memory neighboring, 
