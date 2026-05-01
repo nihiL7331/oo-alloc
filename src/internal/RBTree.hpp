@@ -41,6 +41,7 @@ public:
 
   inline bool empty() const noexcept { return m_root == &m_sentinel; }
   inline void clear() noexcept { m_root = &m_sentinel; }
+  inline Node* sentinel() noexcept { return &m_sentinel; }
 };
 
 }
