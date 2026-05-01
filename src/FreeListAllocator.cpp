@@ -329,8 +329,6 @@ void* FreeListAllocator::expand_both(void* ptr, AllocHeader* header,
     std::memmove(proposed_new_ptr, ptr, old_size);
     return proposed_new_ptr;
   }
-
-  return proposed_new_ptr;
 }
 
 /*
