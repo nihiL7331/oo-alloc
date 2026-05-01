@@ -2,6 +2,7 @@
 #include "oo_alloc/utils.hpp"
 #include "internal/RBTree.hpp"
 #include <cassert>
+#include <cstring>
 #include <new>
 
 namespace oo_alloc {
