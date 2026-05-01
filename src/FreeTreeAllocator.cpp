@@ -207,22 +207,39 @@ void FreeTreeAllocator::clear() {
   // clear the tree
   m_free_tree->clear();
 
-  // calculate where the actual data starts
-  std::uint8_t* start_ptr = reinterpret_cast<std::uint8_t *>(m_start_ptr) + sizeof(internal::RBTree);
+  std::uint8_t* start_ptr = reinterpret_cast<std::uint8_t *>(m_start_ptr);
+  std::uint8_t* end_ptr = start_ptr + m_total_size;
+
+  // set up prologue
+  // it's a fake footer before the memory area,
+  // used to stop left-coalescing on left-most block.
+  AllocFooter* prologue_ptr = reinterpret_cast<AllocFooter *>(start_ptr + sizeof(internal::RBTree));
+  prologue_ptr->state(0, true);
+
+  // set up epilogue
+  // it's a fake header, similar to prologue
+  // stops right-coalescing on right-most block.
+  AllocHeader* epilogue_ptr = reinterpret_cast<AllocHeader *>(end_ptr - sizeof(AllocHeader));
+  epilogue_ptr->state(0, true);
 
   // calculate remaining space.
   // in init we assured that its enough
   // to contain a RBTree::Node.
-  std::size_t total_remain_space = m_total_size - sizeof(internal::RBTree);
+  std::uint8_t* first_block_start = reinterpret_cast<std::uint8_t *>(prologue_ptr) + sizeof(AllocFooter);
+  std::size_t total_remain_space = reinterpret_cast<std::uint8_t *>(epilogue_ptr) - first_block_start;
   std::size_t data_remain_space = total_remain_space - sizeof(AllocHeader) - sizeof(AllocFooter);
   
   // setup header and footer
-  AllocHeader* header_ptr = reinterpret_cast<AllocHeader *>(start_ptr);
+  AllocHeader* header_ptr = reinterpret_cast<AllocHeader *>(first_block_start);
   update_block(header_ptr, data_remain_space, false);
 
   // cast payload space to a r-b tree node
-  internal::RBTree::Node* tree_node = reinterpret_cast<internal::RBTree::Node *>(start_ptr + sizeof(AllocHeader));
+  internal::RBTree::Node* tree_node = reinterpret_cast<internal::RBTree::Node *>(header_ptr + 1);
   tree_node->size = data_remain_space;
+  tree_node->parent = m_free_tree->sentinel();
+  tree_node->left = m_free_tree->sentinel();
+  tree_node->right = m_free_tree->sentinel();
+  tree_node->red = true;
 
   // insert block to tree
   m_free_tree->insert(tree_node);
