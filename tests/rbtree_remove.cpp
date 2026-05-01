@@ -1,4 +1,5 @@
 #include "../src/internal/RBTree.hpp"
+#include <algorithm>
 #include <cassert>
 #include <vector>
 #include <random>
