@@ -268,6 +268,12 @@ Only if all neighboring blocks are occupied or too small will it fall back to a 
   <em><sub>After calling free() on data 2, the allocator detects that free 2, the newly freed block, and free 3 are adjacent. It coalesces them into a single 250B block.</sub></em>
 </p>
 
+<p align="center">
+  <img src="docs/assets/free_realloc.svg" alt="free list allocator expand both">
+  <br>
+  <em><sub>After calling realloc() to expand data 1 to 400B, the allocator combines both neighboring free blocks. It completely consumes the 70B left block, shifts the data, and absorbs 230B from the right block, leaving a 20B remainder.</sub></em>
+</p>
+
 ### Tracking allocator
 
 Unlike the previous allocators, the Tracking allocator does not manage memory directly. Instead, it acts as a wrapper around any other existing allocator. Its primary purpose is debugging. 
