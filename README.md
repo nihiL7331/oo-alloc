@@ -232,7 +232,7 @@ public:
   std::size_t capacity() const;
 };
 ```
-<sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/FreeListAllocator.hpp)</sub>
+<sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/FreeListAllocator.hpp).</sub>
 
 When `alloc` is called, it traverses through the list of free blocks, picking one matching the wanted size the closest (**best-fit**), or the first that can contain the memory to allocate (**first-fit**), and allocates the data with the hidden header before it. 
 Due to the required list traversal, the time complexity is *O(n)*.
@@ -273,6 +273,53 @@ Only if all neighboring blocks are occupied or too small will it fall back to a 
   <br>
   <em><sub>After calling realloc() to expand data 1 to 400B, the allocator combines both neighboring free blocks. It completely consumes the 70B left block, shifts the data, and absorbs 230B from the right block, leaving a 20B remainder.</sub></em>
 </p>
+
+### Free tree allocator
+
+While the Free list allocator is highly memory-efficient, traversing a linked list to find a suitable block results in an *O(n)* time complexity.
+The Free tree allocator solves this by replacing the linked list with a **[Red-black tree](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree)**.
+
+Instead of free blocks storing a simple `next` pointer, they store the metadata required to act as a node within a self-balancing binary search tree. 
+This drops the time complexity for finding a **best-fit** block down to *O(log n)*.
+
+To achieve *O(1)* neighbor coalescence without list traversal, this allocator implements **boundary tags** (used also e.g. in `dlmalloc`) around every block. 
+It also utilizes a hidden **back pointer** stored in the alignment padding, allowing it to locate a block's metadata instantly during a `free` operation.
+
+#### Internal structure
+```cpp
+class FreeTreeAllocator: public IAllocator {
+private:
+  struct BlockMetadata {
+    std::size_t size_and_flags; // encodes size and allocated flag
+    // ... helper methods ...
+  };
+  using AllocHeader = BlockMetadata;
+  using AllocFooter = BlockMetadata;
+  void*             m_start_ptr;
+  std::size_t       m_total_size;
+  internal::RBTree* m_free_tree;
+
+public:
+  void* alloc(std::size_t size, std::size_t align);
+  void  free(void* ptr);
+  bool  init(std::size_t size);
+  void  clear();
+  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
+  std::size_t capacity() const;
+};
+```
+<sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/FreeTreeAllocator.hpp).</sub>
+
+When `alloc` is called, it searches the red-black tree for the best-fitting block in *O(log n)* time.
+If the block is significantly larger than requested, it is split, and the remainder is re-inserted into the tree. 
+A pointer is then aligned, and a hidden back pointer is written into the padding exactly behind the returned address.
+
+When `free` is called, it steps back exactly `sizeof(void*)`B to read the back pointer, instantly locating the `AllocHeader`.
+It then uses the boundary tags (header and footer) to check the left and right neighbors in *O(1)* time, coalesces them if they are free, removes them from the tree, and inserts the newly merged block into the tree.
+
+When `realloc` is called, it checks if it can shrink or expand-right into a neighboring free block in *O(1)* time using its boundary tags. 
+However, unlike the Free list, it intentionally skips leftward expansions. 
+Because the underlying red-black tree makes finding a brand new memory block incredibly fast, the tradeoff leans toward executing a fast `alloc`->`std::copy`->`free` free cycle rather than dealing with the complexity of shifting memory leftward via `std::memmove`.
 
 ### Tracking allocator
 
@@ -325,6 +372,7 @@ If it fails, it rolls back its internal state so the original tracking data is i
 * [ ] Add a benchmark/performance README section.
 * [ ] Move benchmarks to google/benchmark.
 * [ ] Move from hand-written tests to proper stress testing.
+* [ ] Add padding visual to free-list allocator infographics.
 * [x] Add realloc description in README.
 * [x] Refactor and clean up API.
 * [x] Move free-list coalescing to a helper function.
