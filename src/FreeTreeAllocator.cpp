@@ -122,7 +122,7 @@ void* FreeTreeAllocator::alloc(std::size_t size, std::size_t align) {
     AllocHeader* free_header_ptr = reinterpret_cast<AllocHeader *>(
       reinterpret_cast<uint8_t *>(
         header_ptr
-      ) + sizeof(AllocHeader) + search_size
+      ) + sizeof(AllocHeader) + search_size + sizeof(AllocFooter)
     );
 
     // calculate the size of free block and update it
