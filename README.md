@@ -77,6 +77,10 @@ This makes `alloc` an instant *O(1)* operation.
 Because it only tracks a single forward-moving offset, you can't free individual objects.
 You can only clear the entire arena, which is done by resetting `m_offset` to zero, resulting in a *O(1)* `clear` time complexity.
 
+When `realloc` is called, it can only expand a block in-place if the pointer belongs to the most recently allocated object. 
+If `realloc` is called on an older block, the allocator must allocate a brand new chunk of memory at the current offset and copy the data. 
+The arena does not support individiual freeing, so the old memory block is left behind as dead, wasted space.
+
 <p align="center">
   <img src="docs/assets/arena_active.svg" alt="arena allocator active state">
   <br>
@@ -121,6 +125,10 @@ public:
 When `alloc` is called, the allocator calculates the required padding for alignment, reserves space for both the header and the requested `size`, and writes the previous `m_offset` into the header just behind the returned pointer. This makes `alloc` an instant *O(1)* operation.
 
 On `free`, the allocator simply reads the header immediately before the given pointer and restores `m_offset` to the value stored in it, hence deallocating the block. Since we don't need to search for the data, it's also an *O(1)* operation.
+
+When `realloc` is called, similarly to the arena, it expands in-place if the pointer is the top-most allocation on stack. 
+If expanding an older block, it allocates new memory at the top and copies the data.
+The allocator doesn't free the old memory block in this scenario, since calling `free` on an older block would destroy the newly allocated memory.
 
 <p align="center">
   <img src="docs/assets/stack_active.svg" alt="stack allocator active state">
@@ -169,6 +177,8 @@ When `alloc` is called, it pops the `m_free_list_head`, updates the head to poin
 Since there is no list traversal required, this is an instant *O(1)* operation.
 
 On `free`, it casts the passed `ptr` into a list node, sets its "next" pointer to the current `m_free_list_head`, and then updates `m_free_list_head` to point to `ptr`. This frees the chunk in *O(1)* time.
+
+Because the pool operates on fixed-size chunks, `realloc` is impossible.
 
 <p align="center">
   <img src="docs/assets/pool_active.svg" alt="pool allocator active state">
@@ -235,6 +245,11 @@ If they touch, their sizes are summed together, and the second block is physical
 To prevent pointer invalidation bugs, it is best practice to always coalesce a block with its next neighbor before coalescing with its previous neighbor. 
 Because finding the correct insertion point in the address-sorted list requires traversal, `free` also carries an *O(n)* time complexity.
 
+When `realloc` is called, it first checks if the block can be shrunk in-place. 
+If expanding, it checks adjacent memory. 
+It will attempt to (in that order): expand right, expand left (which requires shifting the data via `std::memmove`), and expand in both directions simultaneously.
+Only if all neighboring blocks are occupied or too small will it fall back to a standard `alloc`->`copy`->`free` cycle.
+
 <p align="center">
   <img src="docs/assets/free_active.svg" alt="free list allocator active state">
   <br>
@@ -290,6 +305,11 @@ When `alloc` is called, it increments its internal counters, calculates if a new
 
 When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the pointer to `m_base_allocator->free()`. Because it only performs basic arithmetic before delegating the actual work, the overhead is extremely minimal, maintaining the time complexity of the underlying allocator.
 
+When `realloc` is called, it acts as a mediator. 
+It first verifies the old pointer exists in its tracking map, temporarily untracks it, and forwards the request to the `m_base_allocator`. 
+If the base allocator successfully reallocates the memory, it tracks the new pointer and updates the memory metrics. 
+If it fails, it rolls back its internal state so the original tracking data is intact.
+
 ## Roadmap
 
 * [ ] Implement a size segregated free list allocator.
@@ -297,9 +317,9 @@ When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the poi
 * [ ] Benchmark cache misses via perf.
 * [ ] Implement a slab allocator.
 * [ ] Add a benchmark/performance README section.
-* [ ] Add realloc description in README.
 * [ ] Move benchmarks to google/benchmark.
 * [ ] Move from hand-written tests to proper stress testing.
+* [x] Add realloc description in README.
 * [x] Refactor and clean up API.
 * [x] Move free-list coalescing to a helper function.
 * [x] Implement a red-black tree free list allocator.
