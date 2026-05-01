@@ -5,7 +5,20 @@
 namespace oo_alloc {
 namespace internal {
 
+namespace tests {
+void test_rbtree_root_black();
+void test_rbtree_red_property();
+void test_rbtree_black_height();
+void test_rbtree_remove_invariants();
+}
+
 class RBTree {
+private:
+  friend void tests::test_rbtree_root_black();
+  friend void tests::test_rbtree_red_property();
+  friend void tests::test_rbtree_black_height();
+  friend void tests::test_rbtree_remove_invariants();
+
 public:
   struct Node {
     std::size_t size;
