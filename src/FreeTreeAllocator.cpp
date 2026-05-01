@@ -14,9 +14,59 @@ FreeTreeAllocator::~FreeTreeAllocator() {
   }
 }
 
-FreeTreeAllocator::AllocHeader* FreeTreeAllocator::coalesce(AllocHeader* header) {
-  (void)header;
-  assert(false && "TODO");
+/* coalescing is responsible for merging neighboring free blocks
+ * together into a one bigger block. thanks to the structure of
+ * this allocator, it's a O(log n) time implementation (due to tree removal)
+ */
+FreeTreeAllocator::AllocHeader* FreeTreeAllocator::coalesce(AllocHeader* header_ptr) {
+  // store 'curr_size' early to 
+  // not read overridden data later
+  std::size_t curr_size = header_ptr->size();
+
+  // get footer of the left neighbor
+  AllocFooter* left_footer = reinterpret_cast<AllocFooter *>(
+    reinterpret_cast<std::uint8_t *>(header_ptr) - sizeof(AllocFooter)
+  );
+
+  // get header of the right neighbor
+  AllocHeader* right_header = reinterpret_cast<AllocHeader *>(
+    reinterpret_cast<std::uint8_t *>(header_ptr) 
+    + sizeof(AllocHeader) + header_ptr->size() + sizeof(AllocFooter)
+  );
+
+  // first we expand to the right, 
+  // so that the pointer stands in place for left expand
+  if(!right_header->allocated()) {
+    // grab 'right_header's node
+    internal::RBTree::Node* right_node = reinterpret_cast<internal::RBTree::Node *>(right_header + 1);
+    m_free_tree->remove(right_node);
+
+    // add the space taken by 'right_node' + metadata to the size
+    curr_size += sizeof(AllocHeader) + right_header->size() + sizeof(AllocFooter);
+  }
+
+  // then we expand to the left.
+  if(!left_footer->allocated()) {
+    // grab 'left_footer's node
+    AllocHeader* left_header = reinterpret_cast<AllocHeader *>(
+      reinterpret_cast<std::uint8_t *>(left_footer) - left_footer->size() - sizeof(AllocHeader)
+    );
+
+    // remove the left node
+    internal::RBTree::Node* left_node = reinterpret_cast<internal::RBTree::Node *>(left_header + 1);
+    m_free_tree->remove(left_node);
+
+    // add the space taken by 'left_node' + metadata to the size
+    curr_size += sizeof(AllocHeader) + left_header->size() + sizeof(AllocFooter);
+
+    // shift the header of coalesced block leftwards
+    header_ptr = left_header;
+  }
+
+  // update the block size and place footer in correct position
+  update_block(header_ptr, curr_size, false);
+
+  return header_ptr;
 }
 
 /* memory layout
