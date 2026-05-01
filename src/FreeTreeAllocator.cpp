@@ -34,6 +34,11 @@ FreeTreeAllocator::AllocHeader* FreeTreeAllocator::coalesce(AllocHeader* header_
     + sizeof(AllocHeader) + header_ptr->size() + sizeof(AllocFooter)
   );
 
+  // we dont need to check for out of bounds here.
+  // 'clear()' places prologue and epilogue at the
+  // edges of the memory, which when are checked with
+  // 'allocated()' return true.
+
   // first we expand to the right, 
   // so that the pointer stands in place for left expand
   if(!right_header->allocated()) {
@@ -106,7 +111,13 @@ void* FreeTreeAllocator::alloc(std::size_t size, std::size_t align) {
   std::uintptr_t min_align_ptr = raw_ptr + sizeof(AllocHeader*);
   std::uintptr_t align_ptr = utils::align_up(min_align_ptr, align);
 
-  // store back pointer in padding
+  // this uses the padding to store a pointer to the header.
+  // 'align_ptr' might be pushed any distance from 'header_ptr'.
+  // hence, we cant do 'ptr - sizeof(AllocHeader)' in 'free()',
+  // because there's padding in between.
+  // that's why align is enforced to be at least equal to the
+  // pointer alignment, so that the pointer to the header
+  // can be hidden inside of the padding.
   AllocHeader** back_ptr = reinterpret_cast<AllocHeader**>(align_ptr) - 1;
   *back_ptr = header_ptr;
 
@@ -279,7 +290,7 @@ void* FreeTreeAllocator::realloc(void* ptr, std::size_t old_size,
 
   // step back into the alignment padding to read the `back_ptr`
   // and get original 'header_ptr'
-  AllocHeader** back_ptr = reinterpret_cast<AllocHeader **>(ptr) - 1;
+  AllocHeader** back_ptr = static_cast<AllocHeader **>(ptr) - 1;
   AllocHeader* header_ptr = *back_ptr;
 
   // store data block size early before any changes
