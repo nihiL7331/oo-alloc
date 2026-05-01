@@ -321,6 +321,24 @@ When `realloc` is called, it checks if it can shrink or expand-right into a neig
 However, unlike the Free list, it intentionally skips leftward expansions. 
 Because the underlying red-black tree makes finding a brand new memory block incredibly fast, the tradeoff leans toward executing a fast `alloc`->`std::copy`->`free` free cycle rather than dealing with the complexity of shifting memory leftward via `std::memmove`.
 
+<p align="center">
+  <img src="docs/assets/tree_anatomy.svg" alt="free tree allocator block anatomy">
+  <br>
+  <em><sub>Allocated blocks hide a back pointer in the alignment padding. Free blocks overwrite the user data to store red-black tree navigation pointers.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/tree_coal.svg" alt="free tree allocator coalescence">
+  <br>
+  <em><sub>When the target data is freed, the allocator reads the footer to its left and the header to its right. Because the right block is a <strong>epilogue</strong>, it acts as a wall, preventing out-of-bounds memory access.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/tree_merge.svg" alt="free tree allocator merge">
+  <br>
+  <em><sub>After coalescing, the target block and the left free block are merged into a single space and inserted into the red-black tree as a new node.</sub></em>
+</p>
+
 ### Tracking allocator
 
 Unlike the previous allocators, the Tracking allocator does not manage memory directly. Instead, it acts as a wrapper around any other existing allocator. Its primary purpose is debugging. 
