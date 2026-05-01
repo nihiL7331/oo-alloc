@@ -16,6 +16,8 @@ private:
   std::size_t m_total_size;
   FreeBlock* m_free_list_head;
 
+  void coalesce(FreeBlock* prev_block, FreeBlock* free_block);
+
 public:
   FreeListAllocator()
     : m_start_ptr(nullptr), m_total_size(0), m_free_list_head(nullptr) {}

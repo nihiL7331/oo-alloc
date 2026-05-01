@@ -295,8 +295,8 @@ When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the poi
 * [ ] Add realloc description in README.
 * [ ] Move benchmarks to google/benchmark.
 * [ ] Move from hand-written tests to proper stress testing.
-* [ ] Move free-list coalescing to a helper function.
 * [ ] Refactor and clean up API.
+* [x] Move free-list coalescing to a helper function.
 * [x] Implement a red-black tree free list allocator.
 * [x] Move from malloc to mmap/VirtualAlloc.
 * [x] Add realloc functionality.

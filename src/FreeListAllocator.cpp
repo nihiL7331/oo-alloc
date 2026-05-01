@@ -14,6 +14,32 @@ FreeListAllocator::~FreeListAllocator() {
   }
 }
 
+void FreeListAllocator::coalesce(FreeBlock* prev_block, FreeBlock* free_block) {
+  FreeBlock* next_block = free_block->next;
+
+  // merge right
+  if (next_block != nullptr) {
+    std::uint8_t* free_ptr = reinterpret_cast<std::uint8_t*>(free_block);
+    std::uint8_t* next_ptr = reinterpret_cast<std::uint8_t*>(next_block);
+    
+    if (free_ptr + free_block->size == next_ptr) {
+      free_block->size += next_block->size;
+      free_block->next = next_block->next;
+    }
+  }
+
+  // merge left
+  if (prev_block != nullptr) {
+    std::uint8_t* prev_ptr = reinterpret_cast<std::uint8_t*>(prev_block);
+    std::uint8_t* free_ptr = reinterpret_cast<std::uint8_t*>(free_block);
+    
+    if (prev_ptr + prev_block->size == free_ptr) {
+      prev_block->size += free_block->size;
+      prev_block->next = free_block->next;
+    }
+  }
+}
+
 /* memory structure: 
  * pad       | header | data        (when allocated)
  * free_size | next*  | empty space (when not allocated) 
@@ -110,24 +136,7 @@ void  FreeListAllocator::free(void* ptr) {
   }
 
   // coalescence
-  // merge new with curr first to avoid mismatches if merging both
-
-  // merge new with curr (next)
-  if (curr_ptr != nullptr) {
-    std::uint8_t* raw_curr_ptr = reinterpret_cast<std::uint8_t *>(curr_ptr);
-    if (orig_ptr + size == raw_curr_ptr) {
-      new_free_ptr->size += curr_ptr->size;
-      new_free_ptr->next = curr_ptr->next;
-    }
-  }
-  // merge prev with new
-  if (prev_ptr != nullptr) {
-    std::uint8_t* raw_prev_ptr = reinterpret_cast<std::uint8_t *>(prev_ptr);
-    if (raw_prev_ptr + prev_ptr->size == orig_ptr) { 
-      prev_ptr->size += new_free_ptr->size;
-      prev_ptr->next = new_free_ptr->next;
-    }
-  }
+  coalesce(prev_ptr, new_free_ptr);
 }
 
 bool FreeListAllocator::init(std::size_t size) {
