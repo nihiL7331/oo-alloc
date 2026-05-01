@@ -18,6 +18,10 @@ ArenaAllocator::~ArenaAllocator() {
   }
 }
 
+/* alloc in the arena allocator
+ * is just aligning and pushing the pointer forwards,
+ * resulting in O(1) time complexity
+ * */
 void *ArenaAllocator::alloc(std::size_t size, std::size_t align) {
   std::uintptr_t base_ptr = reinterpret_cast<std::uintptr_t>(m_start_ptr);
   std::uintptr_t curr_ptr = base_ptr + m_offset;
@@ -34,6 +38,10 @@ void *ArenaAllocator::alloc(std::size_t size, std::size_t align) {
   return reinterpret_cast<void *>(align_ptr);
 }
 
+/* free is impossible for the arena allocator,
+ * since the size of each allocated block
+ * is not stored.
+ */
 void ArenaAllocator::free(void *ptr) { (void)ptr; }
 
 bool ArenaAllocator::init(std::size_t size) {
@@ -48,8 +56,17 @@ bool ArenaAllocator::init(std::size_t size) {
   return true;
 }
 
+/* clear just places the 'm_offset' to 0,
+ * making the stored data 'garbage' that can be overridden
+ */
 void ArenaAllocator::clear() { m_offset = 0; }
 
+/* realloc only happens in-place if the reallocated
+ * element is the last allocated element.
+ * only then it's of O(1) time complexity.
+ * otherwise, it has to allocate a new chunk of data,
+ * and perform a memcpy (which is O(n) where n is the amount of bytes)
+ */
 void *ArenaAllocator::realloc(void *ptr, std::size_t old_size,
                               std::size_t new_size, std::size_t align) {
   if (new_size <= old_size)
@@ -59,12 +76,10 @@ void *ArenaAllocator::realloc(void *ptr, std::size_t old_size,
   std::uint8_t *raw_start_ptr = reinterpret_cast<std::uint8_t *>(m_start_ptr);
 
   if (raw_start_ptr + m_offset == raw_mem_ptr + old_size) {
-    // case 1: realloced elem is the latest one,
-    // just resize it
+    // case 1: reallocated elem is the latest one, just resize it
     std::size_t new_offset = m_offset + new_size - old_size;
-    if (new_offset > m_total_size) {
+    if (new_offset > m_total_size)
       return nullptr;
-    }
 
     m_offset = new_offset;
 
@@ -81,4 +96,4 @@ void *ArenaAllocator::realloc(void *ptr, std::size_t old_size,
   }
 }
 
-} // namespace oo_alloc
+} 
