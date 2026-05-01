@@ -14,6 +14,7 @@ set(SOURCE_FILES
   src/StackAllocator.cpp
   src/TrackingAllocator.cpp
   src/FreeListAllocator.cpp
+  src/FreeTreeAllocator.cpp
   src/internal/RBTree.cpp
 )
 
