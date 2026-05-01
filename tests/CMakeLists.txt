@@ -136,6 +136,32 @@ target_link_libraries(rbtree_remove PRIVATE oo_alloc)
 add_test(NAME RBTreeRemove COMMAND rbtree_remove)
 set_tests_properties(RBTreeRemove PROPERTIES LABELS "rbtree")
 
+# TREE
+
+# TEST 1
+add_executable(tree_init tree_init.cpp)
+target_link_libraries(tree_init PRIVATE oo_alloc)
+add_test(NAME TreeInit COMMAND tree_init)
+set_tests_properties(TreeInit PROPERTIES LABELS "tree")
+
+# TEST 2
+add_executable(tree_alloc tree_alloc.cpp)
+target_link_libraries(tree_alloc PRIVATE oo_alloc)
+add_test(NAME TreeAlloc COMMAND tree_alloc)
+set_tests_properties(TreeAlloc PROPERTIES LABELS "tree")
+
+# TEST 3
+add_executable(tree_coal tree_coal.cpp)
+target_link_libraries(tree_coal PRIVATE oo_alloc)
+add_test(NAME TreeCoal COMMAND tree_coal)
+set_tests_properties(TreeCoal PROPERTIES LABELS "tree")
+
+# TEST 4
+add_executable(tree_realloc tree_realloc.cpp)
+target_link_libraries(tree_realloc PRIVATE oo_alloc)
+add_test(NAME TreeRealloc COMMAND tree_realloc)
+set_tests_properties(TreeRealloc PROPERTIES LABELS "tree")
+
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
@@ -146,6 +172,7 @@ add_custom_target(test-all
     track_pass track_peak track_clear
     free_ooo free_recover free_merge free_realloc
     rbtree_basic rbtree_insert rbtree_remove
+    tree_init tree_alloc tree_coal tree_realloc
   COMMENT "Running all tests..."
 )
 
@@ -183,4 +210,10 @@ add_custom_target(test-rbtree
   COMMAND ${CMAKE_CTEST_COMMAND} -L rbtree --output-on-failure
   DEPENDS rbtree_basic rbtree_insert rbtree_remove
   COMMENT "Running rb-tree tests..."
+)
+
+add_custom_target(test-tree
+  COMMAND ${CMAKE_CTEST_COMMAND} -L tree --output-on-failure
+  DEPENDS tree_init tree_alloc tree_coal tree_realloc
+  COMMENT "Running free-tree tests.."
 )
