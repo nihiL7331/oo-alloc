@@ -34,7 +34,7 @@ The overview available below can help you do exactly that.
 | **Stack**        | `O(1)`     | `O(1)`*    | `O(1)`    | `O(1)`*/`O(n)` | ~8B      | Temporary data    | Strict LIFO             |
 | **Pool**         | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Identical objects | Fixed sizes             |
 | **Free List**    | `O(n)`     | `O(n)`     | `O(1)`    | `O(n)`         | ~16B     | General purpose   | Slow search / coalesce  |
-| **Free Tree****  | `O(log n)` | `O(log n)` | `O(1)`    | `O(log n)`     | ~32B     | General purpose   | High block overhead     |
+| **Free Tree**    | `O(log n)` | `O(log n)` | `O(1)`    | `O(log n)`     | ~32B     | General purpose   | High block overhead     |
 | **Segregated**** | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | ~16B     | General purpose   | Complex to tune         |
 | **Buddy****      | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | 0B       | OS memory         | Fragmentation (in)      |
 | **Slab****       | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Object caching    | Single type             |
@@ -66,6 +66,7 @@ public:
   void* alloc(std::size_t size, std::size_t align);
   bool  init(std::size_t size);
   void  clear();
+  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
   std::size_t capacity() const;
 };
 ```
@@ -113,6 +114,7 @@ public:
   bool  init(std::size_t size);
   void  clear();
   std::size_t capacity() const;
+  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
 };
 ```
 
@@ -216,9 +218,11 @@ public:
   void  free(void* ptr);
   bool  init(std::size_t size);
   void  clear();
+  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
   std::size_t capacity() const;
 };
 ```
+<sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/FreeListAllocator.hpp)</sub>
 
 When `alloc` is called, it traverses through the list of free blocks, picking one matching the wanted size the closest (**best-fit**), or the first that can contain the memory to allocate (**first-fit**), and allocates the data with the hidden header before it. 
 Due to the required list traversal, the time complexity is *O(n)*.
@@ -273,6 +277,7 @@ public:
   void  free(void* ptr);
   bool  init(std::size_t size);
   void  clear();
+  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
   std::size_t capacity() const;
 
   std::size_t curr_bytes() const { return m_curr_alloced_bytes; }
@@ -295,7 +300,7 @@ When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the poi
 * [ ] Add realloc description in README.
 * [ ] Move benchmarks to google/benchmark.
 * [ ] Move from hand-written tests to proper stress testing.
-* [ ] Refactor and clean up API.
+* [x] Refactor and clean up API.
 * [x] Move free-list coalescing to a helper function.
 * [x] Implement a red-black tree free list allocator.
 * [x] Move from malloc to mmap/VirtualAlloc.
