@@ -167,6 +167,12 @@ void *FreeListAllocator::realloc(void *ptr, std::size_t old_size,
   //   and call std::copy, as well as a free, or
   // - do the combination of left&right expand,
   //   which wastes less memory but is slower
+  if (ptr == nullptr)
+    return alloc(new_size, align);
+  if (new_size == 0) {
+    free(ptr);
+    return nullptr;
+  }
 
   // case 1: new size is smaller, change in place
   // optionally create a new free block, coalesce it
