@@ -88,7 +88,7 @@ void* FreeTreeAllocator::alloc(std::size_t size, std::size_t align) {
   internal::RBTree::Node* node = m_free_tree->find_best(search_size);
 
   // if no node is found, return
-  if (node == nullptr)
+  if (node == m_free_tree->sentinel())
     return nullptr;
 
   // get start of data
