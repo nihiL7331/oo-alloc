@@ -91,6 +91,11 @@ void* FreeTreeAllocator::alloc(std::size_t size, std::size_t align) {
   if (node == m_free_tree->sentinel())
     return nullptr;
 
+  std::size_t orig_size = node->size;
+
+  // remove the free node from the tree
+  m_free_tree->remove(node);
+
   // get start of data
   std::uintptr_t raw_ptr = reinterpret_cast<std::uintptr_t>(node);
 
@@ -105,16 +110,11 @@ void* FreeTreeAllocator::alloc(std::size_t size, std::size_t align) {
   AllocHeader** back_ptr = reinterpret_cast<AllocHeader**>(align_ptr) - 1;
   *back_ptr = header_ptr;
 
-  // remove the free node from the tree
-  m_free_tree->remove(node);
-
   // if the block is way bigger than requested
   // size, split it in two and insert the leftover
   // back to free tree.
   constexpr std::size_t min_split_size = sizeof(AllocHeader) + sizeof(AllocFooter) + node_size;
-  if (node->size - search_size >= min_split_size) {
-    std::size_t orig_size = node->size;
-
+  if (orig_size - search_size >= min_split_size) {
     // update the data block
     update_block(header_ptr, search_size, true);
 
@@ -142,7 +142,7 @@ void* FreeTreeAllocator::alloc(std::size_t size, std::size_t align) {
     // free block neighboring
   } else {
     // otherwise, just give the whole block
-    update_block(header_ptr, node->size, true);
+    update_block(header_ptr, orig_size, true);
   }
 
   // return the data pointer
@@ -170,6 +170,10 @@ void FreeTreeAllocator::free(void* ptr) {
   // create free block structure
   internal::RBTree::Node* tree_node = reinterpret_cast<internal::RBTree::Node *>(free_header_ptr + 1);
   tree_node->size = free_header_ptr->size();
+  tree_node->parent = m_free_tree->sentinel();
+  tree_node->left = m_free_tree->sentinel();
+  tree_node->right = m_free_tree->sentinel();
+  tree_node->red = true;
 
   // insert new free block
   m_free_tree->insert(tree_node);
