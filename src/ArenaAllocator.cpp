@@ -55,7 +55,7 @@ void *ArenaAllocator::realloc(void *ptr, std::size_t old_size,
   if (new_size <= old_size)
     return ptr;
 
-  std::uint8_t *raw_mem_ptr = reinterpret_cast<std::uint8_t *>(ptr);
+  std::uint8_t *raw_mem_ptr = static_cast<std::uint8_t *>(ptr);
   std::uint8_t *raw_start_ptr = reinterpret_cast<std::uint8_t *>(m_start_ptr);
 
   if (raw_start_ptr + m_offset == raw_mem_ptr + old_size) {
