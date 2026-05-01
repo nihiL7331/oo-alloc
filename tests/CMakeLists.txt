@@ -116,6 +116,26 @@ target_link_libraries(free_realloc PRIVATE oo_alloc)
 add_test(NAME FreeRealloc COMMAND free_realloc)
 set_tests_properties(FreeRealloc PROPERTIES LABELS "free")
 
+# RBTREE (data structure):
+
+# TEST 1
+add_executable(rbtree_basic rbtree_basic.cpp)
+target_link_libraries(rbtree_basic PRIVATE oo_alloc)
+add_test(NAME RBTreeBasic COMMAND rbtree_basic)
+set_tests_properties(RBTreeBasic PROPERTIES LABELS "rbtree")
+
+# TEST 2
+add_executable(rbtree_insert rbtree_insert.cpp)
+target_link_libraries(rbtree_insert PRIVATE oo_alloc)
+add_test(NAME RBTreeInsert COMMAND rbtree_insert)
+set_tests_properties(RBTreeInsert PROPERTIES LABELS "rbtree")
+
+# TEST 3
+add_executable(rbtree_remove rbtree_remove.cpp)
+target_link_libraries(rbtree_remove PRIVATE oo_alloc)
+add_test(NAME RBTreeRemove COMMAND rbtree_remove)
+set_tests_properties(RBTreeRemove PROPERTIES LABELS "rbtree")
+
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
@@ -125,6 +145,7 @@ add_custom_target(test-all
     stack_align stack_lifo stack_exhaust stack_clear stack_realloc
     track_pass track_peak track_clear
     free_ooo free_recover free_merge free_realloc
+    rbtree_basic rbtree_insert rbtree_remove
   COMMENT "Running all tests..."
 )
 
@@ -156,4 +177,10 @@ add_custom_target(test-free
   COMMAND ${CMAKE_CTEST_COMMAND} -L free --output-on-failure
   DEPENDS free_ooo free_recover free_merge free_realloc
   COMMENT "Running free-list tests..."
+)
+
+add_custom_target(test-rbtree
+  COMMAND ${CMAKE_CTEST_COMMAND} -L rbtree --output-on-failure
+  DEPENDS rbtree_basic rbtree_insert rbtree_remove
+  COMMENT "Running rb-tree tests..."
 )
