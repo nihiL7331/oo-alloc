@@ -8,11 +8,14 @@ TrackingAllocator::~TrackingAllocator() {
   if (!m_active_allocs.empty())
     std::cerr << "MEM LEAK: "
               << m_active_allocs.size()
-              << " allocs were not freed. "
+              << " allocations were not freed. "
               << "(" << m_curr_alloced_bytes << "B)"
               << std::endl;
 }
 
+/* stores the debug data
+ * and allocates via its base allocator
+ */
 void* TrackingAllocator::alloc(std::size_t size, std::size_t align) {
   void* base_alloc_ptr = m_base_allocator.alloc(size, align);
   if (base_alloc_ptr == nullptr)
@@ -27,6 +30,8 @@ void* TrackingAllocator::alloc(std::size_t size, std::size_t align) {
   return base_alloc_ptr;
 }
 
+/* reverts the data changes done by the allocation
+ */
 void TrackingAllocator::free(void* ptr) {
   if (ptr == nullptr)
     return;
