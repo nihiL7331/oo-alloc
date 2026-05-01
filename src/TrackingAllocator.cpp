@@ -55,12 +55,45 @@ void TrackingAllocator::clear() {
 
 void *TrackingAllocator::realloc(void *ptr, std::size_t old_size,
                               std::size_t new_size, std::size_t align) {
-  (void)ptr;
-  (void)old_size;
-  (void)new_size;
-  (void)align;
-  assert(false && "TODO");
-  return nullptr;
+  if (ptr == nullptr)
+    return alloc(new_size, align);
+
+  if (new_size == 0) {
+    free(ptr);
+    return nullptr;
+  }
+
+  // find the old allocation
+  auto got = m_active_allocs.find(ptr);
+  if (got == m_active_allocs.end())
+    return nullptr;
+
+  // store its size
+  std::size_t tracked_old_size = got->second;
+
+  // remove it from the data temporarily
+  m_active_allocs.erase(got);
+  m_curr_alloced_bytes -= tracked_old_size;
+
+  // call the base allocator
+  void* new_ptr = m_base_allocator.realloc(ptr, old_size, new_size, align);
+
+  if (new_ptr != nullptr) {
+    // if successed, just track the new pointer.
+    // it might be the same address, or it moved elsewhere.
+    m_active_allocs[new_ptr] = new_size;
+    m_curr_alloced_bytes += new_size;
+    
+    if (m_curr_alloced_bytes > m_peak_alloced_bytes)
+      m_peak_alloced_bytes = m_curr_alloced_bytes;
+  } else {
+    // if it failed, then most likely the old data
+    // is still okay so revert the changes
+    m_active_allocs[ptr] = tracked_old_size;
+    m_curr_alloced_bytes += tracked_old_size;
+  }
+
+  return new_ptr;
 }
 
 }
