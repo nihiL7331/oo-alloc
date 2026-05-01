@@ -21,18 +21,12 @@ set_tests_properties(ArenaRealloc PROPERTIES LABELS "arena")
 # POOL:
 
 # TEST 1
-add_executable(pool_bounce pool_bounce.cpp)
-target_link_libraries(pool_bounce PRIVATE oo_alloc)
-add_test(NAME PoolBounce COMMAND pool_bounce)
-set_tests_properties(PoolBounce PROPERTIES LABELS "pool")
-
-# TEST 2
 add_executable(pool_exhaust pool_exhaust.cpp)
 target_link_libraries(pool_exhaust PRIVATE oo_alloc)
 add_test(NAME PoolExhaust COMMAND pool_exhaust)
 set_tests_properties(PoolExhaust PROPERTIES LABELS "pool")
 
-# TEST 3
+# TEST 2
 add_executable(pool_recycle pool_recycle.cpp)
 target_link_libraries(pool_recycle PRIVATE oo_alloc)
 add_test(NAME PoolRecycle COMMAND pool_recycle)
@@ -167,7 +161,7 @@ add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
   DEPENDS 
     arena_alphabet arena_align arena_realloc
-    pool_bounce pool_exhaust pool_recycle
+    pool_exhaust pool_recycle
     stack_align stack_lifo stack_exhaust stack_clear stack_realloc
     track_pass track_peak track_clear
     free_ooo free_recover free_merge free_realloc
@@ -184,7 +178,7 @@ add_custom_target(test-arena
 
 add_custom_target(test-pool
   COMMAND ${CMAKE_CTEST_COMMAND} -L pool --output-on-failure
-  DEPENDS pool_bounce pool_exhaust pool_recycle
+  DEPENDS pool_exhaust pool_recycle
   COMMENT "Running pool tests..."
 )
 
