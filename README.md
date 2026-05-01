@@ -15,7 +15,7 @@ cmake --build . --target run-benchmarks
 
 # build and run individual tests
 cmake  --build . --target test-arena 
-# available: test-arena, test-pool, test-stack, test-free, test-track
+# available: test-arena, test-pool, test-stack, test-free, test-track, test-rbtree, test-tree, test-all
 ```
 
 ## Introduction
