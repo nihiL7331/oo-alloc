@@ -132,6 +132,10 @@ void* FreeTreeAllocator::alloc(std::size_t size, std::size_t align) {
     // insert free block to tree
     internal::RBTree::Node* tree_node = reinterpret_cast<internal::RBTree::Node *>(free_header_ptr + 1);
     tree_node->size = free_size;
+    tree_node->parent = m_free_tree->sentinel();
+    tree_node->left = m_free_tree->sentinel();
+    tree_node->right = m_free_tree->sentinel();
+    tree_node->red = true;
     m_free_tree->insert(tree_node);
 
     // no need to coalesce, we know that there is no
