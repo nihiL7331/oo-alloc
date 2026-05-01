@@ -345,7 +345,7 @@ void RBTree::remove(Node* node_to_remove) noexcept {
 // this function is just a simple binary search tree search.
 RBTree::Node* RBTree::find_best(std::size_t req_size) const noexcept {
   Node* current = m_root;
-  Node* best = nullptr;
+  Node* best = const_cast<Node *>(&m_sentinel);
 
   while (current != &m_sentinel) {
     if (current->size == req_size)
