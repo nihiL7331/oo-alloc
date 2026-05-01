@@ -14,6 +14,7 @@ FreeListAllocator::~FreeListAllocator() {
   }
 }
 
+// attempts to merge a freed block with its neighbors to reduce fragmentation.
 void FreeListAllocator::coalesce(FreeBlock* prev_block, FreeBlock* free_block) {
   FreeBlock* next_block = free_block->next;
 
@@ -43,6 +44,8 @@ void FreeListAllocator::coalesce(FreeBlock* prev_block, FreeBlock* free_block) {
 /* memory structure: 
  * pad       | header | data        (when allocated)
  * free_size | next*  | empty space (when not allocated) 
+ *
+ * requires a list traversal to find a block to allocate in.
  */
 void* FreeListAllocator::alloc(std::size_t size, std::size_t align) {
   std::size_t header_size = sizeof(AllocHeader);
@@ -103,7 +106,7 @@ void  FreeListAllocator::free(void* ptr) {
   if (ptr == nullptr)
     return;
 
-  std::size_t header_size = sizeof(AllocHeader);
+  constexpr std::size_t header_size = sizeof(AllocHeader);
 
   // step backwards to get the header
   std::uint8_t* data_ptr = reinterpret_cast<std::uint8_t *>(ptr);
@@ -164,6 +167,11 @@ void FreeListAllocator::clear() {
   m_free_list_head = start_ptr;
 }
 
+/* case 1 of realloc,
+ * it reduces the size of an existing allocation without moving the data.
+ * if left space after shrinking is big enough to create a new free block,
+ * it is created and added to the free list
+ */
 void* FreeListAllocator::shrink_in_place(void* ptr, AllocHeader* header, std::size_t old_size, std::size_t align_new_size) {
   std::uint8_t *raw_ptr = static_cast<std::uint8_t *>(ptr);
   header->size = align_new_size;
@@ -189,6 +197,12 @@ void* FreeListAllocator::shrink_in_place(void* ptr, AllocHeader* header, std::si
   return ptr;
 }
 
+/* case 2 of realloc,
+ * absorbs space from the right neighbor.
+ * because the start address doesnt change,
+ * it doesnt require data copying,
+ * that's why its faster than case 3/4
+ */
 void* FreeListAllocator::expand_right(void* ptr, AllocHeader* header, std::size_t old_size, 
                      std::size_t align_new_size, FreeBlock* right_block, FreeBlock* right_prev) {
   std::size_t size_diff = align_new_size - old_size;
@@ -215,6 +229,11 @@ void* FreeListAllocator::expand_right(void* ptr, AllocHeader* header, std::size_
   return ptr;
 }
 
+/* case 3 of realloc,
+ * absorbs space from the left neighbor.
+ * the start address changes, so it requires
+ * a std::memmove.
+ */
 void* FreeListAllocator::expand_left(void* ptr, AllocHeader* header, 
                                      std::size_t old_size, std::size_t align_new_size, 
                                      FreeBlock* left_block, FreeBlock* left_prev) {
@@ -254,6 +273,12 @@ void* FreeListAllocator::expand_left(void* ptr, AllocHeader* header,
   }
 }
 
+/* absorbs space from both neighbors.
+ * also requires a 'std::memmove'.
+ * the left block is entirely consumed,
+ * the right block is consumed or shrunk
+ * depending on the remaining required size.
+ */
 void* FreeListAllocator::expand_both(void* ptr, AllocHeader* header, 
                                      std::size_t old_size, std::size_t align_new_size, 
                                      FreeBlock* left_block, FreeBlock* left_prev, 
@@ -317,8 +342,8 @@ void* FreeListAllocator::expand_both(void* ptr, AllocHeader* header,
  / if it can't do either, it has to either:
  / - allocate a completely fresh chunk of memory 
  /   and call std::copy, as well as a free, or
- / - do the combination of left&right expand,
- /   which wastes less memory but is slower.
+ / - do the combination of left & right expand,
+ /   which avoids falling back to malloc->copy->free
  /
  / it focuses on minimizing the fragmentation, contrary
  / to the free tree implementation. 
