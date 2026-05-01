@@ -167,11 +167,120 @@ void FreeTreeAllocator::clear() {
   m_free_tree->insert(tree_node);
 }
 
+/* unlike the free-list implementation, this intentionally
+ * avoids leftwards expansion. if the block can't be expanded
+ * in place, it immediately goes to alloc -> memcpy -> free.
+ *
+ * because the red-black tree provides O(log n) search times,
+ * finding a new block is fast, so it's a worthy trade-off
+ * for the possible fragmentation.
+ *
+ * it's also how dlmalloc handles realloc.
+ */ 
 void* FreeTreeAllocator::realloc(void* ptr, std::size_t old_size, 
               std::size_t new_size, std::size_t align) {
-  (void)ptr; (void)old_size; (void)new_size; (void)align;
-  assert(false && "TODO");
-  return nullptr;
+  // need to align the data to
+  // at least pointers alignment (8B default).
+  // its enforced for multiple reasons,
+  // most notably need enough alignment padding
+  // before the payload to store the 'back_ptr'
+  if (align < alignof(void *))
+    align = alignof(void *);
+
+  // if there's no data to reallocate,
+  // instead just allocate
+  if (ptr == nullptr)
+    return alloc(new_size, align);
+
+  // if the new_size is meant to be 0,
+  // free the data
+  if (new_size == 0) {
+    free(ptr);
+    return nullptr;
+  }
+
+  // step back into the alignment padding to read the `back_ptr`
+  // and get original 'header_ptr'
+  AllocHeader** back_ptr = reinterpret_cast<AllocHeader **>(ptr) - 1;
+  AllocHeader* header_ptr = *back_ptr;
+
+  // store data block size early before any changes
+  std::size_t curr_size = header_ptr->size();
+
+  std::uintptr_t header_addr = reinterpret_cast<std::uintptr_t>(header_ptr);
+  std::uintptr_t req_end_addr = reinterpret_cast<std::uintptr_t>(ptr) + new_size;
+  std::size_t req_size = utils::align_up(
+    req_end_addr - header_addr - sizeof(AllocHeader),
+    alignof(AllocHeader)
+  );
+
+  // if there's enough space already, just return
+  // don't shrink because it's slower,
+  // and its uncommon to shrink data via realloc
+  if (req_size <= curr_size)
+    return ptr;
+
+  // get header of right neighbor block
+  AllocHeader* right_header = reinterpret_cast<AllocHeader *>(
+    reinterpret_cast<std::uint8_t *>(header_ptr) + sizeof(AllocHeader)
+      + curr_size + sizeof(AllocFooter)
+  );
+
+  // if it's not allocated, check if the 'new_size'
+  // can fit inside current block + its right neighbor
+  if (!right_header->allocated()) {
+    std::size_t right_size = right_header->size();
+    std::size_t combo_size = curr_size + sizeof(AllocFooter) + sizeof(AllocHeader) + right_size;
+
+    // if it can fit, expand to the right
+    if (req_size <= combo_size) {
+      internal::RBTree::Node* right_node = reinterpret_cast<internal::RBTree::Node *>(right_header + 1);
+      m_free_tree->remove(right_node);
+
+      constexpr std::size_t min_split_size = sizeof(AllocHeader) +
+        sizeof(internal::RBTree::Node) + sizeof(AllocFooter);
+
+      // if there's enough space left after expansion,
+      // make a new free block
+      if (combo_size - req_size >= min_split_size) {
+        update_block(header_ptr, req_size, true);
+
+        AllocHeader* free_header_ptr = reinterpret_cast<AllocHeader *>(
+          reinterpret_cast<std::uint8_t *>(header_ptr) +
+            sizeof(AllocHeader) + req_size + sizeof(AllocFooter)
+        );
+
+        std::size_t free_size = combo_size - req_size - 
+          sizeof(AllocHeader) - sizeof(AllocFooter);
+        update_block(free_header_ptr, free_size, false);
+
+        internal::RBTree::Node* new_free_node = reinterpret_cast<internal::RBTree::Node *>(free_header_ptr + 1);
+        new_free_node->size = free_size;
+        new_free_node->parent = m_free_tree->sentinel();
+        new_free_node->left = m_free_tree->sentinel();
+        new_free_node->right = m_free_tree->sentinel();
+        new_free_node->red = true;
+
+        m_free_tree->insert(new_free_node);
+      } else {
+        // otherwise just consume the right neighbor fully
+        update_block(header_ptr, combo_size, true);
+      }
+      return ptr;
+    }
+  }
+
+  // if it can't fit in its right neighbor,
+  // just allocate new data and copy it there,
+  // after free the old data
+  void *new_ptr = alloc(new_size, align);
+  if (new_ptr != nullptr) {
+    std::size_t copy_size = (old_size < new_size) ? old_size : new_size;
+    std::memcpy(new_ptr, ptr, copy_size);
+    this->free(ptr);
+  }
+
+  return new_ptr;
 }
 
 }
