@@ -25,7 +25,7 @@ private:
       else
         data &= 0x7F;
     }
-    void set_order(uint8_t order) noexcept {
+    void set_order(std::uint8_t order) noexcept {
       data = (data & 0x80) | (order & 0x7F);
     }
   };
