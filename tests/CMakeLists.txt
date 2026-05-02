@@ -170,6 +170,12 @@ target_link_libraries(buddy_alloc PRIVATE oo_alloc)
 add_test(NAME BuddyAlloc COMMAND buddy_alloc)
 set_tests_properties(BuddyAlloc PROPERTIES LABELS "buddy")
 
+# TEST 3
+add_executable(buddy_free buddy_free.cpp)
+target_link_libraries(buddy_free PRIVATE oo_alloc)
+add_test(NAME BuddyFree COMMAND buddy_free)
+set_tests_properties(BuddyFree PROPERTIES LABELS "buddy")
+
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
@@ -181,7 +187,7 @@ add_custom_target(test-all
     free_ooo free_recover free_merge free_realloc
     rbtree_basic rbtree_insert rbtree_remove
     tree_init tree_alloc tree_coal tree_realloc
-    buddy_init_clear buddy_alloc
+    buddy_init_clear buddy_alloc buddy_free
   COMMENT "Running all tests..."
 )
 
