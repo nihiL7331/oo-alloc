@@ -76,7 +76,35 @@ void* SlabAllocator::alloc(std::size_t size, std::size_t align) {
 }
 
 void SlabAllocator::free(void* ptr) {
-  // get the 
+  if (ptr == nullptr)
+    return;
+
+  // get the header by masking ptr
+  std::uintptr_t raw_header_ptr = reinterpret_cast<std::uintptr_t>(ptr) & ~(m_page_size - 1);
+  SlabHeader* header_ptr = reinterpret_cast<SlabHeader *>(raw_header_ptr);
+
+  // push 'ptr' onto the intrusive free list
+  void** list_ptr = static_cast<void **>(ptr);
+  *list_ptr = header_ptr->free_list_head;
+  header_ptr->free_list_head = ptr;
+  header_ptr->used--;
+
+  CacheManager& cache = m_caches[header_ptr->cache_idx];
+
+  // if slab is almost full, it means that it was full before,
+  // so it needs to be moved to partial
+  if (header_ptr->used == header_ptr->capacity - 1) {
+    remove_from_list(cache.full_slabs, header_ptr);
+    push_to_list(cache.partial_slabs, header_ptr);
+  }
+
+  // not using 'else if' for edge case, where
+  // capacity is 1, making each slab have 2 states:
+  // full and empty.
+  if (header_ptr->used == 0) {
+    remove_from_list(cache.partial_slabs, header_ptr);
+    push_to_list(cache.empty_slabs, header_ptr);
+  }
 }
 
 bool SlabAllocator::init(std::size_t size) {
