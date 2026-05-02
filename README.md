@@ -34,14 +34,18 @@ The overview available below can help you do exactly that.
 | **Stack**        | `O(1)`     | `O(1)`***  | `O(1)`    | `O(1)`*/`O(n)` | ~8B      | Temporary data    | Strict LIFO             |
 | **Pool**         | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Identical objects | Fixed sizes             |
 | **Free List**    | `O(n)`     | `O(n)`     | `O(1)`    | `O(n)`         | ~16B     | General purpose   | Slow search / coalesce  |
-| **Free Tree**    | `O(log n)` | `O(log n)` | `O(1)`    | `O(log n)`     | ~32B     | General purpose   | High block overhead     |
-| **Segregated**** | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | ~16B     | General purpose   | Complex to tune         |
-| **Buddy**        | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | ~1-8B    | OS memory         | Fragmentation (in)      |
-| **Slab****       | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Object caching    | Single type             |
+| **Free Tree**    | `O(log n)` | `O(log n)` | `O(1)`    | `O(n)`         | ~32B     | General purpose   | High block overhead     |
+| **Segregated**** | `O(1)`     | `O(1)`     | `O(1)`    | `O(n)`         | ~16B     | General purpose   | Complex to tune         |
+| **Buddy**        | `O(1)`     | `O(1)`     | `O(1)`    | `O(n)`         | ~1-8B    | OS memory         | Fragmentation (in)      |
+| **Slab****       | `O(1)`     | `O(1)`     | `O(1)`    | `O(n)`         | 0B       | Object caching    | Small objects           |
 
 <sub>\*You can only operate on the top-most allocation.</sub><br>
 <sub>\*\*Not yet available in this repository (in development).</sub><br>
 <sub>\*\*\*Freeing a specific block also frees all allocations made after it.</sub>
+
+<p align="center">
+  <em><strong>Note on realloc: </strong>All non-fixed allocators have a worst-case O(n) complexity due to memory copying when blocks must be relocated. General-purpose allocators may frequently hit O(1) amortized fast-paths if in-place expansion is possible or size-class boundaries are not crossed.</em>
+</p>
 
 ## Implementation
 
