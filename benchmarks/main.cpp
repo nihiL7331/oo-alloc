@@ -3,6 +3,7 @@
 #include "oo_alloc/PoolAllocator.hpp"
 #include "oo_alloc/FreeListAllocator.hpp"
 #include "oo_alloc/FreeTreeAllocator.hpp"
+#include "oo_alloc/BuddyAllocator.hpp"
 #include <benchmark/benchmark.h>
 
 using namespace oo_alloc;
@@ -82,6 +83,7 @@ static void bm_recycle_pool(benchmark::State& state) {
 
 BENCHMARK(bm_frag_search<FreeListAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oN);
 BENCHMARK(bm_frag_search<FreeTreeAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oLogN);
+BENCHMARK(bm_frag_search<BuddyAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::o1);
 
 BENCHMARK(bm_seq_bump<ArenaAllocator>);
 BENCHMARK(bm_seq_bump<StackAllocator>);
@@ -89,5 +91,6 @@ BENCHMARK(bm_seq_bump<StackAllocator>);
 BENCHMARK(bm_recycle_pool);
 BENCHMARK(bm_recycle_dynamic<FreeListAllocator>);
 BENCHMARK(bm_recycle_dynamic<FreeTreeAllocator>);
+BENCHMARK(bm_recycle_dynamic<BuddyAllocator>);
 
 BENCHMARK_MAIN();
