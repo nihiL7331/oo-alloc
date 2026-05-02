@@ -61,27 +61,27 @@ private: // helpers
     return order - MIN_CACHE_ORDER;
   }
 
-  inline void push_to_list(SlabHeader** list_head, SlabHeader* slab) noexcept {
+  inline void push_to_list(SlabHeader*& list_head, SlabHeader* slab) noexcept {
     if (slab == nullptr)
       return;
 
-    slab->next = *list_head;
+    slab->next = list_head;
     slab->prev = nullptr;
 
-    if (*list_head != nullptr)
-      (*list_head)->prev = slab;
+    if (list_head != nullptr)
+      list_head->prev = slab;
 
-    *list_head = slab;
+    list_head = slab;
   }
 
-  inline void remove_from_list(SlabHeader** list_head, SlabHeader* slab) noexcept {
+  inline void remove_from_list(SlabHeader*& list_head, SlabHeader* slab) noexcept {
     if (slab == nullptr)
       return;
 
     if (slab->prev != nullptr)
       slab->prev->next = slab->next;
     else
-      *list_head = slab->next;
+      list_head = slab->next;
 
     if (slab->next != nullptr)
       slab->next->prev = slab->prev;

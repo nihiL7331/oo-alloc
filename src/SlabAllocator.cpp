@@ -43,8 +43,8 @@ void* SlabAllocator::alloc(std::size_t size, std::size_t align) {
     if (active_slab != nullptr) {
       // if there is a empty slab,
       // move it to partial
-      remove_from_list(&(cache.empty_slabs), active_slab);
-      push_to_list(&(cache.partial_slabs), active_slab);
+      remove_from_list(cache.empty_slabs, active_slab);
+      push_to_list(cache.partial_slabs, active_slab);
     } else {
       // if there are no empty slabs,
       // initialize a new slab
@@ -53,7 +53,7 @@ void* SlabAllocator::alloc(std::size_t size, std::size_t align) {
         return nullptr;
 
       // after adding data it becomes a partial slab
-      push_to_list(&(cache.partial_slabs), active_slab);
+      push_to_list(cache.partial_slabs, active_slab);
     }
   }
 
@@ -68,8 +68,8 @@ void* SlabAllocator::alloc(std::size_t size, std::size_t align) {
 
   // if the slab just become full, move it to full slabs
   if (active_slab->used == active_slab->capacity) {
-    remove_from_list(&(cache.partial_slabs), active_slab);
-    push_to_list(&(cache.full_slabs), active_slab);
+    remove_from_list(cache.partial_slabs, active_slab);
+    push_to_list(cache.full_slabs, active_slab);
   }
 
   return user_ptr;
