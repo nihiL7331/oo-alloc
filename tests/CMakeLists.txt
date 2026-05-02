@@ -162,7 +162,7 @@ set_tests_properties(TreeRealloc PROPERTIES LABELS "tree")
 add_executable(buddy_init_clear buddy_init_clear.cpp)
 target_link_libraries(buddy_init_clear PRIVATE oo_alloc)
 add_test(NAME BuddyInitClear COMMAND buddy_init_clear)
-set_tests_properties(BuddyInitClear PROPERTIES LABELS "tree")
+set_tests_properties(BuddyInitClear PROPERTIES LABELS "buddy")
 
 # TARGETS
 add_custom_target(test-all
