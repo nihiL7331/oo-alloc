@@ -31,16 +31,17 @@ The overview available below can help you do exactly that.
 | Type             | `alloc`    | `free`     | `clear`   | `realloc`      | Overhead | Best for          | Constraints             |
 | :---             | :---:      | :---:      | :---:     | :---:          | :---:    | :---              | :---                    |
 | **Arena**        | `O(1)`     | *N/A*      | `O(1)`    | `O(1)`*/`O(n)` | 0B       | Bulk allocations  | No individual frees     |
-| **Stack**        | `O(1)`     | `O(1)`*    | `O(1)`    | `O(1)`*/`O(n)` | ~8B      | Temporary data    | Strict LIFO             |
+| **Stack**        | `O(1)`     | `O(1)`***  | `O(1)`    | `O(1)`*/`O(n)` | ~8B      | Temporary data    | Strict LIFO             |
 | **Pool**         | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Identical objects | Fixed sizes             |
 | **Free List**    | `O(n)`     | `O(n)`     | `O(1)`    | `O(n)`         | ~16B     | General purpose   | Slow search / coalesce  |
 | **Free Tree**    | `O(log n)` | `O(log n)` | `O(1)`    | `O(log n)`     | ~32B     | General purpose   | High block overhead     |
 | **Segregated**** | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | ~16B     | General purpose   | Complex to tune         |
-| **Buddy****      | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | 0B       | OS memory         | Fragmentation (in)      |
+| **Buddy****      | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | ~1-8B    | OS memory         | Fragmentation (in)      |
 | **Slab****       | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Object caching    | Single type             |
 
 <sub>\*You can only operate on the top-most allocation.</sub><br>
 <sub>\*\*Not yet available in this repository (in development).</sub>
+<sub>\*\*\*Freeing a specific block also frees all allocations made after it.</sub>
 
 ## Implementation
 
