@@ -135,9 +135,49 @@ void SlabAllocator::clear() {
 }
 
 void* SlabAllocator::realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) {
-  (void)ptr; (void)old_size; (void)new_size; (void)align;
-  assert(false && "TODO");
-  return nullptr;
+  if (ptr == nullptr)
+    return alloc(new_size, align);
+
+  if (new_size == 0) {
+    this->free(ptr);
+    return nullptr;
+  }
+
+  std::size_t max_slab_size = m_page_size / 2;
+  bool old_is_big = old_size > max_slab_size;
+  bool new_is_big = new_size > max_slab_size;
+
+  if (old_is_big && new_is_big)
+    return m_base_allocator->realloc(ptr, old_size, new_size, align);
+
+  if (old_is_big != new_is_big) {
+    void* new_ptr = this->alloc(new_size, align);
+
+    if (new_ptr != nullptr) {
+      std::size_t copy_size = std::min(old_size, new_size);
+      std::memcpy(new_ptr, ptr, copy_size);
+
+      if (old_is_big)
+        m_base_allocator->free(ptr);
+      else
+        assert(false && "TODO");
+    }
+  }
+
+  std::uint8_t old_idx = size_to_cache_idx(old_size);
+  std::uint8_t new_idx = size_to_cache_idx(new_size);
+
+  if (old_idx == new_idx)
+    return ptr;
+
+  void* new_ptr = alloc(new_size, align);
+  if (new_ptr != nullptr) {
+    std::size_t copy_size = std::min(old_size, new_size);
+    std::memcpy(new_ptr, ptr, copy_size);
+    this->free(ptr);
+  }
+
+  return new_ptr;
 }
 
 SlabAllocator::SlabHeader* SlabAllocator::init_slab(std::uint8_t cache_idx) noexcept {
