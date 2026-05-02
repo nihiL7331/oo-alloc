@@ -190,7 +190,8 @@ void BuddyAllocator::clear() {
   m_free_lists.fill(nullptr);
 
   // calculate the order based on the final total size
-  std::size_t max_order = size_to_order(m_total_size);
+  // don't use size_to_order here, because don't want header padding here
+  std::size_t max_order = std::countr_zero(m_total_size) - std::countr_zero(MIN_BLOCK_SIZE);
 
   // create the biggest, parent block that later will be split
   // for allocations
