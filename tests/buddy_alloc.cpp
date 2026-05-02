@@ -15,7 +15,7 @@ int main() {
   assert((addr % 64 == 0) && "Failed to naturally align block");
 
   int alloc_cnt = 0;
-  while (buddy.alloc(65536, 8) != nullptr) {
+  while (buddy.alloc(32, 8) != nullptr) {
       alloc_cnt++;
   }
   

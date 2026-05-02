@@ -5,7 +5,7 @@
 int main() {
   oo_alloc::BuddyAllocator buddy;
   bool succ = buddy.init(1024 * 1024);
-  assert(buddy.init(1024 * 1024) && "Failed to initialize");
+  assert(succ && "Failed to initialize");
 
   void* ptr1 = buddy.alloc(40, 8);
   assert(ptr1 != nullptr && "Initial alloc failed");
