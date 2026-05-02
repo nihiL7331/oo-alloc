@@ -385,11 +385,11 @@ If it fails, it rolls back its internal state so the original tracking data is i
 ## Roadmap
 
 * [ ] Implement a size segregated free list allocator.
-* [ ] Implement a pow-of-two buddy allocator.
 * [ ] Benchmark cache misses via perf.
 * [ ] Implement a slab allocator.
 * [ ] Add a benchmark/performance README section.
 * [ ] Move from hand-written tests to proper stress testing.
+* [x] Implement a pow-of-two buddy allocator.
 * [x] Move benchmarks to google/benchmark.
 * [x] Add realloc description in README.
 * [x] Refactor and clean up API.
