@@ -471,6 +471,82 @@ Only if the boundary is crossed will it allocate a new block, copy the data, and
   <em><sub>The allocator recursively merges the free buddies. The two 32B blocks merge into 64B, and the two 64B blocks zip back into a single 128B block.</sub></em>
 </p>
 
+### Slab allocator
+
+The Slab allocator is a highly efficient object-caching memory manager.
+It is designed to completely eliminate internal fragmentation for small objects and avoid the overhead of storing metadata next to every single allocation.
+
+Instead of managing memory byte by byte, it requests large, page-aligned blocks of memory (slabs) from a base allocator (usually the Buddy allocator) and divides them into fixed-size chunks. 
+It uses an array of `CacheManager` objects, where each cache handles a specific power-of-two size class.
+
+Because it operates on fixed-size slots within page-aligned boundaries, it requires zero per-object metadata.
+
+#### Internal structure
+```cpp
+class SlabAllocator {
+private:
+  struct SlabHeader {
+    SlabHeader* prev;
+    SlabHeader* next;
+
+    void* free_list_head;
+    std::uint16_t used;
+    std::uint16_t capacity;
+    std::uint16_t cache_idx;
+    std::uint16_t id;
+  };
+  struct CacheManager {
+    std::size_t object_size;
+
+    SlabHeader* empty_slabs;
+    SlabHeader* partial_slabs;
+    SlabHeader* full_slabs;
+
+    void init(std::size_t size) {
+      // ...
+    }
+  };
+
+  std::uint8_t NUM_CACHES = 9;
+  std::uint8_t MIN_CACHE_ORDER = 3;
+  std::uint16_t SLAB_ID = 0x51AB; 
+
+  std::size_t m_total_size;
+  std::size_t m_page_size;
+  IAllocator* m_base_allocator;
+  std::array<CacheManager, NUM_CACHES> m_caches;
+
+public:
+  void* alloc(std::size_t size, std::size_t align);
+  void  free(void* ptr); 
+  bool  init(std::size_t size);
+  void  clear();
+  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
+  std::size_t capacity() const;
+
+};
+```
+<sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/SlabAllocator.hpp).</sub>
+
+When `alloc` is called, the allocator first checks if the request exceeds its maximum cache size.
+If it does, the request is routed directly to the `m_base_allocator`.
+If the size is small, it determines the correct `CacheManager` and looks for an available slot in the `partial_slabs`, later checking the `empty_slabs` lists. 
+If a slab is found, it pops the head of the intrusive free list in *O(1)* time, increments the `used` counter, and promotes the slab to the `full_slabs` list if capacity is reached.
+If no slabs are available, it requests a new page from `m_base_allocator`, formats it with a `SlabHeader`, and carves the rest into new slots.
+
+When `free` is called, the allocator faces a unique problem - determining whether the pointer belongs to a Slab cache or is a huge block managed by `m_base_allocator`.
+This issue is commonly solved by passing the size of an allocation as an argument, and checking if it exceeds the maximum cache size.
+The implementation in this codebase however, doesn't pass size as an argument, so it requires a different approach.
+Because slab pages are strictly aligned to `m_page_size`, the allocator applies a bitmask to the pointer to instantly find the start of memory page.
+It then checks the `id` field of the struct sitting there.
+If the ID matches the predefined `SLAB_ID` (`0x51AB`, standing for 'slab' obviously), it is a slab block, and the pointer is pushed back into the slab's internal free list.
+The slab is transitioned between the full/partial/empty lists as needed.
+If the ID does not match, the allocator immediately delegates the `free` operation to `m_base_allocator`.
+
+When `realloc` is called, the allocator uses the same page-masking and magic ID check to determine the current physical size of the block.
+If the new requested size maps to the exact same size class (`cache_idx`) as the old size, the allocator just returns the passed pointer in *O(1)* time, leaving the memory as it was before.
+If it maps to a different cache - or crosses the boundary between slab and base allocations, it performs a standard `alloc`->`std::copy`->`free` cycle.
+
 ## Roadmap
 
 * [ ] Implement a size segregated free list allocator.
