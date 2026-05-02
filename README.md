@@ -2,6 +2,23 @@
 
 A collection of custom C++ allocators.
 
+## Table of contents
+
+- [Build & run](#build--run)
+- [Introduction](#introduction)
+- [Overview](#overview)
+- [Implementation](#implementation)
+  - [Arena (linear) allocator](#arena-linear-allocator)
+  - [Stack allocator](#stack-allocator)
+  - [Pool allocator](#pool-allocator)
+  - [Free list allocator](#free-list-allocator)
+  - [Free tree allocator](#free-tree-allocator)
+  - [Tracking allocator](#tracking-allocator)
+  - [Buddy allocator](#buddy-allocator)
+  - [Slab allocator](#slab-allocator)
+- [Roadmap](#roadmap)
+- [Sources](#sources)
+
 ## Build & run
 ```bash
 mkdir build && cd build
