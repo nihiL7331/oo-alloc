@@ -37,7 +37,7 @@ The overview available below can help you do exactly that.
 | **Free Tree**    | `O(log n)` | `O(log n)` | `O(1)`    | `O(n)`         | ~32B     | General purpose   | High block overhead     |
 | **Segregated**** | `O(1)`     | `O(1)`     | `O(1)`    | `O(n)`         | ~16B     | General purpose   | Complex to tune         |
 | **Buddy**        | `O(1)`     | `O(1)`     | `O(1)`    | `O(n)`         | ~1-8B    | OS memory         | Fragmentation (in)      |
-| **Slab****       | `O(1)`     | `O(1)`     | `O(1)`    | `O(n)`         | 0B       | Object caching    | Small objects           |
+| **Slab**         | `O(1)`     | `O(1)`     | `O(1)`    | `O(n)`         | 0B       | Object caching    | Small objects           |
 
 <sub>\*You can only operate on the top-most allocation.</sub><br>
 <sub>\*\*Not yet available in this repository (in development).</sub><br>
