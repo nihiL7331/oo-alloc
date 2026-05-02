@@ -1,3 +1,9 @@
+if(MSVC)
+    add_compile_options("/U_NDEBUG")
+else()
+    add_compile_options("-UNDEBUG")
+endif()
+
 # ARENA:
 
 # TEST 1
