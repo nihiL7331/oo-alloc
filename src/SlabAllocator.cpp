@@ -1,14 +1,23 @@
 #include "oo_alloc/SlabAllocator.hpp"
+#include "oo_alloc/IAllocator.hpp"
 #include <cassert>
 
 namespace oo_alloc {
 
-SlabAllocator::SlabAllocator() {
+SlabAllocator::SlabAllocator(IAllocator* base_allocator) 
+  : m_total_size(0), m_page_size(0), m_base_allocator(base_allocator) {
+  // initialize the caches with powers of 2,
+  // starting at '1 << MIN_CACHE_ORDER'
+  std::size_t curr_size = 1 << MIN_CACHE_ORDER;
 
+  for (std::uint8_t i = 0; i < NUM_CACHES; ++i) {
+    m_caches[i].init(curr_size);
+    curr_size <<= 1;
+  }
 }
 
 SlabAllocator::~SlabAllocator() {
-
+  clear();
 }
 
 void* SlabAllocator::alloc(std::size_t size, std::size_t align) {
