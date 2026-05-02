@@ -40,7 +40,7 @@ The overview available below can help you do exactly that.
 | **Slab****       | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Object caching    | Single type             |
 
 <sub>\*You can only operate on the top-most allocation.</sub><br>
-<sub>\*\*Not yet available in this repository (in development).</sub>
+<sub>\*\*Not yet available in this repository (in development).</sub><br>
 <sub>\*\*\*Freeing a specific block also frees all allocations made after it.</sub>
 
 ## Implementation
