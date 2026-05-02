@@ -15,7 +15,8 @@ private:
     void* free_list_head;
     std::uint16_t used;
     std::uint16_t capacity;
-    std::uint8_t cache_idx;
+    std::uint16_t cache_idx;
+    std::uint16_t id;
   };
   struct CacheManager {
     std::size_t object_size;
@@ -34,6 +35,7 @@ private:
 
   static constexpr std::uint8_t NUM_CACHES = 9;
   static constexpr std::uint8_t MIN_CACHE_ORDER = 3;
+  static constexpr std::uint16_t SLAB_ID = 0x51AB; 
 
   std::size_t m_total_size;
   std::size_t m_page_size;

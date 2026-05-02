@@ -85,6 +85,14 @@ void SlabAllocator::free(void* ptr) {
   std::uintptr_t raw_header_ptr = reinterpret_cast<std::uintptr_t>(ptr) & ~(m_page_size - 1);
   SlabHeader* header_ptr = reinterpret_cast<SlabHeader *>(raw_header_ptr);
 
+  if (header_ptr->id != SLAB_ID) {
+    // if the 'id' isnt 0x51AB, it means that
+    // this data haven't went through the 'init_slab'
+    // code, hence it was allocated by the 'm_base_allocator'
+    m_base_allocator->free(ptr);
+    return;
+  }
+
   // push 'ptr' onto the intrusive free list
   void** list_ptr = static_cast<void **>(ptr);
   *list_ptr = header_ptr->free_list_head;
@@ -157,11 +165,9 @@ void* SlabAllocator::realloc(void* ptr, std::size_t old_size, std::size_t new_si
       std::size_t copy_size = std::min(old_size, new_size);
       std::memcpy(new_ptr, ptr, copy_size);
 
-      if (old_is_big)
-        m_base_allocator->free(ptr);
-      else
-        assert(false && "TODO");
+      m_base_allocator->free(ptr);
     }
+    return new_ptr;
   }
 
   std::uint8_t old_idx = size_to_cache_idx(old_size);
@@ -198,6 +204,9 @@ SlabAllocator::SlabHeader* SlabAllocator::init_slab(std::uint8_t cache_idx) noex
   // each page is split up to equally sized objects
   header_ptr->capacity = (m_page_size - sizeof(SlabHeader)) / object_size;
   header_ptr->cache_idx = cache_idx;
+  // this is used to differ base allocator allocated
+  // data from slabs
+  header_ptr->id = SLAB_ID;
 
   // get the beginning of actual data/payload 
   // which is directly after the header
