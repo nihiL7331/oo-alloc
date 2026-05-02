@@ -8,6 +8,18 @@
 
 namespace oo_alloc {
 
+BuddyAllocator::BuddyAllocator() : m_start_ptr(nullptr), m_total_size(0) {
+  m_free_lists.fill(nullptr);
+}
+
+BuddyAllocator::~BuddyAllocator() {
+  if (m_start_ptr != nullptr) {
+    utils::os_free(m_start_ptr, m_total_size);
+    m_start_ptr = nullptr;
+    m_total_size = 0;
+  }
+}
+
 void BuddyAllocator::split_block(std::uint8_t order) noexcept {
   // grab the top block of 'order'
   FreeBlock* block = m_free_lists[order];

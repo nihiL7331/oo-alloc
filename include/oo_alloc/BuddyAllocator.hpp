@@ -37,6 +37,9 @@ private:
   std::array<FreeBlock*, MAX_ORDER> m_free_lists;
 
 public:
+  BuddyAllocator();
+  ~BuddyAllocator() override;
+
   void* alloc(std::size_t size, std::size_t align) override;
   void  free(void* ptr) override;
   bool  init(std::size_t size) override;
