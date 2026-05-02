@@ -452,9 +452,9 @@ Only if the boundary is crossed will it allocate a new block, copy the data, and
 
 * [ ] Implement a size segregated free list allocator.
 * [ ] Benchmark cache misses via perf.
-* [ ] Implement a slab allocator.
 * [ ] Add a benchmark/performance README section.
 * [ ] Move from hand-written tests to proper stress testing.
+* [x] Implement a slab allocator.
 * [x] Implement a pow-of-two buddy allocator.
 * [x] Move benchmarks to google/benchmark.
 * [x] Add realloc description in README.
