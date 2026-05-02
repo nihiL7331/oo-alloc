@@ -53,15 +53,16 @@ private: // helpers
     return std::countr_zero(size) - std::countr_zero(MIN_BLOCK_SIZE);
   }
 
-  inline void* get_buddy(void* block, std::size_t order) const noexcept {
+  inline FreeBlock* get_buddy(FreeBlock* block, std::size_t order) const noexcept {
     if (block == nullptr)
       return nullptr;
 
-    std::size_t offset = static_cast<std::uint8_t *>(block) - 
+    std::size_t offset = reinterpret_cast<std::uint8_t *>(block) - 
                           static_cast<std::uint8_t *>(m_start_ptr);
     offset ^= (MIN_BLOCK_SIZE << order);
 
-    return static_cast<std::uint8_t *>(m_start_ptr) + offset;
+    std::uint8_t* buddy_ptr = static_cast<std::uint8_t *>(m_start_ptr) + offset;
+    return reinterpret_cast<FreeBlock *>(buddy_ptr);
   }
 
   void split_block(std::size_t order) noexcept;
