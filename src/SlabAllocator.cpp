@@ -11,7 +11,7 @@ SlabAllocator::~SlabAllocator() {
 
 }
 
-void* alloc(std::size_t size, std::size_t align) {
+void* SlabAllocator::alloc(std::size_t size, std::size_t align) {
   (void)size; (void)align;
   assert(false && "TODO");
   return nullptr;
