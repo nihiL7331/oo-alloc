@@ -9,6 +9,7 @@ class BuddyAllocator: public IAllocator {
 private:
   struct AllocHeader {
     std::uint8_t data; // MSB - is_free, rest - order
+    std::uint16_t offset;
 
     bool free() const noexcept { return data & 0x80; }
     std::uint8_t order() const noexcept { return data & 0x7F; }
@@ -61,12 +62,17 @@ private: // helpers
     if (block == nullptr)
       return nullptr;
 
-    std::size_t offset = reinterpret_cast<std::uint8_t *>(block) - 
-                          static_cast<std::uint8_t *>(m_start_ptr);
-    offset ^= (MIN_BLOCK_SIZE << order);
+    std::uintptr_t block_addr = reinterpret_cast<std::uintptr_t>(block);
+    std::uintptr_t start_addr = reinterpret_cast<std::uintptr_t>(m_start_ptr);
 
-    std::uint8_t* buddy_ptr = static_cast<std::uint8_t *>(m_start_ptr) + offset;
-    return reinterpret_cast<FreeBlock *>(buddy_ptr);
+    std::uintptr_t rel_offset = block_addr - start_addr;
+
+    std::size_t block_size = MIN_BLOCK_SIZE << order;
+    std::uintptr_t buddy_offset = rel_offset ^ block_size;
+
+    std::uintptr_t buddy_addr = start_addr + buddy_offset;
+
+    return reinterpret_cast<FreeBlock *>(buddy_addr);
   }
 
   void split_block(std::uint8_t order) noexcept;

@@ -64,17 +64,11 @@ void BuddyAllocator::split_block(std::uint8_t order) noexcept {
 }
 
 void* BuddyAllocator::alloc(std::size_t size, std::size_t align) {
-  // calculate order
-  // this handles header + min sizes internally,
-  // no need for if statements for that here
-  std::uint8_t target_order = size_to_order(size);
+  // we need space for data, header, and enough room to shift
+  // the data pointer forward until it hits an 'align' boundary.
+  std::size_t total_req_size = size + align + sizeof(AllocHeader);
+  std::uint8_t target_order = size_to_order(total_req_size);
 
-  // ensure that block is big enough to naturally align.
-  // since each blocks size is a power of 2,
-  // if MIN_BLOCK_SIZE << target_order >= align then the data is aligned
-  if ((MIN_BLOCK_SIZE << target_order) < align)
-    target_order = size_to_order(align - sizeof(AllocHeader));
-  
   // if there's no free block of wanted order,
   // split bigger blocks (of greater order)
   // down to create it.
@@ -104,11 +98,16 @@ void* BuddyAllocator::alloc(std::size_t size, std::size_t align) {
     m_free_lists[target_order]->prev = nullptr;
 
   used_block->header.set_free(false);
+  
+  std::uintptr_t block_start = reinterpret_cast<std::uintptr_t>(used_block);
+  std::uintptr_t min_data_ptr = block_start + sizeof(AllocHeader);
+  std::uintptr_t data_ptr = utils::align_up(min_data_ptr, align);
 
-  // because of the 'FreeBlock' layout,
-  // user data begins where the 'prev' pointer
-  // sits when the block is free.
-  std::uintptr_t data_ptr = reinterpret_cast<std::uintptr_t>(used_block) + offsetof(FreeBlock, prev);
+  AllocHeader* header = reinterpret_cast<AllocHeader *>(data_ptr - sizeof(AllocHeader));
+  header->set_free(false);
+  header->set_order(target_order);
+  header->offset = static_cast<std::uint32_t>(data_ptr - block_start);
+
   return reinterpret_cast<void *>(data_ptr);
 }
 
@@ -116,15 +115,16 @@ void BuddyAllocator::free(void* ptr) {
   if (ptr == nullptr)
     return;
 
-  // to get the free block data, need to go backwards.
-  // its essentially reverting the behavior at the end of alloc.
-  std::uint8_t* raw_ptr = static_cast<std::uint8_t *>(ptr) - offsetof(FreeBlock, prev);
-  FreeBlock* new_free_block = reinterpret_cast<FreeBlock *>(raw_ptr);
+  // header is always one AllocHeader size behind ptr
+  AllocHeader* header = static_cast<AllocHeader *>(ptr) - 1;
 
-  // setting free twice to ensure theres no unexpected behavior,
-  // e.g. if the block doesn't get merged.
+  std::uintptr_t data_ptr = reinterpret_cast<std::uintptr_t>(ptr);
+  std::uintptr_t block_start = data_ptr - header->offset;
+
+  FreeBlock* new_free_block = reinterpret_cast<FreeBlock *>(block_start);
+
+  std::uint8_t order = header->order();
   new_free_block->header.set_free(true);
-  std::uint8_t order = new_free_block->header.order();
 
   // look for buddies, merge if possible
   while (order < MAX_ORDER - 1) {
@@ -225,30 +225,34 @@ void* BuddyAllocator::realloc(void* ptr, std::size_t old_size, std::size_t new_s
     return nullptr;
   }
 
-  // read the actual free space from the header:
-  // if user allocated e.g. 33B, he has still 31B free he doesn't know of
-  std::uint8_t* raw_ptr = static_cast<std::uint8_t *>(ptr) - offsetof(FreeBlock, prev);
-  FreeBlock* old_block = reinterpret_cast<FreeBlock *>(raw_ptr);
+  // grab the header by going sizeof(AllocHeader) backwards
+  AllocHeader* header = static_cast<AllocHeader *>(ptr) - 1;
+  std::uint8_t curr_order = header->order();
 
-  std::uint8_t curr_order = old_block->header.order();
-  std::uint8_t target_order = size_to_order(new_size);
+  // calculate how many bytes are left in block
+  std::size_t block_size = MIN_BLOCK_SIZE << curr_order;
+  std::size_t avail_space = block_size - header->offset;
+
+  std::uintptr_t data_addr = reinterpret_cast<std::uintptr_t>(ptr);
+  bool aligned = (data_addr % align) == 0;
 
   // if the "hidden" free space was enough to fit
-  // 'new_size', just return the pointer
-  if (curr_order >= target_order)
+  // 'new_size', and its aligned, just return the pointer
+  if (aligned && new_size <= avail_space)
     return ptr;
 
   // standard 'alloc' -> 'copy' -> 'free' cycle,
   // in-place is not worth it for the buddy allocator
-  void* new_ptr = alloc(new_size, align);
+  void* new_ptr = this->alloc(new_size, align);
   if (new_ptr == nullptr)
     return nullptr;
 
   // copy the data
-  std::memcpy(new_ptr, ptr, old_size);
+  std::size_t copy_size = std::min(old_size, new_size);
+  std::memcpy(new_ptr, ptr, copy_size);
 
   // free the old block
-  free(ptr);
+  this->free(ptr);
   
   return new_ptr;
 }
