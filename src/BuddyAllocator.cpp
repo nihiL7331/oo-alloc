@@ -176,6 +176,16 @@ bool BuddyAllocator::init(std::size_t size) {
   if (!m_start_ptr)
     return false;
 
+  // clear the state
+  this->clear();
+
+  return true;
+}
+
+void BuddyAllocator::clear() {
+  if (m_start_ptr == nullptr)
+    return;
+
   m_free_lists.fill(nullptr);
 
   // calculate the order based on the final total size
@@ -190,12 +200,6 @@ bool BuddyAllocator::init(std::size_t size) {
   parent_block->prev = nullptr;
   parent_block->next = nullptr;
   m_free_lists[max_order] = parent_block;
-
-  return true;
-}
-
-void BuddyAllocator::clear() {
-  assert(false && "TODO");
 }
 
 void* BuddyAllocator::realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) {
