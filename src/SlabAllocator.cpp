@@ -87,7 +87,14 @@ bool SlabAllocator::init(std::size_t size) {
 }
 
 void SlabAllocator::clear() {
-  assert(false && "TODO");
+  for (std::uint8_t i = 0; i < NUM_CACHES; ++i) {
+    CacheManager& cache = m_caches[i];
+    clear_slab_list(cache.full_slabs);
+    clear_slab_list(cache.partial_slabs);
+    clear_slab_list(cache.empty_slabs);
+  }
+
+  m_total_size = 0;
 }
 
 void* SlabAllocator::realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) {
