@@ -1,12 +1,11 @@
 #include "oo_alloc/IAllocator.hpp"
+#include "oo_alloc/BuddyAllocator.hpp"
 #include <array>
 #include <bit>
 #include <cstddef>
 #include <cstdint>
 
 namespace oo_alloc {
-
-class BuddyAllocator;
 
 class SlabAllocator: public IAllocator {
 private:
