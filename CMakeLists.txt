@@ -31,9 +31,29 @@ target_include_directories(oo_alloc
 enable_testing()
 
 add_subdirectory(tests)
-add_subdirectory(benchmarks)
 
 target_compile_options(oo_alloc PRIVATE
   $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
   $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
+)
+
+include(FetchContent)
+
+FetchContent_Declare(
+  googlebenchmark
+  GIT_REPOSITORY https://github.com/google/benchmark.git
+  GIT_TAG        v1.9.5
+)
+
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googlebenchmark)
+
+add_executable(bench_suite benchmarks/main.cpp)
+target_link_libraries(bench_suite PRIVATE oo_alloc benchmark::benchmark)
+add_custom_target(run-benchmarks
+  COMMAND ./bench_suite
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS bench_suite
+  COMMENT "Running benchmarks..."
+  USES_TERMINAL
 )

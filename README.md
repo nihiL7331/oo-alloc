@@ -388,9 +388,8 @@ If it fails, it rolls back its internal state so the original tracking data is i
 * [ ] Benchmark cache misses via perf.
 * [ ] Implement a slab allocator.
 * [ ] Add a benchmark/performance README section.
-* [ ] Move benchmarks to google/benchmark.
 * [ ] Move from hand-written tests to proper stress testing.
-* [ ] Add padding visual to free-list allocator infographics.
+* [x] Move benchmarks to google/benchmark.
 * [x] Add realloc description in README.
 * [x] Refactor and clean up API.
 * [x] Move free-list coalescing to a helper function.
