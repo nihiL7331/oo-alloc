@@ -229,6 +229,10 @@ SlabAllocator::SlabHeader* SlabAllocator::init_slab(std::uint8_t cache_idx) noex
   void** cast_free_ptr = static_cast<void **>(free_ptr);
   *cast_free_ptr = nullptr;
 
+  // add the page size to total size 
+  // to update the capacity correctly
+  m_total_size += m_page_size;
+
   return header_ptr;
 }
 
