@@ -5,6 +5,8 @@
 
 int main() {
   oo_alloc::BuddyAllocator buddy;
+  buddy.init(64 * 1024 * 1024);
+
   oo_alloc::SlabAllocator slab(&buddy);
 
   bool succ = slab.init(oo_alloc::utils::page_size());
