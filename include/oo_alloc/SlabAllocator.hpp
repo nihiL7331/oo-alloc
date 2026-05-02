@@ -1,5 +1,4 @@
 #include "oo_alloc/IAllocator.hpp"
-#include "oo_alloc/BuddyAllocator.hpp"
 #include <array>
 #include <bit>
 #include <cstddef>
@@ -37,11 +36,11 @@ private:
 
   std::size_t m_total_size;
   std::size_t m_page_size;
-  BuddyAllocator* m_base_allocator;
+  IAllocator* m_base_allocator;
   std::array<CacheManager, NUM_CACHES> m_caches;
 
 public:
-  SlabAllocator();
+  SlabAllocator(IAllocator* base_allocator);
   ~SlabAllocator() override;
 
   void* alloc(std::size_t size, std::size_t align) override;
