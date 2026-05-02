@@ -24,10 +24,11 @@ SlabAllocator::~SlabAllocator() {
 }
 
 void* SlabAllocator::alloc(std::size_t size, std::size_t align) {
-  // if the request is larger than half a page,
-  // it's too big for caches, so it needs to be
-  // allocated via the base allocator
-  if (size > m_page_size / 2)
+  // calculate maximum size that can be stored in cache
+  constexpr std::size_t MAX_CACHE_SIZE = 1 << (MIN_CACHE_ORDER + NUM_CACHES - 1);
+
+  // if the allocated space is larger, then route to base
+  if (size > MAX_CACHE_SIZE)
     return m_base_allocator->alloc(size, align);
 
   // find the correct CacheManager
@@ -154,9 +155,9 @@ void* SlabAllocator::realloc(void* ptr, std::size_t old_size, std::size_t new_si
     return nullptr;
   }
 
-  std::size_t max_slab_size = m_page_size / 2;
-  bool old_is_big = old_size > max_slab_size;
-  bool new_is_big = new_size > max_slab_size;
+  constexpr std::size_t MAX_CACHE_SIZE = 1 << (MIN_CACHE_ORDER + NUM_CACHES - 1);
+  bool old_is_big = old_size > MAX_CACHE_SIZE;
+  bool new_is_big = new_size > MAX_CACHE_SIZE;
 
   if (old_is_big && new_is_big)
     return m_base_allocator->realloc(ptr, old_size, new_size, align);
