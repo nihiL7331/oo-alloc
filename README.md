@@ -547,6 +547,30 @@ When `realloc` is called, the allocator uses the same page-masking and magic ID 
 If the new requested size maps to the exact same size class (`cache_idx`) as the old size, the allocator just returns the passed pointer in *O(1)* time, leaving the memory as it was before.
 If it maps to a different cache - or crosses the boundary between slab and base allocations, it performs a standard `alloc`->`std::copy`->`free` cycle.
 
+<p align="center">
+  <img src="docs/assets/slab_init.svg" alt="slab allocator initialization">
+  <br>
+  <em><sub>A 4KB page is requested from the base allocator. A header is placed at the front, and the remaining space is divided into chunks linked via an intrusive list.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/slab_partial.svg" alt="slab allocator partial state">
+  <br>
+  <em><sub>After two allocations, the objects are cached tightly together with zero metadata overhead. The slab's free list head pointer simply shifts to the next available slot.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/slab_free.svg" alt="slab allocator free operation">
+  <br>
+  <em><sub>On free, the allocator applies a bitmask to the pointer to instantly jump back to the page-aligned header. It checks the ID to confirm it belongs to a slab.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/slab_large.svg" alt="slab allocator large allocation">
+  <br>
+  <em><sub>If a memory request exceeds the maximum cache size, the slab structure is completely bypassed, and the allocation is routed directly to the base allocator.</sub></em>
+</p>
+
 ## Roadmap
 
 * [ ] Implement a size segregated free list allocator.
