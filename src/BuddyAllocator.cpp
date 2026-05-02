@@ -8,8 +8,46 @@
 namespace oo_alloc {
 
 void BuddyAllocator::split_block(std::size_t order) noexcept {
-  (void)order;
-  assert(false && "TODO");
+  // grab the top block of 'order'
+  FreeBlock* block = m_free_lists[order];
+
+  // pop 'block'
+  m_free_lists[order] = block->next;
+  if (m_free_lists[order] != nullptr)
+    m_free_lists[order]->prev = nullptr;
+
+  // calculate order and size after split
+  std::size_t new_order = order - 1;
+  std::size_t half_size = MIN_BLOCK_SIZE << new_order;
+
+  // calculate the pointer of right half (the buddy)
+  std::uint8_t* raw_buddy_ptr = reinterpret_cast<std::uint8_t *>(block) + half_size;
+  FreeBlock* buddy = reinterpret_cast<FreeBlock *>(raw_buddy_ptr);
+
+  // update 'block' metadata
+  block->header.set_order(new_order);
+  block->header.set_free(true);
+
+  // update 'buddy' metadata
+  buddy->header.set_order(new_order);
+  buddy->header.set_free(true);
+
+  // push 'buddy' first.
+  // 'alloc' grabs head of the list,
+  // so pushing 'block' later grants 
+  // better spatial memory locality.
+  buddy->prev = nullptr;
+  buddy->next = m_free_lists[new_order];
+  if (m_free_lists[new_order] != nullptr)
+    m_free_lists[new_order]->prev = buddy;
+  m_free_lists[new_order] = buddy;
+
+  // push 'block'
+  block->prev = nullptr;
+  block->next = m_free_lists[new_order];
+  if (m_free_lists[new_order] != nullptr)
+    m_free_lists[new_order]->prev = block;
+  m_free_lists[new_order] = block;
 }
 
 void* BuddyAllocator::alloc(std::size_t size, std::size_t align) {
