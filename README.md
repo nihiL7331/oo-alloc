@@ -386,6 +386,68 @@ It first verifies the old pointer exists in its tracking map, temporarily untrac
 If the base allocator successfully reallocates the memory, it tracks the new pointer and updates the memory metrics. 
 If it fails, it rolls back its internal state so the original tracking data is intact.
 
+### Buddy allocator
+
+The Buddy allocator is a highly efficient memory manager frequently used at the OS level (e.g. in the Linux kernel).
+It manages memory by dividing it into partitions to try to satisfy a memory request as suitably as possible.
+
+It works strictly with block sizes that are powers of two. 
+To keep track of available memory, it uses an array of intrusive doubly-linked lists, where each order represents a specific power-of-two block size. 
+Because it rounds every allocation up to the nearest power of two, it completely eliminates external fragmentation at the cost of internal fragmentation.
+
+Its biggest advantage is its very fast coalescence, achieved through bitwise arithmetic rather than list traversal.
+
+#### Internal structure
+```cpp
+class BuddyAllocator {
+private:
+  struct AllocHeader {
+    std::uint8_t data; // MSB - is_free, rest - order
+    // ... helper methods ...
+  };
+  struct FreeBlock {
+    AllocHeader header;
+    FreeBlock* prev;
+    FreeBlock* next;
+  };
+
+  std::size_t MIN_BLOCK_SIZE = 32;
+  std::uint8_t MAX_ORDER = 32;
+
+  void*       m_start_ptr;
+  std::size_t m_total_size;
+  std::array<FreeBlock*, MAX_ORDER> m_free_lists;
+
+public:
+  void* alloc(std::size_t size, std::size_t align);
+  void  free(void* ptr);
+  bool  init(std::size_t size);
+  void clear();
+  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
+  std::size_t capacity() const;
+};
+```
+<sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/BuddyAllocator.hpp).</sub>
+
+When `alloc` is called, it calculates the total required size (including the alignment padding and the header) and determines the target order (power of two).
+It then checks the free list for that specific order.
+If no blocks are available, it finds the next largest available block and recursevily splits it in half. Each split creates two **"buddies"**. 
+The left buddy is used for the allocation, and the right buddy is pushed onto the lower-order free list.
+To support strict alignment, a header is placed exactly behind the aligned data pointer, storing the offset back to the physical block start. 
+Because the max order is a constant, this operation is of *O(1)* time complexity.
+
+When `free` is called, it steps back to read the hidden header and uses the stored offset to locate the physical start of the block.
+To coalesce, it calculates the address of its "buddy" using a simple bitwise **XOR** operation on its relative memory address.
+If the buddy is also free and of the same order, they are instantly merged into a single, larger block.
+This process repeats recursively up the hierarchy.
+This mathematical approach allows coalescence in *O(1)* time without traversing any lists or relying on headers/footers.
+
+When `realloc` is called, it reads the header to determine the exact capacity of the current physical block.
+Because requests are rounded up to a power of two, there is often hidden free space at the end of the block.
+If the new requested size fits within the remaining space of the current order, it just returns the exact same pointer.
+Only if the boundary is crossed will it allocate a new block, copy the data, and free the old block.
+
+
 ## Roadmap
 
 * [ ] Implement a size segregated free list allocator.
