@@ -90,6 +90,19 @@ private: // helpers
     slab->next = nullptr;
   }
 
+  inline void clear_slab_list(SlabHeader*& list_head) noexcept {
+    SlabHeader* curr = list_head;
+    SlabHeader* next = nullptr;
+
+    while (curr != nullptr) {
+      next = curr->next;
+      m_base_allocator->free(curr);
+      curr = next;
+    }
+
+    list_head = nullptr;
+  }
+
   SlabHeader* init_slab(std::uint8_t cache_idx) noexcept;
 
 };
