@@ -8,7 +8,7 @@
 
 namespace oo_alloc {
 
-void BuddyAllocator::split_block(std::size_t order) noexcept {
+void BuddyAllocator::split_block(std::uint8_t order) noexcept {
   // grab the top block of 'order'
   FreeBlock* block = m_free_lists[order];
 
@@ -18,7 +18,7 @@ void BuddyAllocator::split_block(std::size_t order) noexcept {
     m_free_lists[order]->prev = nullptr;
 
   // calculate order and size after split
-  std::size_t new_order = order - 1;
+  std::uint8_t new_order = order - 1;
   std::size_t half_size = MIN_BLOCK_SIZE << new_order;
 
   // calculate the pointer of right half (the buddy)
@@ -55,7 +55,7 @@ void* BuddyAllocator::alloc(std::size_t size, std::size_t align) {
   // calculate order
   // this handles header + min sizes internally,
   // no need for if statements for that here
-  std::size_t target_order = size_to_order(size);
+  std::uint8_t target_order = size_to_order(size);
 
   // ensure that block is big enough to naturally align.
   // since each blocks size is a power of 2,
@@ -67,7 +67,7 @@ void* BuddyAllocator::alloc(std::size_t size, std::size_t align) {
   // split bigger blocks (of greater order)
   // down to create it.
   if (m_free_lists[target_order] == nullptr) {
-    std::size_t curr_order = target_order;
+    std::uint8_t curr_order = target_order;
 
     // find the smallest order, that is greater than 'target_order'
     while (curr_order < MAX_ORDER && m_free_lists[curr_order] == nullptr)
@@ -112,7 +112,7 @@ void BuddyAllocator::free(void* ptr) {
   // setting free twice to ensure theres no unexpected behavior,
   // e.g. if the block doesn't get merged.
   new_free_block->header.set_free(true);
-  std::size_t order = new_free_block->header.order();
+  std::uint8_t order = new_free_block->header.order();
 
   // look for buddies, merge if possible
   while (order < MAX_ORDER - 1) {
@@ -191,7 +191,7 @@ void BuddyAllocator::clear() {
 
   // calculate the order based on the final total size
   // don't use size_to_order here, because don't want header padding here
-  std::size_t max_order = std::countr_zero(m_total_size) - std::countr_zero(MIN_BLOCK_SIZE);
+  std::uint8_t max_order = std::countr_zero(m_total_size) - std::countr_zero(MIN_BLOCK_SIZE);
 
   // create the biggest, parent block that later will be split
   // for allocations
@@ -218,8 +218,8 @@ void* BuddyAllocator::realloc(void* ptr, std::size_t old_size, std::size_t new_s
   std::uint8_t* raw_ptr = static_cast<std::uint8_t *>(ptr) - offsetof(FreeBlock, prev);
   FreeBlock* old_block = reinterpret_cast<FreeBlock *>(raw_ptr);
 
-  std::size_t curr_order = old_block->header.order();
-  std::size_t target_order = size_to_order(new_size);
+  std::uint8_t curr_order = old_block->header.order();
+  std::uint8_t target_order = size_to_order(new_size);
 
   // if the "hidden" free space was enough to fit
   // 'new_size', just return the pointer

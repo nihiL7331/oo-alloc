@@ -11,7 +11,7 @@ private:
   std::size_t m_total_size;
 
   static constexpr std::size_t MIN_BLOCK_SIZE = 32;
-  static constexpr std::size_t MAX_ORDER = 32;
+  static constexpr std::uint8_t MAX_ORDER = 32;
 
   struct AllocHeader {
     std::uint8_t data; // MSB - is_free, rest - order
@@ -45,7 +45,7 @@ public:
   std::size_t capacity() const override { return m_total_size; }
 
 private: // helpers
-  inline std::size_t size_to_order(std::size_t size) const noexcept {
+  inline std::uint8_t size_to_order(std::size_t size) const noexcept {
     size += sizeof(AllocHeader);
     size = std::bit_ceil(size);
     if (size < MIN_BLOCK_SIZE)
@@ -54,7 +54,7 @@ private: // helpers
     return std::countr_zero(size) - std::countr_zero(MIN_BLOCK_SIZE);
   }
 
-  inline FreeBlock* get_buddy(FreeBlock* block, std::size_t order) const noexcept {
+  inline FreeBlock* get_buddy(FreeBlock* block, std::uint8_t order) const noexcept {
     if (block == nullptr)
       return nullptr;
 
@@ -66,6 +66,6 @@ private: // helpers
     return reinterpret_cast<FreeBlock *>(buddy_ptr);
   }
 
-  void split_block(std::size_t order) noexcept;
+  void split_block(std::uint8_t order) noexcept;
 };
 }
