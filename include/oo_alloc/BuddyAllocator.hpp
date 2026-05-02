@@ -7,12 +7,6 @@ namespace oo_alloc {
 
 class BuddyAllocator: public IAllocator {
 private:
-  void*       m_start_ptr;
-  std::size_t m_total_size;
-
-  static constexpr std::size_t MIN_BLOCK_SIZE = 32;
-  static constexpr std::uint8_t MAX_ORDER = 32;
-
   struct AllocHeader {
     std::uint8_t data; // MSB - is_free, rest - order
 
@@ -34,6 +28,12 @@ private:
     FreeBlock* prev;
     FreeBlock* next;
   };
+
+  static constexpr std::size_t MIN_BLOCK_SIZE = 32;
+  static constexpr std::uint8_t MAX_ORDER = 32;
+
+  void*       m_start_ptr;
+  std::size_t m_total_size;
   std::array<FreeBlock*, MAX_ORDER> m_free_lists;
 
 public:
@@ -68,4 +68,5 @@ private: // helpers
 
   void split_block(std::uint8_t order) noexcept;
 };
+
 }
