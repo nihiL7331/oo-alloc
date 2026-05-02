@@ -238,3 +238,9 @@ add_custom_target(test-tree
   DEPENDS tree_init tree_alloc tree_coal tree_realloc
   COMMENT "Running free-tree tests.."
 )
+
+add_custom_target(test-buddy
+  COMMAND ${CMAKE_CTEST_COMMAND} -L buddy --output-on-failure
+  DEPENDS buddy_init_clear buddy_alloc buddy_free buddy_realloc
+  COMMENT "Running buddy tests.."
+)

@@ -15,7 +15,7 @@ cmake --build . --target run-benchmarks
 
 # build and run individual tests
 cmake  --build . --target test-arena 
-# available: test-arena, test-pool, test-stack, test-free, test-track, test-rbtree, test-tree, test-all
+# available: test-arena, test-pool, test-stack, test-free, test-track, test-rbtree, test-tree, test-buddy, test-all
 ```
 
 ## Introduction
@@ -36,7 +36,7 @@ The overview available below can help you do exactly that.
 | **Free List**    | `O(n)`     | `O(n)`     | `O(1)`    | `O(n)`         | ~16B     | General purpose   | Slow search / coalesce  |
 | **Free Tree**    | `O(log n)` | `O(log n)` | `O(1)`    | `O(log n)`     | ~32B     | General purpose   | High block overhead     |
 | **Segregated**** | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | ~16B     | General purpose   | Complex to tune         |
-| **Buddy****      | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | ~1-8B    | OS memory         | Fragmentation (in)      |
+| **Buddy**        | `O(1)`     | `O(1)`     | `O(1)`    | `O(1)`         | ~1-8B    | OS memory         | Fragmentation (in)      |
 | **Slab****       | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Object caching    | Single type             |
 
 <sub>\*You can only operate on the top-most allocation.</sub><br>
