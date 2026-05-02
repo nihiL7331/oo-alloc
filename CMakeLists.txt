@@ -16,6 +16,7 @@ set(SOURCE_FILES
   src/FreeListAllocator.cpp
   src/FreeTreeAllocator.cpp
   src/internal/RBTree.cpp
+  src/BuddyAllocator.cpp
 )
 
 add_library(oo_alloc STATIC ${SOURCE_FILES})
