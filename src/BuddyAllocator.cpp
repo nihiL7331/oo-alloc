@@ -4,6 +4,7 @@
 #include <bit>
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 
 namespace oo_alloc {
 
@@ -203,9 +204,40 @@ void BuddyAllocator::clear() {
 }
 
 void* BuddyAllocator::realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) {
-  (void)ptr; (void)old_size; (void)new_size; (void)align;
-  assert(false && "TODO");
-  return nullptr;
+  if (ptr == nullptr)
+    return alloc(new_size, align);
+
+  if (new_size == 0) {
+    free(ptr);
+    return nullptr;
+  }
+
+  // read the actual free space from the header:
+  // if user allocated e.g. 33B, he has still 31B free he doesn't know of
+  std::uint8_t* raw_ptr = static_cast<std::uint8_t *>(ptr) - offsetof(FreeBlock, prev);
+  FreeBlock* old_block = reinterpret_cast<FreeBlock *>(raw_ptr);
+
+  std::size_t curr_order = old_block->header.order();
+  std::size_t target_order = size_to_order(new_size);
+
+  // if the "hidden" free space was enough to fit
+  // 'new_size', just return the pointer
+  if (curr_order >= target_order)
+    return ptr;
+
+  // standard 'alloc' -> 'copy' -> 'free' cycle,
+  // in-place is not worth it for the buddy allocator
+  void* new_ptr = alloc(new_size, align);
+  if (new_ptr == nullptr)
+    return nullptr;
+
+  // copy the data
+  std::memcpy(new_ptr, ptr, old_size);
+
+  // free the old block
+  free(ptr);
+  
+  return new_ptr;
 }
 
 }
