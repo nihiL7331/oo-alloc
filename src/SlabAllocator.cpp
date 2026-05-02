@@ -76,8 +76,7 @@ void* SlabAllocator::alloc(std::size_t size, std::size_t align) {
 }
 
 void SlabAllocator::free(void* ptr) {
-  (void)ptr;
-  assert(false && "TODO");
+  // get the 
 }
 
 bool SlabAllocator::init(std::size_t size) {
@@ -104,9 +103,45 @@ void* SlabAllocator::realloc(void* ptr, std::size_t old_size, std::size_t new_si
 }
 
 SlabAllocator::SlabHeader* SlabAllocator::init_slab(std::uint8_t cache_idx) noexcept {
-  (void)cache_idx;
-  assert(false && "TODO");
-  return nullptr;
+  // get 'object_size' from cache for later calculations
+  std::size_t object_size = m_caches[cache_idx].object_size;
+
+  // allocate the raw page from 'm_base_allocator'
+  void* ptr = m_base_allocator->alloc(m_page_size, m_page_size);
+  if (ptr == nullptr)
+    return nullptr;
+
+  // initialize the header, it's positioned directly
+  // at the raw page pointer position
+  SlabHeader* header_ptr = static_cast<SlabHeader *>(ptr);
+  header_ptr->prev = nullptr;
+  header_ptr->next = nullptr;
+  header_ptr->used = 0;
+  // each page is split up to equally sized objects
+  header_ptr->capacity = (m_page_size - sizeof(SlabHeader)) / object_size;
+  header_ptr->cache_idx = cache_idx;
+
+  // get the beginning of actual data/payload 
+  // which is directly after the header
+  void* free_ptr = reinterpret_cast<void *>(header_ptr + 1);
+  header_ptr->free_list_head = free_ptr;
+
+  // iterate through the capacity, creating an 
+  // intrusive singly-linked list
+  for (std::uint16_t i = 0; i < header_ptr->capacity - 1; ++i) {
+    void** cast_free_ptr = static_cast<void **>(free_ptr);
+
+    // each object is 'object_size' away from previous object
+    void* next_free_ptr = static_cast<std::uint8_t *>(free_ptr) + object_size;
+    *cast_free_ptr = next_free_ptr;
+    free_ptr = next_free_ptr;
+  }
+
+  // mark the last object's 'next' as nullptr
+  void** cast_free_ptr = static_cast<void **>(free_ptr);
+  *cast_free_ptr = nullptr;
+
+  return header_ptr;
 }
 
 }
