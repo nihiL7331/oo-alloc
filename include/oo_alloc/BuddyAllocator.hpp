@@ -1,6 +1,7 @@
 #include "oo_alloc/IAllocator.hpp"
 #include <array>
 #include <bit>
+#include <cstdint>
 
 namespace oo_alloc {
 
@@ -13,10 +14,10 @@ private:
   static constexpr std::size_t MAX_ORDER = 32;
 
   struct AllocHeader {
-    uint8_t data; // MSB - is_free, rest - order
+    std::uint8_t data; // MSB - is_free, rest - order
 
     bool free() const noexcept { return data & 0x80; }
-    uint8_t order() const noexcept { return data & 0x7F; }
+    std::uint8_t order() const noexcept { return data & 0x7F; }
 
     void set_free(bool free) noexcept {
       if (free)
