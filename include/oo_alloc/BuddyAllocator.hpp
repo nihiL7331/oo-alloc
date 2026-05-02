@@ -6,7 +6,7 @@ namespace oo_alloc {
 
 class BuddyAllocator: public IAllocator {
 private:
-  void*       m_base_ptr;
+  void*       m_start_ptr;
   std::size_t m_total_size;
 
   static constexpr std::size_t MIN_BLOCK_SIZE = 32;
@@ -28,12 +28,12 @@ private:
       data = (data & 0x80) | (order & 0x7F);
     }
   };
-  struct FreeNode {
+  struct FreeBlock {
     AllocHeader header;
-    FreeNode* prev;
-    FreeNode* next;
+    FreeBlock* prev;
+    FreeBlock* next;
   };
-  std::array<FreeNode*, MAX_ORDER> m_free_lists;
+  std::array<FreeBlock*, MAX_ORDER> m_free_lists;
 
 public:
   void* alloc(std::size_t size, std::size_t align) override;
@@ -58,10 +58,10 @@ private: // helpers
       return nullptr;
 
     std::size_t offset = static_cast<std::uint8_t *>(block) - 
-                          static_cast<std::uint8_t *>(m_base_ptr);
+                          static_cast<std::uint8_t *>(m_start_ptr);
     offset ^= (MIN_BLOCK_SIZE << order);
 
-    return static_cast<std::uint8_t *>(m_base_ptr) + offset;
+    return static_cast<std::uint8_t *>(m_start_ptr) + offset;
   }
 
   void split_block(std::size_t order) noexcept;
