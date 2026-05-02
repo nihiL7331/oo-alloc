@@ -1,5 +1,7 @@
 #include "oo_alloc/SlabAllocator.hpp"
 #include "oo_alloc/IAllocator.hpp"
+#include "oo_alloc/utils.hpp"
+#include <algorithm>
 #include <cassert>
 
 namespace oo_alloc {
@@ -108,9 +110,17 @@ void SlabAllocator::free(void* ptr) {
 }
 
 bool SlabAllocator::init(std::size_t size) {
-  (void)size;
-  assert(false && "TODO");
-  return false;
+  // grab the os page size
+  std::size_t os_page_size = utils::page_size();
+
+  // if a greater size is provided as an argument, then use it
+  std::size_t target_size = std::max(size, os_page_size);
+
+  // round it to the power of two, so that
+  // its a multiple of os page size
+  m_page_size = std::bit_ceil(target_size);
+
+  return true;
 }
 
 void SlabAllocator::clear() {
