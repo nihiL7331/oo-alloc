@@ -3,6 +3,7 @@
 #include "oo_alloc/utils.hpp"
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <cstring>
 
 namespace oo_alloc {
@@ -206,7 +207,7 @@ SlabAllocator::SlabHeader* SlabAllocator::init_slab(std::uint8_t cache_idx) noex
   header_ptr->next = nullptr;
   header_ptr->used = 0;
   // each page is split up to equally sized objects
-  header_ptr->capacity = (m_page_size - sizeof(SlabHeader)) / object_size;
+  header_ptr->capacity = static_cast<std::uint16_t>((m_page_size - sizeof(SlabHeader)) / object_size);
   header_ptr->cache_idx = cache_idx;
   // this is used to differ base allocator allocated
   // data from slabs

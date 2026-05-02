@@ -106,7 +106,7 @@ void* BuddyAllocator::alloc(std::size_t size, std::size_t align) {
   AllocHeader* header = reinterpret_cast<AllocHeader *>(data_ptr - sizeof(AllocHeader));
   header->set_free(false);
   header->set_order(target_order);
-  header->offset = static_cast<std::uint32_t>(data_ptr - block_start);
+  header->offset = static_cast<std::uint16_t>(data_ptr - block_start);
 
   return reinterpret_cast<void *>(data_ptr);
 }
