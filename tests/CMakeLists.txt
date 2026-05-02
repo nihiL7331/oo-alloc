@@ -214,6 +214,12 @@ target_link_libraries(slab_realloc PRIVATE oo_alloc)
 add_test(NAME SlabRealloc COMMAND slab_realloc)
 set_tests_properties(SlabRealloc PROPERTIES LABELS "slab")
 
+# TEST 5
+add_executable(slab_clear slab_clear.cpp)
+target_link_libraries(slab_clear PRIVATE oo_alloc)
+add_test(NAME SlabClear COMMAND slab_clear)
+set_tests_properties(SlabClear PROPERTIES LABELS "slab")
+
 # TARGETS
 add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
@@ -226,7 +232,7 @@ add_custom_target(test-all
     rbtree_basic rbtree_insert rbtree_remove
     tree_init tree_alloc tree_coal tree_realloc
     buddy_init_clear buddy_alloc buddy_free buddy_realloc
-    slab_init slab_alloc slab_free slab_realloc
+    slab_init slab_alloc slab_free slab_realloc slab_clear
   COMMENT "Running all tests..."
 )
 
