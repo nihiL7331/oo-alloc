@@ -3,6 +3,7 @@
 #include "oo_alloc/utils.hpp"
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 
 namespace oo_alloc {
 
