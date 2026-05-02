@@ -51,7 +51,7 @@ private: // helpers
     if (size < MIN_BLOCK_SIZE)
       size = MIN_BLOCK_SIZE;
 
-    return std::countr_zero(size) - std::countr_zero(MIN_BLOCK_SIZE);
+    return static_cast<std::uint8_t>(std::countr_zero(size) - std::countr_zero(MIN_BLOCK_SIZE));
   }
 
   inline FreeBlock* get_buddy(FreeBlock* block, std::uint8_t order) const noexcept {

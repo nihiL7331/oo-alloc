@@ -191,7 +191,7 @@ void BuddyAllocator::clear() {
 
   // calculate the order based on the final total size
   // don't use size_to_order here, because don't want header padding here
-  std::uint8_t max_order = std::countr_zero(m_total_size) - std::countr_zero(MIN_BLOCK_SIZE);
+  std::uint8_t max_order = static_cast<std::uint8_t>(std::countr_zero(m_total_size) - std::countr_zero(MIN_BLOCK_SIZE));
 
   // create the biggest, parent block that later will be split
   // for allocations
