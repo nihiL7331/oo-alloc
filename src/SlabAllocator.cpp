@@ -129,6 +129,8 @@ bool SlabAllocator::init(std::size_t size) {
   // its a multiple of os page size
   m_page_size = std::bit_ceil(target_size);
 
+  this->clear();
+
   return true;
 }
 
