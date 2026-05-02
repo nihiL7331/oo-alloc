@@ -4,7 +4,10 @@
 #include "oo_alloc/FreeListAllocator.hpp"
 #include "oo_alloc/FreeTreeAllocator.hpp"
 #include "oo_alloc/BuddyAllocator.hpp"
+#include "oo_alloc/SlabAllocator.hpp"
+#include "oo_alloc/utils.hpp"
 #include <benchmark/benchmark.h>
+#include <vector>
 
 using namespace oo_alloc;
 constexpr std::size_t MB = 1024 * 1024;
@@ -34,6 +37,37 @@ static void bm_frag_search(benchmark::State& state) {
 
   for (void* p : to_keep)
     alloc.free(p);
+
+  state.SetComplexityN(N);
+}
+
+static void bm_frag_search_slab(benchmark::State& state) {
+  BuddyAllocator buddy;
+  buddy.init(512 * MB);
+  SlabAllocator slab(&buddy);
+  slab.init(utils::page_size());
+  
+  const size_t N = state.range(0);
+
+  std::vector<void *> to_keep;
+  std::vector<void *> to_free;
+
+  for (size_t i = 0; i < N; ++i) {
+    to_keep.push_back(slab.alloc(16, 8));
+    to_free.push_back(slab.alloc(16, 8));
+  }
+
+  for (void* p : to_free)
+    slab.free(p);
+
+  for (auto _ : state) {
+    void* ptr = slab.alloc(64, 8);
+    benchmark::DoNotOptimize(ptr);
+    slab.free(ptr);
+  }
+
+  for (void* p : to_keep)
+    slab.free(p);
 
   state.SetComplexityN(N);
 }
@@ -81,9 +115,23 @@ static void bm_recycle_pool(benchmark::State& state) {
     }
 }
 
+static void bm_recycle_slab(benchmark::State& state) {
+  BuddyAllocator buddy;
+  buddy.init(64 * MB);
+  SlabAllocator slab(&buddy);
+  slab.init(utils::page_size());
+
+  for (auto _ : state) { 
+    void* ptr = slab.alloc(64, 8);
+    benchmark::DoNotOptimize(ptr);
+    slab.free(ptr);
+  }
+}
+
 BENCHMARK(bm_frag_search<FreeListAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oN);
 BENCHMARK(bm_frag_search<FreeTreeAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oLogN);
 BENCHMARK(bm_frag_search<BuddyAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::o1);
+BENCHMARK(bm_frag_search_slab)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::o1);
 
 BENCHMARK(bm_seq_bump<ArenaAllocator>);
 BENCHMARK(bm_seq_bump<StackAllocator>);
@@ -92,5 +140,6 @@ BENCHMARK(bm_recycle_pool);
 BENCHMARK(bm_recycle_dynamic<FreeListAllocator>);
 BENCHMARK(bm_recycle_dynamic<FreeTreeAllocator>);
 BENCHMARK(bm_recycle_dynamic<BuddyAllocator>);
+BENCHMARK(bm_recycle_slab);
 
 BENCHMARK_MAIN();
