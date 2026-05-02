@@ -15,6 +15,7 @@ private:
     void* free_list_head;
     std::uint16_t used;
     std::uint16_t capacity;
+    std::uint8_t cache_idx;
   };
   struct CacheManager {
     std::size_t object_size;
