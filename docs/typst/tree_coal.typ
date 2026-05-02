@@ -45,12 +45,10 @@
   ),
 
   grid(
-    // Moved the right arrow from Col 5 (Target Footer) to Col 6 (Epilogue)
     columns: (70pt + tag-w + 100pt, tag-w, tag-w, 120pt, tag-w, 70pt),
     [], align(center)[`^`], [], [], [], align(center)[`^`],
   ),
   grid(
-    // Adjusted widths so the text follows the new arrow position
     columns: (70pt + tag-w + 50pt, 180pt, 180pt),
     [], align(left)[`check left footer`], align(right)[`check right header`],
   ),

@@ -447,6 +447,29 @@ Because requests are rounded up to a power of two, there is often hidden free sp
 If the new requested size fits within the remaining space of the current order, it just returns the exact same pointer.
 Only if the boundary is crossed will it allocate a new block, copy the data, and free the old block.
 
+<p align="center">
+  <img src="docs/assets/buddy_init.svg" alt="buddy allocator splitting cascade">
+  <br>
+  <em><sub>Buddy allocator beginning a split cascade. To serve a small allocation, a 128B block is halved into two 64B buddies.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/buddy_active.svg" alt="buddy allocator allocation">
+  <br>
+  <em><sub>After splitting again, a 32B block is reserved. A header is placed before the aligned data, leaving the 32B and 64B buddies in free lists.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/buddy_free.svg" alt="buddy allocator free operation">
+  <br>
+  <em><sub>After calling free, the allocator reads the hidden header. It uses a bitwise XOR operation to instantly locate the adjacent 32B buddy.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/buddy_coal.svg" alt="buddy allocator coalescing">
+  <br>
+  <em><sub>The allocator recursively merges the free buddies. The two 32B blocks merge into 64B, and the two 64B blocks zip back into a single 128B block.</sub></em>
+</p>
 
 ## Roadmap
 
