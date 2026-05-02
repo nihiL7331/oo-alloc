@@ -1,5 +1,6 @@
 #include "oo_alloc/BuddyAllocator.hpp"
 #include "oo_alloc/utils.hpp"
+#include <algorithm>
 #include <bit>
 #include <cassert>
 #include <cstdint>
@@ -61,8 +62,64 @@ void* BuddyAllocator::alloc(std::size_t size, std::size_t align) {
 }
 
 void BuddyAllocator::free(void* ptr) {
-  (void)ptr;
-  assert(false && "TODO");
+  if (ptr == nullptr)
+    return;
+
+  // to get the free block data, need to go backwards.
+  // its essentially reverting the behavior at the end of alloc.
+  std::uint8_t* raw_ptr = static_cast<std::uint8_t *>(ptr) - offsetof(FreeBlock, prev);
+  FreeBlock* new_free_block = reinterpret_cast<FreeBlock *>(raw_ptr);
+
+  // setting free twice to ensure theres no unexpected behavior,
+  // e.g. if the block doesn't get merged.
+  new_free_block->header.set_free(true);
+  std::size_t order = new_free_block->header.order();
+
+  // look for buddies, merge if possible
+  while (order < MAX_ORDER - 1) {
+    FreeBlock* buddy = get_buddy(new_free_block, order);
+
+    std::uintptr_t buddy_addr = reinterpret_cast<std::uintptr_t>(buddy);
+    
+    // edge case for when get_buddy 
+    // returns a address outside of heap
+    std::uintptr_t data_end = reinterpret_cast<std::uintptr_t>(m_start_ptr) + m_total_size;
+    if (buddy_addr >= data_end)
+      break;
+
+    // the buddy (obviously) has to be free to merge,
+    // also it has to be of the same order, if it's
+    // of different order it is split into smaller pieces
+    if (!buddy->header.free() || buddy->header.order() != order)
+      break;
+
+    // pop buddy
+    FreeBlock* prev_buddy = buddy->prev;
+    FreeBlock* next_buddy = buddy->next;
+
+    if (prev_buddy != nullptr)
+      prev_buddy->next = next_buddy;
+    if (next_buddy != nullptr)
+      next_buddy->prev = prev_buddy;
+    if (m_free_lists[order] == buddy)
+      m_free_lists[order] = next_buddy;
+
+    // merged blocks address starts at the lowest memory address
+    new_free_block = std::min(new_free_block, buddy);
+    order++;
+  }
+
+  // update metadata after memory address shift
+  new_free_block->header.set_free(true);
+  new_free_block->header.set_order(order);
+
+  // push the newly merged block into the list
+  if (m_free_lists[order] != nullptr)
+    m_free_lists[order]->prev = new_free_block;
+  new_free_block->next = m_free_lists[order];
+  new_free_block->prev = nullptr;
+
+  m_free_lists[order] = new_free_block;
 }
 
 bool BuddyAllocator::init(std::size_t size) {
