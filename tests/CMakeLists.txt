@@ -283,3 +283,9 @@ add_custom_target(test-buddy
   DEPENDS buddy_init_clear buddy_alloc buddy_free buddy_realloc
   COMMENT "Running buddy tests.."
 )
+
+add_custom_target(test-slab
+  COMMAND ${CMAKE_CTEST_COMMAND} -L slab --output-on-failure
+  DEPENDS slab_init slab_alloc slab_free slab_realloc slab_clear
+  COMMENT "Running slab tests.."
+)
