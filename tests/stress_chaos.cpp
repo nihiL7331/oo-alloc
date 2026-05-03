@@ -38,7 +38,7 @@ void stress_test(std::size_t heap_size, std::size_t iters) {
   std::vector<AllocRecord> active_allocs;
   active_allocs.reserve(iters);
 
-  const uint8_t POISON_BYTE = 0xAA;
+  constexpr std::uint8_t POISON_BYTE = 0xAA;
 
   for (std::size_t i = 0; i < iters; ++i) {
     int action = action_dist(rng);
@@ -49,7 +49,7 @@ void stress_test(std::size_t heap_size, std::size_t iters) {
 
       void* ptr = alloc.alloc(size, align);
 
-      if (ptr) {
+      if (ptr != nullptr) {
         assert((reinterpret_cast<std::uintptr_t>(ptr) % align) == 0 && "Alignment failed");
 
         std::memset(ptr, POISON_BYTE, size);

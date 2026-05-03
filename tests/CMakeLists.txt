@@ -51,3 +51,5 @@ function(add_stress_test TEST_NAME)
 endfunction()
 
 add_stress_test(stress_chaos)
+add_stress_test(stress_silo)
+# add_stress_test(stress_monotonic)
