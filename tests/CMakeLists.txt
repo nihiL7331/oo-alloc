@@ -52,4 +52,4 @@ endfunction()
 
 add_stress_test(stress_chaos)
 add_stress_test(stress_silo)
-# add_stress_test(stress_monotonic)
+add_stress_test(stress_monotonic)
