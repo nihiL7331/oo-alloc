@@ -1,0 +1,31 @@
+<svg class="typst-doc" viewBox="0 0 371.33333333333326 78" width="371.33333333333326pt" height="78pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:h5="http://www.w3.org/1999/xhtml">
+    <g>
+        <g class="typst-text" transform="matrix(1 0 0 -1 15 63)">
+            <use xlink:href="#gEB0B75C85C6B7D02EAD554A3F67A9F5E" x="0" y="0" fill="#24292f" fill-rule="nonzero"/>
+            <use xlink:href="#gEB0B75C85C6B7D02EAD554A3F67A9F5E" x="42.666666666666664" y="0" fill="#24292f" fill-rule="nonzero"/>
+            <use xlink:href="#gC5375463EC66D4ACE13705EBF9665265" x="85.33333333333333" y="0" fill="#24292f" fill-rule="nonzero"/>
+            <use xlink:href="#g361DB5C2453B03C83455694BB81A5EFB" x="128" y="0" fill="#24292f" fill-rule="nonzero"/>
+            <use xlink:href="#g986418F515320C686242FE26921C9729" x="170.66666666666666" y="0" fill="#24292f" fill-rule="nonzero"/>
+            <use xlink:href="#g986418F515320C686242FE26921C9729" x="213.33333333333331" y="0" fill="#24292f" fill-rule="nonzero"/>
+            <use xlink:href="#gEB0B75C85C6B7D02EAD554A3F67A9F5E" x="255.99999999999997" y="0" fill="#24292f" fill-rule="nonzero"/>
+            <use xlink:href="#g258E11CD7B66095A1F54FE49DFA93340" x="298.66666666666663" y="0" fill="#24292f" fill-rule="nonzero"/>
+        </g>
+    </g>
+    <defs id="glyph">
+        <symbol id="gEB0B75C85C6B7D02EAD554A3F67A9F5E" overflow="visible">
+            <path d="M 0 0m 0 5.3333335 v 21.333334 h 5.3333335 v 5.333332 h 26.666666 v -5.333332 h 5.333336 v -21.333334 h -5.333336 v -5.3333335 h -26.666666 v 5.3333335 h -5.3333335 Z m 10.666667 0 h 16 v 21.333334 h -16 v -21.333334 Z "/>
+        </symbol>
+        <symbol id="gC5375463EC66D4ACE13705EBF9665265" overflow="visible">
+            <path d="M 0 0m 0 21.333334 v 5.333334 h 37.333336 v -5.333334 h -37.333336 Z "/>
+        </symbol>
+        <symbol id="g361DB5C2453B03C83455694BB81A5EFB" overflow="visible">
+            <path d="M 0 0m 0 5.3333335 v 10.666666 h 5.3333335 v 5.333334 h 16 v 5.333334 h -16 v 5.333332 h 21.333334 v -5.333332 h 5.333332 v -21.333334 h 5.333336 v -5.3333335 h -10.666668 v 5.3333335 h -5.333334 v 10.666666 h -10.666667 v -10.666666 h 10.666667 v -5.3333335 h -16 v 5.3333335 h -5.3333335 Z "/>
+        </symbol>
+        <symbol id="g986418F515320C686242FE26921C9729" overflow="visible">
+            <path d="M 0 0m 26.666668 5.3333335 h 5.333332 v -5.3333335 h -21.333332 v 5.3333335 h 5.333333 v 37.333336 h -5.333333 v 5.333332 h 16 v -42.666668 Z "/>
+        </symbol>
+        <symbol id="g258E11CD7B66095A1F54FE49DFA93340" overflow="visible">
+            <path d="M 0 0m 0 5.3333335 v 21.333334 h 5.3333335 v 5.333332 h 26.666666 v -5.333332 h 5.333336 v -5.333334 h -10.666668 v 5.333334 h -16 v -21.333334 h 16 v 5.3333335 h 10.666668 v -5.3333335 h -5.333336 v -5.3333335 h -26.666666 v 5.3333335 h -5.3333335 Z "/>
+        </symbol>
+    </defs>
+</svg>

@@ -1,6 +1,15 @@
-# oo-alloc
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/header_dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/header_light.svg">
+    <img alt="oo-alloc" src="docs/assets/header_dark.svg" width="400">
+  </picture>
 
-A collection of custom C++ allocators.
+  <p><em>A collection of custom C++ allocators.</em></p>
+
+</div>
+
+---
 
 ## Table of contents
 
@@ -595,7 +604,6 @@ If it maps to a different cache - or crosses the boundary between slab and base 
 ## Roadmap
 
 * [ ] Implement a size segregated free list allocator.
-* [ ] Benchmark cache misses via perf.
 * [ ] Add a benchmark/performance README section.
 * [x] Move from hand-written tests to proper stress testing.
 * [x] Implement a slab allocator.
