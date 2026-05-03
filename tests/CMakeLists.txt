@@ -37,3 +37,17 @@ add_custom_target(test-all
     DEPENDS ${ALL_TEST_TARGETS}
     COMMENT "Running all tests..."
 )
+
+function(add_stress_test TEST_NAME)
+  add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
+  target_link_libraries(${TEST_NAME} PRIVATE oo_alloc)
+
+  target_compile_options(${TEST_NAME} PRIVATE -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer)
+  target_link_options(${TEST_NAME} PRIVATE -fsanitize=address,undefined)
+
+  add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+
+  set_tests_properties(${TEST_NAME} PROPERTIES LABELS "stress" TIMEOUT 120)
+endfunction()
+
+add_stress_test(stress_chaos)
