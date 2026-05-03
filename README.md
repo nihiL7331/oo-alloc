@@ -597,7 +597,7 @@ If it maps to a different cache - or crosses the boundary between slab and base 
 * [ ] Implement a size segregated free list allocator.
 * [ ] Benchmark cache misses via perf.
 * [ ] Add a benchmark/performance README section.
-* [ ] Move from hand-written tests to proper stress testing.
+* [x] Move from hand-written tests to proper stress testing.
 * [x] Implement a slab allocator.
 * [x] Implement a pow-of-two buddy allocator.
 * [x] Move benchmarks to google/benchmark.
