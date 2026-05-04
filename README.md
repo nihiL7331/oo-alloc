@@ -58,24 +58,19 @@ The overview available below can help you do exactly that.
 
 ## Overview
 
-| Type             | `alloc`    | `free`     | `clear`   | `realloc`      | Overhead | Best for          | Constraints             |
-| :---             | :---:      | :---:      | :---:     | :---:          | :---:    | :---              | :---                    |
-| **Arena**        | `O(1)`     | *N/A*      | `O(1)`    | `O(1)`*/`O(n)` | 0B       | Bulk allocations  | No individual frees     |
-| **Stack**        | `O(1)`     | `O(1)`***  | `O(1)`    | `O(1)`*/`O(n)` | ~8B      | Temporary data    | Strict LIFO             |
-| **Pool**         | `O(1)`     | `O(1)`     | `O(1)`    | *N/A*          | 0B       | Identical objects | Fixed sizes             |
-| **Free List**    | `O(n)`     | `O(n)`     | `O(1)`    | `O(n)`         | ~16B     | General purpose   | Slow search / coalesce  |
-| **Free Tree**    | `O(log n)` | `O(log n)` | `O(1)`    | `O(n)`         | ~32B     | General purpose   | High block overhead     |
-| **Segregated**** | `O(1)`     | `O(1)`     | `O(1)`    | `O(n)`         | ~16B     | General purpose   | Complex to tune         |
-| **Buddy**        | `O(1)`     | `O(1)`     | `O(1)`    | `O(n)`         | ~1-8B    | OS memory         | Fragmentation (in)      |
-| **Slab**         | `O(1)`     | `O(1)`     | `O(1)`    | `O(n)`         | 0B       | Object caching    | Small objects           |
+| Type             | `alloc`    | `free`     | `clear`   | Overhead | Best for          | Constraints             |
+| :---             | :---:      | :---:      | :---:     | :---:    | :---              | :---                    |
+| **Arena**        | `O(1)`     | *N/A*      | `O(1)`    | 0B       | Bulk allocations  | No individual frees     |
+| **Stack**        | `O(1)`     | `O(1)`**   | `O(1)`    | ~8B      | Temporary data    | Strict LIFO             |
+| **Pool**         | `O(1)`     | `O(1)`     | `O(1)`    | 0B       | Identical objects | Fixed sizes             |
+| **Free List**    | `O(n)`     | `O(n)`     | `O(1)`    | ~16B     | General purpose   | Slow search / coalesce  |
+| **Free Tree**    | `O(log n)` | `O(log n)` | `O(1)`    | ~32B     | General purpose   | High block overhead     |
+| **Segregated***  | `O(1)`     | `O(1)`     | `O(1)`    | ~16B     | General purpose   | Complex to tune         |
+| **Buddy**        | `O(1)`     | `O(1)`     | `O(1)`    | ~1-8B    | OS memory         | Fragmentation (in)      |
+| **Slab**         | `O(1)`     | `O(1)`     | `O(1)`    | 0B       | Object caching    | Small objects           |
 
-<sub>\*You can only operate on the top-most allocation.</sub><br>
-<sub>\*\*Not yet available in this repository (in development).</sub><br>
-<sub>\*\*\*Freeing a specific block also frees all allocations made after it.</sub>
-
-<p align="center">
-  <em><strong>Note on realloc: </strong>All non-fixed allocators have a worst-case O(n) complexity due to memory copying when blocks must be relocated. General-purpose allocators may frequently hit O(1) amortized fast-paths if in-place expansion is possible or size-class boundaries are not crossed.</em>
-</p>
+<sub>\*Not yet available in this repository (in development).</sub><br>
+<sub>\*\*Freeing a specific block also frees all allocations made after it.</sub>
 
 ## Implementation
 
@@ -101,7 +96,6 @@ public:
   void* alloc(std::size_t size, std::size_t align);
   bool  init(std::size_t size);
   void  clear();
-  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
   std::size_t capacity() const;
 };
 ```
@@ -111,10 +105,6 @@ This makes `alloc` an instant *O(1)* operation.
 
 Because it only tracks a single forward-moving offset, you can't free individual objects.
 You can only clear the entire arena, which is done by resetting `m_offset` to zero, resulting in a *O(1)* `clear` time complexity.
-
-When `realloc` is called, it can only expand a block in-place if the pointer belongs to the most recently allocated object. 
-If `realloc` is called on an older block, the allocator must allocate a brand new chunk of memory at the current offset and copy the data. 
-The arena does not support individiual freeing, so the old memory block is left behind as dead, wasted space.
 
 <p align="center">
   <img src="docs/assets/arena_active.svg" alt="arena allocator active state">
@@ -137,7 +127,6 @@ Contrary to the Arena, it supports individual `free` operations, but due to the 
 Its definition is practically identical to the arena allocator, but it has an additional method `free`.
 What differs is that each allocated block has a header before it, which stores the previous `m_offset`.
 
-
 #### Internal structure
 
 ```cpp
@@ -153,17 +142,12 @@ public:
   bool  init(std::size_t size);
   void  clear();
   std::size_t capacity() const;
-  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
 };
 ```
 
 When `alloc` is called, the allocator calculates the required padding for alignment, reserves space for both the header and the requested `size`, and writes the previous `m_offset` into the header just behind the returned pointer. This makes `alloc` an instant *O(1)* operation.
 
 On `free`, the allocator simply reads the header immediately before the given pointer and restores `m_offset` to the value stored in it, hence deallocating the block. Since we don't need to search for the data, it's also an *O(1)* operation.
-
-When `realloc` is called, similarly to the arena, it expands in-place if the pointer is the top-most allocation on stack. 
-If expanding an older block, it allocates new memory at the top and copies the data.
-The allocator doesn't free the old memory block in this scenario, since calling `free` on an older block would destroy the newly allocated memory.
 
 <p align="center">
   <img src="docs/assets/stack_active.svg" alt="stack allocator active state">
@@ -213,8 +197,6 @@ Since there is no list traversal required, this is an instant *O(1)* operation.
 
 On `free`, it casts the passed `ptr` into a list node, sets its "next" pointer to the current `m_free_list_head`, and then updates `m_free_list_head` to point to `ptr`. This frees the chunk in *O(1)* time.
 
-Because the pool operates on fixed-size chunks, `realloc` is impossible.
-
 <p align="center">
   <img src="docs/assets/pool_active.svg" alt="pool allocator active state">
   <br>
@@ -263,7 +245,6 @@ public:
   void  free(void* ptr);
   bool  init(std::size_t size);
   void  clear();
-  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
   std::size_t capacity() const;
 };
 ```
@@ -279,11 +260,6 @@ Coalescence is achieved by checking if the end of one free block perfectly touch
 If they touch, their sizes are summed together, and the second block is physically removed from the linked list. 
 To prevent pointer invalidation bugs, it is best practice to always coalesce a block with its next neighbor before coalescing with its previous neighbor. 
 Because finding the correct insertion point in the address-sorted list requires traversal, `free` also carries an *O(n)* time complexity.
-
-When `realloc` is called, it first checks if the block can be shrunk in-place. 
-If expanding, it checks adjacent memory. 
-It will attempt to (in that order): expand right, expand left (which requires shifting the data via `std::memmove`), and expand in both directions simultaneously.
-Only if all neighboring blocks are occupied or too small will it fall back to a standard `alloc`->`copy`->`free` cycle.
 
 <p align="center">
   <img src="docs/assets/free_active.svg" alt="free list allocator active state">
@@ -301,12 +277,6 @@ Only if all neighboring blocks are occupied or too small will it fall back to a 
   <img src="docs/assets/free_coal.svg" alt="free list allocator coalescing">
   <br>
   <em><sub>After calling free() on data 2, the allocator detects that free 2, the newly freed block, and free 3 are adjacent. It coalesces them into a single 250B block.</sub></em>
-</p>
-
-<p align="center">
-  <img src="docs/assets/free_realloc.svg" alt="free list allocator expand both">
-  <br>
-  <em><sub>After calling realloc() to expand data 1 to 400B, the allocator combines both neighboring free blocks. It completely consumes the 70B left block, shifts the data, and absorbs 230B from the right block, leaving a 20B remainder.</sub></em>
 </p>
 
 ### Free tree allocator
@@ -339,7 +309,6 @@ public:
   void  free(void* ptr);
   bool  init(std::size_t size);
   void  clear();
-  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
   std::size_t capacity() const;
 };
 ```
@@ -351,10 +320,6 @@ A pointer is then aligned, and a hidden back pointer is written into the padding
 
 When `free` is called, it steps back exactly `sizeof(void*)`B to read the back pointer, instantly locating the `AllocHeader`.
 It then uses the boundary tags (header and footer) to check the left and right neighbors in *O(1)* time, coalesces them if they are free, removes them from the tree, and inserts the newly merged block into the tree.
-
-When `realloc` is called, it checks if it can shrink or expand-right into a neighboring free block in *O(1)* time using its boundary tags. 
-However, unlike the Free list, it intentionally skips leftward expansions. 
-Because the underlying red-black tree makes finding a brand new memory block incredibly fast, the tradeoff leans toward executing a fast `alloc`->`std::copy`->`free` free cycle rather than dealing with the complexity of shifting memory leftward via `std::memmove`.
 
 <p align="center">
   <img src="docs/assets/tree_anatomy.svg" alt="free tree allocator block anatomy">
@@ -398,7 +363,6 @@ public:
   void  free(void* ptr);
   bool  init(std::size_t size);
   void  clear();
-  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
   std::size_t capacity() const;
 
   std::size_t curr_bytes() const { return m_curr_alloced_bytes; }
@@ -410,11 +374,6 @@ public:
 When `alloc` is called, it increments its internal counters, calculates if a new `m_peak_alloced_bytes` has been reached, and then simply returns the result of `m_base_allocator->alloc()`.
 
 When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the pointer to `m_base_allocator->free()`. Because it only performs basic arithmetic before delegating the actual work, the overhead is extremely minimal, maintaining the time complexity of the underlying allocator.
-
-When `realloc` is called, it acts as a mediator. 
-It first verifies the old pointer exists in its tracking map, temporarily untracks it, and forwards the request to the `m_base_allocator`. 
-If the base allocator successfully reallocates the memory, it tracks the new pointer and updates the memory metrics. 
-If it fails, it rolls back its internal state so the original tracking data is intact.
 
 ### Buddy allocator
 
@@ -453,7 +412,6 @@ public:
   void  free(void* ptr);
   bool  init(std::size_t size);
   void clear();
-  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
   std::size_t capacity() const;
 };
 ```
@@ -471,11 +429,6 @@ To coalesce, it calculates the address of its "buddy" using a simple bitwise **X
 If the buddy is also free and of the same order, they are instantly merged into a single, larger block.
 This process repeats recursively up the hierarchy.
 This mathematical approach allows coalescence in *O(1)* time without traversing any lists or relying on headers/footers.
-
-When `realloc` is called, it reads the header to determine the exact capacity of the current physical block.
-Because requests are rounded up to a power of two, there is often hidden free space at the end of the block.
-If the new requested size fits within the remaining space of the current order, it just returns the exact same pointer.
-Only if the boundary is crossed will it allocate a new block, copy the data, and free the old block.
 
 <p align="center">
   <img src="docs/assets/buddy_init.svg" alt="buddy allocator splitting cascade">
@@ -551,7 +504,6 @@ public:
   void  free(void* ptr); 
   bool  init(std::size_t size);
   void  clear();
-  void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align);
   std::size_t capacity() const;
 
 };
@@ -572,10 +524,6 @@ It then checks the `id` field of the struct sitting there.
 If the ID matches the predefined `SLAB_ID` (`0x51AB`, standing for 'slab' obviously), it is a slab block, and the pointer is pushed back into the slab's internal free list.
 The slab is transitioned between the full/partial/empty lists as needed.
 If the ID does not match, the allocator immediately delegates the `free` operation to `m_base_allocator`.
-
-When `realloc` is called, the allocator uses the same page-masking and magic ID check to determine the current physical size of the block.
-If the new requested size maps to the exact same size class (`cache_idx`) as the old size, the allocator just returns the passed pointer in *O(1)* time, leaving the memory as it was before.
-If it maps to a different cache - or crosses the boundary between slab and base allocations, it performs a standard `alloc`->`std::copy`->`free` cycle.
 
 <p align="center">
   <img src="docs/assets/slab_init.svg" alt="slab allocator initialization">
