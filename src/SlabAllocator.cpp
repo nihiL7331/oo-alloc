@@ -32,8 +32,12 @@ void* SlabAllocator::alloc(std::size_t size, std::size_t align) {
   if (size > MAX_CACHE_SIZE)
     return m_base_allocator->alloc(size, align);
 
+  // ensure the cache picked is large enough
+  // to fit the aligned size
+  std::size_t actual_size = std::max(size, align);
+
   // find the correct CacheManager
-  std::uint8_t cache_idx = size_to_cache_idx(size);
+  std::uint8_t cache_idx = size_to_cache_idx(actual_size);
   CacheManager& cache = m_caches[cache_idx];
 
   // find a slab with free space, starting with
