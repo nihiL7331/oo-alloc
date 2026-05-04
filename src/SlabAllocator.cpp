@@ -22,7 +22,7 @@ SlabAllocator::SlabAllocator(IAllocator* base_allocator)
 }
 
 SlabAllocator::~SlabAllocator() {
-  clear();
+  this->clear();
 }
 
 void* SlabAllocator::alloc(std::size_t size, std::size_t align) {
