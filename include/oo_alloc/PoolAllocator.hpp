@@ -1,6 +1,5 @@
 #pragma once
 #include "oo_alloc/IAllocator.hpp"
-#include <algorithm>
 
 namespace oo_alloc {
 
@@ -13,18 +12,11 @@ private:
   void*       m_free_list_head;
 
 public:
-  PoolAllocator(std::size_t chunk_size, std::size_t chunk_align) {
-    m_chunk_size = std::max(chunk_size, sizeof(void*));
-    m_chunk_align = chunk_align;
-    m_start_ptr = nullptr;
-    m_total_size = 0;
-    m_free_list_head = nullptr;
-  }
+  explicit PoolAllocator(std::size_t chunk_size, std::size_t chunk_align, std::size_t chunk_count);
   ~PoolAllocator() override;
 
   void* alloc(std::size_t size, std::size_t align) override;
   void  free(void* ptr) override;
-  bool  init(std::size_t size) override;
   void clear() override;
   void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) override;
   std::size_t capacity() const override { return m_total_size; }

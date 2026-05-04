@@ -4,8 +4,40 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <algorithm>
 
 namespace oo_alloc {
+
+PoolAllocator::PoolAllocator(std::size_t chunk_size, std::size_t chunk_align, std::size_t chunk_count)
+  : m_chunk_size(0)
+  , m_chunk_align(chunk_align)
+  , m_start_ptr(nullptr)
+  , m_total_size(0)
+  , m_free_list_head(nullptr) {
+  if (chunk_size == 0 || chunk_align == 0 || chunk_count == 0)
+    return;
+
+  std::size_t min_chunk_size = std::max(chunk_size, sizeof(void *));
+  m_chunk_size = utils::align_up(min_chunk_size, m_chunk_align);
+  
+  if (m_chunk_size > SIZE_MAX / chunk_count) {
+    m_chunk_align = 0;
+    m_chunk_size = 0;
+    return;
+  }
+
+  m_total_size = m_chunk_size * chunk_count;
+
+  m_start_ptr = utils::os_alloc(m_total_size);
+  if (m_start_ptr == nullptr) {
+    m_chunk_align = 0;
+    m_chunk_size = 0;
+    m_total_size = 0;
+    return;
+  }
+
+  this->clear();
+}
 
 PoolAllocator::~PoolAllocator() {
   if (m_start_ptr != nullptr) {
@@ -45,20 +77,6 @@ void PoolAllocator::free(void* ptr) {
   void** ret_chunk = reinterpret_cast<void **>(ptr);
   *ret_chunk = m_free_list_head;
   m_free_list_head = ptr;
-}
-
-bool PoolAllocator::init(std::size_t size) {
-  if (size < m_chunk_size)
-    return false;
-  
-  m_total_size = utils::align_up(size, utils::page_size());
-  m_start_ptr = utils::os_alloc(m_total_size);
-  if (m_start_ptr == nullptr)
-    return false;
-
-  clear();
-
-  return true;
 }
 
 /* iterates over all allocated chunks,
