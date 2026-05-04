@@ -89,37 +89,4 @@ void StackAllocator::clear() {
   m_offset = 0;
 }
 
-/* reallocation only occurs in place,
- * if the reallocated chunk is last in.
- * otherwise, just allocates new memory
- * and copies the data over. 
- * can't free older blocks, so it becomes dead space. 
- */
-void *StackAllocator::realloc(void *ptr, std::size_t old_size,
-                              std::size_t new_size, std::size_t align) {
-  if (new_size <= old_size)
-    return ptr;
-
-  std::uint8_t* raw_mem_ptr = static_cast<std::uint8_t *>(ptr);
-  std::uint8_t* raw_start_ptr = reinterpret_cast<std::uint8_t *>(m_start_ptr);
-
-  // only do anything if 'ptr' is the last element
-  if (raw_start_ptr + m_offset == raw_mem_ptr + old_size) {
-    std::size_t new_offset = m_offset + new_size - old_size;
-    if (new_offset > m_total_size)
-      return nullptr;
-
-    m_offset = new_offset;
-
-    return ptr;
-  } else {
-    void* new_ptr = this->alloc(new_size, align);
-
-    if (new_ptr != nullptr)
-      std::memcpy(new_ptr, ptr, old_size);
-
-    return new_ptr;
-  } 
-}
-
 }

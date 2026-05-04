@@ -236,45 +236,4 @@ void BuddyAllocator::clear() {
   m_free_lists[max_order] = parent_block;
 }
 
-void* BuddyAllocator::realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) {
-  if (ptr == nullptr)
-    return alloc(new_size, align);
-
-  if (new_size == 0) {
-    free(ptr);
-    return nullptr;
-  }
-
-  // grab the header by going sizeof(AllocHeader) backwards
-  AllocHeader* header = static_cast<AllocHeader *>(ptr) - 1;
-  std::uint8_t curr_order = header->order();
-
-  // calculate how many bytes are left in block
-  std::size_t block_size = MIN_BLOCK_SIZE << curr_order;
-  std::size_t avail_space = block_size - header->offset;
-
-  std::uintptr_t data_addr = reinterpret_cast<std::uintptr_t>(ptr);
-  bool aligned = (data_addr % align) == 0;
-
-  // if the "hidden" free space was enough to fit
-  // 'new_size', and its aligned, just return the pointer
-  if (aligned && new_size <= avail_space)
-    return ptr;
-
-  // standard 'alloc' -> 'copy' -> 'free' cycle,
-  // in-place is not worth it for the buddy allocator
-  void* new_ptr = this->alloc(new_size, align);
-  if (new_ptr == nullptr)
-    return nullptr;
-
-  // copy the data
-  std::size_t copy_size = std::min(old_size, new_size);
-  std::memcpy(new_ptr, ptr, copy_size);
-
-  // free the old block
-  this->free(ptr);
-  
-  return new_ptr;
-}
-
 }

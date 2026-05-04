@@ -142,50 +142,6 @@ void SlabAllocator::clear() {
   }
 }
 
-void* SlabAllocator::realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) {
-  if (ptr == nullptr)
-    return alloc(new_size, align);
-
-  if (new_size == 0) {
-    this->free(ptr);
-    return nullptr;
-  }
-
-  constexpr std::size_t MAX_CACHE_SIZE = 1 << (MIN_CACHE_ORDER + NUM_CACHES - 1);
-  bool old_is_big = old_size > MAX_CACHE_SIZE;
-  bool new_is_big = new_size > MAX_CACHE_SIZE;
-
-  if (old_is_big && new_is_big)
-    return m_base_allocator->realloc(ptr, old_size, new_size, align);
-
-  if (old_is_big != new_is_big) {
-    void* new_ptr = this->alloc(new_size, align);
-
-    if (new_ptr != nullptr) {
-      std::size_t copy_size = std::min(old_size, new_size);
-      std::memcpy(new_ptr, ptr, copy_size);
-
-      m_base_allocator->free(ptr);
-    }
-    return new_ptr;
-  }
-
-  std::uint8_t old_idx = size_to_cache_idx(old_size);
-  std::uint8_t new_idx = size_to_cache_idx(new_size);
-
-  if (old_idx == new_idx)
-    return ptr;
-
-  void* new_ptr = alloc(new_size, align);
-  if (new_ptr != nullptr) {
-    std::size_t copy_size = std::min(old_size, new_size);
-    std::memcpy(new_ptr, ptr, copy_size);
-    this->free(ptr);
-  }
-
-  return new_ptr;
-}
-
 SlabAllocator::SlabHeader* SlabAllocator::init_slab(std::uint8_t cache_idx) noexcept {
   // get 'object_size' from cache for later calculations
   std::size_t object_size = m_caches[cache_idx].object_size;

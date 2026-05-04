@@ -62,39 +62,4 @@ void ArenaAllocator::free(void *ptr) { (void)ptr; }
  */
 void ArenaAllocator::clear() { m_offset = 0; }
 
-/* realloc only happens in-place if the reallocated
- * element is the last allocated element.
- * only then it's of O(1) time complexity.
- * otherwise, it has to allocate a new chunk of data,
- * and perform a memcpy (which is O(n) where n is the amount of bytes)
- */
-void *ArenaAllocator::realloc(void *ptr, std::size_t old_size,
-                              std::size_t new_size, std::size_t align) {
-  if (new_size <= old_size)
-    return ptr;
-
-  std::uint8_t *raw_mem_ptr = static_cast<std::uint8_t *>(ptr);
-  std::uint8_t *raw_start_ptr = reinterpret_cast<std::uint8_t *>(m_start_ptr);
-
-  if (raw_start_ptr + m_offset == raw_mem_ptr + old_size) {
-    // case 1: reallocated elem is the latest one, just resize it
-    std::size_t new_offset = m_offset + new_size - old_size;
-    if (new_offset > m_total_size)
-      return nullptr;
-
-    m_offset = new_offset;
-
-    return ptr;
-  } else {
-    // case 2: realloced elem isn't the latest one,
-    // need to allocate fresh data after latest
-
-    void *new_ptr = this->alloc(new_size, align);
-    if (new_ptr != nullptr)
-      std::memcpy(new_ptr, ptr, old_size);
-
-    return new_ptr;
-  }
-}
-
 } 

@@ -108,17 +108,4 @@ void PoolAllocator::clear() {
   m_free_list_head = m_start_ptr;
 }
    
-/* essentially a noop,
- * reallocation is impossible due to fixed chunk size
- */
-void *PoolAllocator::realloc(void *ptr, std::size_t old_size,
-                              std::size_t new_size, std::size_t align) {
-  (void)old_size; (void)align;
-
-  if (new_size > m_chunk_size)
-    return nullptr;
-  else
-    return ptr;
-}
-
 }
