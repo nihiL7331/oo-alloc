@@ -93,8 +93,11 @@ private:
   std::size_t m_offset;
 
 public:
-  void* alloc(std::size_t size, std::size_t align);
-  bool  init(std::size_t size);
+  explicit ArenaAllocator(std::size_t size);
+  ~ArenaAllocator();
+
+  void* alloc_raw(std::size_t size, std::size_t align);
+  void  free_raw(void* ptr) override { /* NOOP */ }
   void  clear();
   std::size_t capacity() const;
 };
@@ -137,9 +140,11 @@ private:
   std::size_t m_total_size;
 
 public:
-  void* alloc(std::size_t size, std::size_t align);
-  void  free(void* ptr);
-  bool  init(std::size_t size);
+  explicit StackAllocator(std::size_t size);
+  ~StackAllocator();
+
+  void* alloc_raw(std::size_t size, std::size_t align);
+  void  free_raw(void* ptr);
   void  clear();
   std::size_t capacity() const;
 };
@@ -184,9 +189,11 @@ private:
   void*       m_free_list_head;
 
 public:
-  void* alloc(std::size_t size, std::size_t align);
-  void  free(void* ptr);
-  bool  init(std::size_t size);
+  explicit PoolAllocator(std::size_t chunk_size, std::size_t chunk_align, std::size_t chunk_count);
+  ~PoolAllocator();
+
+  void* alloc_raw(std::size_t size, std::size_t align);
+  void  free_raw(void* ptr);
   void  clear();
   std::size_t capacity() const;
 };
@@ -241,9 +248,11 @@ private:
   FreeBlock*  m_free_list_head;
 
 public:
-  void* alloc(std::size_t size, std::size_t align);
-  void  free(void* ptr);
-  bool  init(std::size_t size);
+  explicit FreeListAllocator(std::size_t size);
+  ~FreeListAllocator();
+
+  void* alloc_raw(std::size_t size, std::size_t align);
+  void  free_raw(void* ptr);
   void  clear();
   std::size_t capacity() const;
 };
@@ -357,11 +366,11 @@ private:
   std::size_t m_peak_alloced_bytes = 0;
 
 public:
-  TrackingAllocator(IAllocator& base_allocator);
+  explicit TrackingAllocator(IAllocator& base_allocator);
+  ~TrackingAllocator();
 
-  void* alloc(std::size_t size, std::size_t align);
-  void  free(void* ptr);
-  bool  init(std::size_t size);
+  void* alloc_raw(std::size_t size, std::size_t align);
+  void  free_raw(void* ptr);
   void  clear();
   std::size_t capacity() const;
 
@@ -408,10 +417,12 @@ private:
   std::array<FreeBlock*, MAX_ORDER> m_free_lists;
 
 public:
-  void* alloc(std::size_t size, std::size_t align);
-  void  free(void* ptr);
-  bool  init(std::size_t size);
-  void clear();
+  explicit BuddyAllocator(std::size_t size);
+  ~BuddyAllocator();
+
+  void* alloc_raw(std::size_t size, std::size_t align);
+  void  free_raw(void* ptr);
+  void  clear();
   std::size_t capacity() const;
 };
 ```
@@ -500,9 +511,11 @@ private:
   std::array<CacheManager, NUM_CACHES> m_caches;
 
 public:
+  explicit SlabAllocator(std::size_t size);
+  ~SlabAllocator();
+
   void* alloc(std::size_t size, std::size_t align);
   void  free(void* ptr); 
-  bool  init(std::size_t size);
   void  clear();
   std::size_t capacity() const;
 
