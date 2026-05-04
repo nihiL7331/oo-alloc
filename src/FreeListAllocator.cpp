@@ -65,7 +65,8 @@ void* FreeListAllocator::alloc(std::size_t size, std::size_t align) {
 
     std::size_t pad = utils::calc_pad(unalign_ptr, align);
 
-    std::size_t required_size = size + header_size + pad;
+    std::size_t required_size = utils::align_up(size + header_size + pad, alignof(FreeBlock));
+
     std::size_t free_size = curr_ptr->size;
 
     // 1. find address for the data
