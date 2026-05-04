@@ -3,9 +3,7 @@
 #include <cstdint>
 
 int main() {
-  oo_alloc::FreeListAllocator free;
-  bool succ = free.init(2048);
-  assert(succ && "Failed to initialize");
+  oo_alloc::FreeListAllocator free(2048);
 
   void* align_ptr = free.alloc(64, 128);
   assert(align_ptr != nullptr && "Failed to allocate 128B align block");

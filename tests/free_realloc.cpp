@@ -4,9 +4,7 @@
 #include <cstdint>
 
 int main() {
-  oo_alloc::FreeListAllocator free;
-  bool succ = free.init(1024);
-  assert(succ && "Failed to initialize");
+  oo_alloc::FreeListAllocator free(1024);
 
   void* ptr1 = free.alloc(200, 8);
   void* ptr1_shrunk = free.realloc(ptr1, 200, 64, 8);

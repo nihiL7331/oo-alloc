@@ -2,9 +2,7 @@
 #include <cassert>
 
 int main() {
-  oo_alloc::FreeListAllocator free;
-  bool succ = free.init(2048);
-  assert(succ && "Failed to initialize");
+  oo_alloc::FreeListAllocator free(2048);
 
   void* ptr_1 = free.alloc(256, 8);
   assert(ptr_1 != nullptr && "Failed to allocate ptr_1");
