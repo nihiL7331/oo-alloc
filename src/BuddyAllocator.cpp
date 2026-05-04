@@ -64,6 +64,12 @@ void BuddyAllocator::split_block(std::uint8_t order) noexcept {
 }
 
 void* BuddyAllocator::alloc(std::size_t size, std::size_t align) {
+  if (align == 0 || (align & (align - 1)) != 0)
+    return nullptr;
+
+  if (size == 0 || size > SIZE_MAX - align - sizeof(AllocHeader))
+    return nullptr;
+
   // we need space for data, header, and enough room to shift
   // the data pointer forward until it hits an 'align' boundary.
   std::size_t total_req_size = size + align + sizeof(AllocHeader);
@@ -106,6 +112,13 @@ void* BuddyAllocator::alloc(std::size_t size, std::size_t align) {
   AllocHeader* header = reinterpret_cast<AllocHeader *>(data_ptr - sizeof(AllocHeader));
   header->set_free(false);
   header->set_order(target_order);
+
+  std::size_t offset_size = data_ptr - block_start;
+  // if someone asks for >64KB alignment,
+  // must refuse it because it can't be stored
+  if (offset_size > UINT16_MAX)
+    return nullptr;
+
   header->offset = static_cast<std::uint16_t>(data_ptr - block_start);
 
   return reinterpret_cast<void *>(data_ptr);
