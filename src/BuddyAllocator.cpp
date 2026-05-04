@@ -8,8 +8,30 @@
 
 namespace oo_alloc {
 
-BuddyAllocator::BuddyAllocator() : m_start_ptr(nullptr), m_total_size(0) {
+BuddyAllocator::BuddyAllocator(std::size_t size) 
+  : m_start_ptr(nullptr)
+  , m_total_size(0) {
+  if (size < MIN_BLOCK_SIZE)
+    return;
+
+  // force the size to be a power of 2
+  std::size_t target_size = std::bit_floor(size);
+
+  // ensure that 'm_total_size' is a multiple of 'page_size'.
+  // page sizes themselves are powers of two, 
+  // so this keeps the power of 2 rule.
+  m_total_size = utils::align_up(target_size, utils::page_size());
+
+  m_start_ptr = utils::os_alloc(m_total_size);
+  if (m_start_ptr == nullptr) {
+    m_total_size = 0;
+    return;
+  }
+
   m_free_lists.fill(nullptr);
+
+  // clear the state
+  this->clear();
 }
 
 BuddyAllocator::~BuddyAllocator() {
@@ -184,28 +206,6 @@ void BuddyAllocator::free(void* ptr) {
   new_free_block->prev = nullptr;
 
   m_free_lists[order] = new_free_block;
-}
-
-bool BuddyAllocator::init(std::size_t size) {
-  if (size < MIN_BLOCK_SIZE)
-    return false;
-
-  // force the size to be a power of 2
-  std::size_t target_size = std::bit_floor(size);
-
-  // ensure that 'm_total_size' is a multiple of 'page_size'.
-  // page sizes themselves are powers of two, 
-  // so this keeps the power of 2 rule.
-  m_total_size = utils::align_up(target_size, utils::page_size());
-
-  m_start_ptr = utils::os_alloc(m_total_size);
-  if (!m_start_ptr)
-    return false;
-
-  // clear the state
-  this->clear();
-
-  return true;
 }
 
 void BuddyAllocator::clear() {
