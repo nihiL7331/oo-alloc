@@ -3,9 +3,7 @@
 #include <cstring>
 
 int main() {
-  oo_alloc::StackAllocator stack;
-  bool succ = stack.init(1024);
-  assert(succ && "Failed to initialize");
+  oo_alloc::StackAllocator stack(1024);
 
   void *ptr1 = stack.alloc(16, 8);
   void *ptr1_grown = stack.realloc(ptr1, 16, 32, 8);

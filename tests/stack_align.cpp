@@ -3,10 +3,7 @@
 #include <cstdint>
 
 int main() {
-  oo_alloc::StackAllocator stack;
-
-  bool succ = stack.init(1024);
-  assert(succ && "Failed to initialize");
+  oo_alloc::StackAllocator stack(1024);
 
   void* ptr1 = stack.alloc(32, 16);
   assert(ptr1 != nullptr && "Failed to allocate ptr1");

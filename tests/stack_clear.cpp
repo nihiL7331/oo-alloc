@@ -2,10 +2,7 @@
 #include <cassert>
 
 int main() {
-  oo_alloc::StackAllocator stack;
-
-  bool succ = stack.init(1024);
-  assert(succ && "Failed to initialize");
+  oo_alloc::StackAllocator stack(1024);
 
   void* ptr = stack.alloc(32, 16);
   stack.alloc(12, 4);
