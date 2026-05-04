@@ -28,10 +28,18 @@ FreeTreeAllocator::FreeTreeAllocator(std::size_t size)
 }
 
 FreeTreeAllocator::~FreeTreeAllocator() {
-  if (m_start_ptr != nullptr) {
-    utils::os_free(m_start_ptr, m_total_size);
-    m_start_ptr = nullptr;
-  }
+  if (m_start_ptr == nullptr)
+    return;
+
+  // created with placement new,
+  // need to call the destructor
+  if (m_free_tree != nullptr)
+    m_free_tree->~RBTree();
+
+  utils::os_free(m_start_ptr, m_total_size);
+
+  m_start_ptr = nullptr;
+  m_free_tree = nullptr;
 }
 
 /* coalescing is responsible for merging neighboring free blocks
