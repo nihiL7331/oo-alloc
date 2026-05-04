@@ -5,11 +5,11 @@
 int main() {
   oo_alloc::ArenaAllocator arena(1024);
   
-  void* ptr1 = arena.alloc(sizeof(char), alignof(char));
-  assert(ptr1 != nullptr && "Failed to allocate char");
+  void* ptr1 = arena.alloc_raw(sizeof(char), alignof(char));
+  assert(ptr1 != nullptr && "Failed to alloc_rawate char");
 
-  void* ptr2 = arena.alloc(sizeof(int), alignof(int));
-  assert(ptr2 != nullptr && "Failed to allocate int");
+  void* ptr2 = arena.alloc_raw(sizeof(int), alignof(int));
+  assert(ptr2 != nullptr && "Failed to alloc_rawate int");
 
   std::uintptr_t addr2 = reinterpret_cast<std::uintptr_t>(ptr2);
   assert(addr2 % alignof(int) == 0 && "Failed to align int ptr");
@@ -17,9 +17,9 @@ int main() {
   std::uintptr_t addr1 = reinterpret_cast<std::uintptr_t>(ptr1);
   assert(addr2 == addr1 + 4 && "Failed to set padding char/int");
 
-  arena.alloc(sizeof(char), alignof(char));
+  arena.alloc_raw(sizeof(char), alignof(char));
 
-  void* ptr3 = arena.alloc(sizeof(long), alignof(long));
+  void* ptr3 = arena.alloc_raw(sizeof(long), alignof(long));
   std::uintptr_t addr3 = reinterpret_cast<std::uintptr_t>(ptr3);
   assert(addr3 % alignof(long) == 0 && "Failed to align long ptr");
   assert(addr3 == addr2 + 12 && "Failed to set padding int/long");

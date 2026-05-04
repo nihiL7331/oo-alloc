@@ -1,5 +1,8 @@
 #pragma once
 #include <cstddef>
+#include <type_traits>
+#include <utility>
+#include <new>
 
 namespace oo_alloc {
 
@@ -14,10 +17,59 @@ public:
   IAllocator(IAllocator&&) noexcept = default;
   IAllocator& operator=(IAllocator&&) noexcept = default;
 
-  virtual void* alloc(std::size_t size, std::size_t align) = 0;
+  virtual void* alloc_raw(std::size_t size, std::size_t align) = 0;
   virtual void free(void* ptr) = 0;
   virtual void clear() = 0;
   virtual std::size_t capacity() const = 0;
+
+  template<typename T, typename... Args>
+  requires (!std::is_array_v<T>)
+  T* make(Args&&... args) {
+    void* raw_mem = this->alloc_raw(sizeof(T), alignof(T));
+    if (raw_mem == nullptr)
+      return nullptr;
+
+    return new (raw_mem) T(std::forward<Args>(args)...);
+  }
+
+  template<typename T>
+  requires std::is_unbounded_array_v<T>
+  std::remove_extent_t<T>* make(std::size_t count) {
+    using ElemType = std::remove_extent_t<T>;
+
+    if (count == 0 || count > SIZE_MAX / sizeof(ElemType))
+      return nullptr;
+
+    void* raw_mem = this->alloc_raw(count * sizeof(ElemType), alignof(ElemType));
+    if (raw_mem == nullptr)
+      return nullptr;
+
+    ElemType* elem_ptr = static_cast<ElemType *>(raw_mem);
+    for (std::size_t i = 0; i < count; ++i)
+      new (&elem_ptr[i]) ElemType();
+
+    return elem_ptr;
+  }
+
+  template<typename T>
+  void destroy(T* ptr) {
+    if (ptr == nullptr)
+      return;
+
+    ptr->~T();
+    this->free(ptr);
+  }
+
+  template<typename T>
+  void destroy(T* ptr, std::size_t count) {
+    if (ptr == nullptr)
+      return;
+
+    for (std::size_t i = count; i > 0; --i)
+      ptr[i - 1].~T();
+
+    this->free(ptr);
+  }
 };
 
 }

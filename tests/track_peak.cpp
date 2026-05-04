@@ -6,8 +6,8 @@ int main() {
   oo_alloc::PoolAllocator pool(32, 8, 10);
   oo_alloc::TrackingAllocator track(pool);
 
-  void* p1 = track.alloc(32, 8);
-  void* p2 = track.alloc(32, 8);
+  void* p1 = track.alloc_raw(32, 8);
+  void* p2 = track.alloc_raw(32, 8);
   assert(track.curr_bytes() == 64 && "Curr bytes wrong");
   assert(track.active_allocs() == 2 && "Active count wrong");
   assert(track.peak_bytes() == 64 && "Peak bytes wrong");

@@ -46,7 +46,7 @@ void stress_test(std::size_t heap_size, std::size_t iters) {
       std::size_t size = size_dist(rng);
       std::size_t align = aligns[align_dist(rng)];
 
-      void* ptr = alloc.alloc(size, align);
+      void* ptr = alloc.alloc_raw(size, align);
 
       if (ptr != nullptr) {
         assert((reinterpret_cast<std::uintptr_t>(ptr) % align) == 0 && "Alignment failed");

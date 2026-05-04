@@ -92,7 +92,7 @@ void BuddyAllocator::split_block(std::uint8_t order) noexcept {
   m_free_lists[new_order] = block;
 }
 
-void* BuddyAllocator::alloc(std::size_t size, std::size_t align) {
+void* BuddyAllocator::alloc_raw(std::size_t size, std::size_t align) {
   if (align == 0 || (align & (align - 1)) != 0)
     return nullptr;
 

@@ -20,7 +20,7 @@ public:
   explicit FreeTreeAllocator(std::size_t size);
   ~FreeTreeAllocator() override;
 
-  void* alloc(std::size_t size, std::size_t align) override;
+  void* alloc_raw(std::size_t size, std::size_t align) override;
   void  free(void* ptr) override;
   void  clear() override;
 

@@ -15,7 +15,7 @@ public:
   explicit PoolAllocator(std::size_t chunk_size, std::size_t chunk_align, std::size_t chunk_count);
   ~PoolAllocator() override;
 
-  void* alloc(std::size_t size, std::size_t align) override;
+  void* alloc_raw(std::size_t size, std::size_t align) override;
   void  free(void* ptr) override;
   void clear() override;
   std::size_t capacity() const override { return m_total_size; }

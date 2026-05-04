@@ -51,7 +51,7 @@ PoolAllocator::~PoolAllocator() {
  * since each chunk is of the same size, we dont need
  * any additional searches/list traversals.
  */
-void* PoolAllocator::alloc(std::size_t size, std::size_t align) {
+void* PoolAllocator::alloc_raw(std::size_t size, std::size_t align) {
   if (align == 0 || (align & (align - 1)) != 0)
     return nullptr;
 

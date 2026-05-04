@@ -7,17 +7,17 @@ int main() {
   oo_alloc::BuddyAllocator buddy(1024 * 1024);
   oo_alloc::SlabAllocator slab(&buddy);
 
-  void* p1 = slab.alloc(32, 8);
+  void* p1 = slab.alloc_raw(32, 8);
   assert(p1 != nullptr && "Alloc failed");
   slab.free(p1);
 
-  void* p2 = slab.alloc(5000, 8);
+  void* p2 = slab.alloc_raw(5000, 8);
   assert(p2 != nullptr && "Huge alloc failed");
   slab.free(p2);
 
   std::vector<void *> ptrs;
   for (int i = 0; i < 63; ++i) {
-    void* p = slab.alloc(64, 8);
+    void* p = slab.alloc_raw(64, 8);
     if (p)
       ptrs.push_back(p);
   }

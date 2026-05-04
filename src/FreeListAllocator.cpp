@@ -65,7 +65,7 @@ void FreeListAllocator::coalesce(FreeBlock* prev_block, FreeBlock* free_block) {
  *
  * requires a list traversal to find a block to allocate in.
  */
-void* FreeListAllocator::alloc(std::size_t size, std::size_t align) {
+void* FreeListAllocator::alloc_raw(std::size_t size, std::size_t align) {
   if (align == 0 || (align & (align - 1)) != 0)
     return nullptr;
 

@@ -16,8 +16,8 @@ TrackingAllocator::~TrackingAllocator() {
 /* stores the debug data
  * and allocates via its base allocator
  */
-void* TrackingAllocator::alloc(std::size_t size, std::size_t align) {
-  void* base_alloc_ptr = m_base_allocator.alloc(size, align);
+void* TrackingAllocator::alloc_raw(std::size_t size, std::size_t align) {
+  void* base_alloc_ptr = m_base_allocator.alloc_raw(size, align);
   if (base_alloc_ptr == nullptr)
     return nullptr;
 

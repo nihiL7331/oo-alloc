@@ -29,7 +29,7 @@ void stress_test(Allocator& alloc, std::size_t block_size, std::size_t align, st
     int action = action_dist(rng);
 
     if (action < 50 || active_allocs.empty()) {
-      void* ptr = alloc.alloc(block_size, align);
+      void* ptr = alloc.alloc_raw(block_size, align);
 
       if (ptr != nullptr) {
         assert((reinterpret_cast<std::uintptr_t>(ptr) % align) == 0 && "Alignment failed");

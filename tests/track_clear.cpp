@@ -6,10 +6,10 @@ int main() {
   oo_alloc::PoolAllocator pool(32, 8, 10);
   oo_alloc::TrackingAllocator track(pool);
 
-  track.alloc(32, 8);
-  track.alloc(32, 8);
-  track.alloc(32, 8);
-  track.alloc(32, 8);
+  track.alloc_raw(32, 8);
+  track.alloc_raw(32, 8);
+  track.alloc_raw(32, 8);
+  track.alloc_raw(32, 8);
 
   track.clear();
   assert(track.curr_bytes() == 0 && "Curr bytes wrong post clear()");

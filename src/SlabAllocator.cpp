@@ -25,7 +25,7 @@ SlabAllocator::~SlabAllocator() {
   this->clear();
 }
 
-void* SlabAllocator::alloc(std::size_t size, std::size_t align) {
+void* SlabAllocator::alloc_raw(std::size_t size, std::size_t align) {
   if (align == 0 || (align & (align - 1)) != 0)
     return nullptr;
 
@@ -39,7 +39,7 @@ void* SlabAllocator::alloc(std::size_t size, std::size_t align) {
   // if the alignment is larger, then it also needs to be routed
   // because it can't fit after alignment
   if (size > MAX_CACHE_SIZE || align > MAX_CACHE_SIZE)
-    return m_base_allocator->alloc(size, align);
+    return m_base_allocator->alloc_raw(size, align);
 
   // ensure the cache picked is large enough
   // to fit the aligned size
@@ -147,7 +147,7 @@ SlabAllocator::SlabHeader* SlabAllocator::init_slab(std::uint8_t cache_idx) noex
   std::size_t object_size = m_caches[cache_idx].object_size;
 
   // allocate the raw page from 'm_base_allocator'
-  void* ptr = m_base_allocator->alloc(m_page_size, m_page_size);
+  void* ptr = m_base_allocator->alloc_raw(m_page_size, m_page_size);
   if (ptr == nullptr)
     return nullptr;
 

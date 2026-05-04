@@ -36,7 +36,7 @@ StackAllocator::~StackAllocator() {
  * header stores the offset of the stack BEFORE
  * this allocation, allowing for free capabilities
  */
-void* StackAllocator::alloc(std::size_t size, std::size_t align) {
+void* StackAllocator::alloc_raw(std::size_t size, std::size_t align) {
   if (align == 0 || (align & (align - 1)) != 0)
     return nullptr;
 

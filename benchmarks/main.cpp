@@ -20,15 +20,15 @@ static void bm_frag_search(benchmark::State& state) {
   std::vector<void *> to_free;
 
   for (size_t i = 0; i < N; ++i) {
-    to_keep.push_back(alloc.alloc(16, 8));
-    to_free.push_back(alloc.alloc(16, 8));
+    to_keep.push_back(alloc.alloc_raw(16, 8));
+    to_free.push_back(alloc.alloc_raw(16, 8));
   }
 
   for (void* p : to_free)
     alloc.free(p);
 
   for (auto _ : state) {
-    void* ptr = alloc.alloc(64, 8);
+    void* ptr = alloc.alloc_raw(64, 8);
     benchmark::DoNotOptimize(ptr);
     alloc.free(ptr);
   }
@@ -49,15 +49,15 @@ static void bm_frag_search_slab(benchmark::State& state) {
   std::vector<void *> to_free;
 
   for (size_t i = 0; i < N; ++i) {
-    to_keep.push_back(slab.alloc(16, 8));
-    to_free.push_back(slab.alloc(16, 8));
+    to_keep.push_back(slab.alloc_raw(16, 8));
+    to_free.push_back(slab.alloc_raw(16, 8));
   }
 
   for (void* p : to_free)
     slab.free(p);
 
   for (auto _ : state) {
-    void* ptr = slab.alloc(64, 8);
+    void* ptr = slab.alloc_raw(64, 8);
     benchmark::DoNotOptimize(ptr);
     slab.free(ptr);
   }
@@ -74,7 +74,7 @@ static void bm_seq_bump(benchmark::State& state) {
     Allocator alloc(256 * MB);
 
     for (auto _ : state) {
-      void* ptr = alloc.alloc(64, 8);
+      void* ptr = alloc.alloc_raw(64, 8);
       benchmark::DoNotOptimize(ptr);
 
       if (!ptr) {
@@ -91,7 +91,7 @@ static void bm_recycle_dynamic(benchmark::State& state) {
     Allocator alloc(64 * MB);
 
     for (auto _ : state) {
-      void* ptr = alloc.alloc(64, 8);
+      void* ptr = alloc.alloc_raw(64, 8);
       benchmark::DoNotOptimize(ptr);
       alloc.free(ptr);
     }
@@ -102,7 +102,7 @@ static void bm_recycle_pool(benchmark::State& state) {
     PoolAllocator alloc(64, 64, 1024);
 
     for (auto _ : state) {
-      void* ptr = alloc.alloc(64, 8);
+      void* ptr = alloc.alloc_raw(64, 8);
       benchmark::DoNotOptimize(ptr);
       alloc.free(ptr);
     }
@@ -113,7 +113,7 @@ static void bm_recycle_slab(benchmark::State& state) {
   SlabAllocator slab(&buddy);
 
   for (auto _ : state) { 
-    void* ptr = slab.alloc(64, 8);
+    void* ptr = slab.alloc_raw(64, 8);
     benchmark::DoNotOptimize(ptr);
     slab.free(ptr);
   }

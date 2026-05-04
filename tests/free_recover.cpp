@@ -5,7 +5,7 @@
 int main() {
   oo_alloc::FreeListAllocator free(2048);
 
-  void* align_ptr = free.alloc(64, 128);
+  void* align_ptr = free.alloc_raw(64, 128);
   assert(align_ptr != nullptr && "Failed to allocate 128B align block");
 
   std::uintptr_t raw_ptr = reinterpret_cast<std::uintptr_t>(align_ptr);
@@ -13,6 +13,6 @@ int main() {
 
   free.free(align_ptr);
 
-  void* rec_ptr = free.alloc(1024, 8);
+  void* rec_ptr = free.alloc_raw(1024, 8);
   assert(rec_ptr != nullptr && "Failed recover padding on free()");
 }

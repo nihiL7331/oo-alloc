@@ -4,19 +4,19 @@
 int main() {
   oo_alloc::FreeListAllocator free(2048);
 
-  void* ptr_1 = free.alloc(256, 8);
+  void* ptr_1 = free.alloc_raw(256, 8);
   assert(ptr_1 != nullptr && "Failed to allocate ptr_1");
 
-  void* ptr_2 = free.alloc(256, 8);
+  void* ptr_2 = free.alloc_raw(256, 8);
   assert(ptr_2 != nullptr && "Failed to allocate ptr_2");
 
-  void* ptr_3 = free.alloc(256, 8);
+  void* ptr_3 = free.alloc_raw(256, 8);
   assert(ptr_3 != nullptr && "Failed to allocate ptr_3");
 
   free.free(ptr_1);
   free.free(ptr_3);
   free.free(ptr_2);
 
-  void* ptr_4 = free.alloc(800, 8);
+  void* ptr_4 = free.alloc_raw(800, 8);
   assert(ptr_4 != nullptr && "Failed coalescence");
 }

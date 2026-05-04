@@ -7,7 +7,7 @@ int main() {
 
   std::vector<void*> ptrs;
   for (int i = 0; i < 1024; ++i) {
-      void* ptr = buddy.alloc(1024, 8); 
+      void* ptr = buddy.alloc_raw(1024, 8); 
       assert(ptr != nullptr && "Failed to fragment heap");
       ptrs.push_back(ptr);
   }
@@ -16,6 +16,6 @@ int main() {
       buddy.free(*it);
   }
 
-  void* giant_ptr = buddy.alloc((4 * 1024 * 1024) - 64, 8);
+  void* giant_ptr = buddy.alloc_raw((4 * 1024 * 1024) - 64, 8);
   assert(giant_ptr != nullptr && "Failed to fully coalesce to max order");
 }

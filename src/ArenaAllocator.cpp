@@ -29,7 +29,7 @@ ArenaAllocator::~ArenaAllocator() {
  * is just aligning and pushing the pointer forwards,
  * resulting in O(1) time complexity
  * */
-void *ArenaAllocator::alloc(std::size_t size, std::size_t align) {
+void *ArenaAllocator::alloc_raw(std::size_t size, std::size_t align) {
   if (align == 0 || (align & (align - 1)) != 0)
     return nullptr;
 

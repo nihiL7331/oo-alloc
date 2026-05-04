@@ -40,7 +40,7 @@ void stress_test_stack(std::size_t heap_size, std::size_t iters) {
       std::size_t size = size_dist(rng);
       std::size_t align = aligns[align_dist(rng)];
 
-      void* ptr = alloc.alloc(size, align);
+      void* ptr = alloc.alloc_raw(size, align);
 
       if (ptr) {
         assert((reinterpret_cast<std::uintptr_t>(ptr) % align) == 0);
@@ -83,7 +83,7 @@ void stress_test_arena(std::size_t heap_size, std::size_t iters) {
     std::size_t size = size_dist(rng);
     std::size_t align = aligns[align_dist(rng)];
 
-    void* ptr = alloc.alloc(size, align);
+    void* ptr = alloc.alloc_raw(size, align);
 
     if (ptr) {
       assert((reinterpret_cast<std::uintptr_t>(ptr) % align) == 0);

@@ -6,7 +6,7 @@ int main() {
 
   char* data[26];
   for (int i = 0; i < 26; ++i) {
-    data[i] = static_cast<char *>(arena.alloc(sizeof(char), alignof(char)));
+    data[i] = static_cast<char *>(arena.alloc_raw(sizeof(char), alignof(char)));
     *data[i] = 'A' + i;
   }
 
@@ -15,6 +15,6 @@ int main() {
 
   arena.clear();
 
-  void* start_ptr = arena.alloc(sizeof(char), alignof(char));
+  void* start_ptr = arena.alloc_raw(sizeof(char), alignof(char));
   assert(start_ptr != nullptr && "Failed to alloc after clear");
 }

@@ -45,7 +45,7 @@ public:
   explicit SlabAllocator(IAllocator* base_allocator);
   ~SlabAllocator() override;
 
-  void* alloc(std::size_t size, std::size_t align) override;
+  void* alloc_raw(std::size_t size, std::size_t align) override;
   void  free(void* ptr) override; 
   void  clear() override;
   std::size_t capacity() const override { return SIZE_MAX; }
