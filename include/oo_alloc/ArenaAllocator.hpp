@@ -10,12 +10,11 @@ private:
   std::size_t m_offset;
 
 public:
-  ArenaAllocator();
+  explicit ArenaAllocator(std::size_t size);
   ~ArenaAllocator() override;
 
   void* alloc(std::size_t size, std::size_t align) override;
   void  free(void* ptr) override; // WARN: noop
-  bool  init(std::size_t size) override;
   void clear() override;
   void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) override;
   std::size_t capacity() const override { return m_total_size; }
