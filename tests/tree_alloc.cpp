@@ -3,8 +3,7 @@
 #include <cstdint>
 
 int main() {
-  oo_alloc::FreeTreeAllocator tree;
-  tree.init(4096);
+  oo_alloc::FreeTreeAllocator tree(4096);
 
   void* ptr1 = tree.alloc(128, 8);
   assert(ptr1 != nullptr && "Failed to allocate 128B");

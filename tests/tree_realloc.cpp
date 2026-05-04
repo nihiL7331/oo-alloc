@@ -3,8 +3,7 @@
 #include <cstring>
 
 int main() {
-  oo_alloc::FreeTreeAllocator allocator;
-  allocator.init(16384);
+  oo_alloc::FreeTreeAllocator allocator(16384);
 
   void* p1 = allocator.realloc(nullptr, 0, 128, 8);
   assert(p1 != nullptr && "realloc(nullptr) failed to allocate!");

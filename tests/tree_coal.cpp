@@ -2,8 +2,7 @@
 #include <cassert>
 
 int main() {
-  oo_alloc::FreeTreeAllocator tree;
-  tree.init(16384);
+  oo_alloc::FreeTreeAllocator tree(16384);
 
   void* p1 = tree.alloc(128, 8);
   void* p2 = tree.alloc(128, 8);
