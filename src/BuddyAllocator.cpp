@@ -24,6 +24,11 @@ BuddyAllocator::BuddyAllocator(std::size_t size)
   // so this keeps the power of 2 rule.
   m_total_size = utils::align_up(target_size, utils::page_size());
 
+  if (size_to_order(m_total_size) >= MAX_ORDER) {
+    m_total_size = 0;
+    return;
+  }
+
   m_start_ptr = utils::os_alloc(m_total_size);
   if (m_start_ptr == nullptr) {
     m_total_size = 0;
