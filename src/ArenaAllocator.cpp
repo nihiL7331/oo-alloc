@@ -23,6 +23,9 @@ ArenaAllocator::~ArenaAllocator() {
  * resulting in O(1) time complexity
  * */
 void *ArenaAllocator::alloc(std::size_t size, std::size_t align) {
+  if (size == 0 || size > SIZE_MAX - align)
+    return nullptr;
+
   std::uintptr_t base_ptr = reinterpret_cast<std::uintptr_t>(m_start_ptr);
   std::uintptr_t curr_ptr = base_ptr + m_offset;
 
