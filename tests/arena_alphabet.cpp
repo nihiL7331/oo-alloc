@@ -2,9 +2,7 @@
 #include <cassert>
 
 int main() {
-  oo_alloc::ArenaAllocator arena;
-  bool succ = arena.init(1024);
-  assert(succ && "Failed to initialize");
+  oo_alloc::ArenaAllocator arena(1024);
 
   char* data[26];
   for (int i = 0; i < 26; ++i) {

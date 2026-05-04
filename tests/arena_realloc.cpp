@@ -3,9 +3,7 @@
 #include <cstring>
 
 int main() {
-  oo_alloc::ArenaAllocator arena;
-  bool succ = arena.init(1024);
-  assert(succ && "Failed to initialize");
+  oo_alloc::ArenaAllocator arena(1024);
 
   void* ptr1 = arena.alloc(10, 8);
   void* ptr1_resized = arena.realloc(ptr1, 10, 50, 8);

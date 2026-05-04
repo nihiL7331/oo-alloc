@@ -3,9 +3,7 @@
 #include <cstdint>
 
 int main() {
-  oo_alloc::ArenaAllocator arena;
-  bool succ = arena.init(1024);
-  assert(succ && "Failed to initialize");
+  oo_alloc::ArenaAllocator arena(1024);
   
   void* ptr1 = arena.alloc(sizeof(char), alignof(char));
   assert(ptr1 != nullptr && "Failed to allocate char");
