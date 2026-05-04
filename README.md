@@ -130,7 +130,6 @@ public:
   ~ArenaAllocator();
 
   void* alloc_raw(std::size_t size, std::size_t align);
-  void  free_raw(void* ptr) override { /* NOOP */ }
   void  clear();
   std::size_t capacity() const;
 };
