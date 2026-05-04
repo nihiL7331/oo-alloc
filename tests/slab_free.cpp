@@ -4,13 +4,8 @@
 #include <vector>
 
 int main() {
-  oo_alloc::BuddyAllocator buddy;
-  bool succ_b = buddy.init(1024 * 1024);
-  assert(succ_b && "Failed to initialize buddy");
-
+  oo_alloc::BuddyAllocator buddy(1024 * 1024);
   oo_alloc::SlabAllocator slab(&buddy);
-  bool succ_s = slab.init(4096);
-  assert(succ_s && "Failed to initialize slab");
 
   void* p1 = slab.alloc(32, 8);
   assert(p1 != nullptr && "Alloc failed");

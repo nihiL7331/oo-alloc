@@ -4,10 +4,8 @@
 #include <cstring>
 
 int main() {
-  oo_alloc::BuddyAllocator buddy;
-  buddy.init(1024 * 1024);
+  oo_alloc::BuddyAllocator buddy(1024 * 1024);
   oo_alloc::SlabAllocator slab(&buddy);
-  slab.init(4096);
 
   void* p1 = slab.alloc(20, 8);
   std::memset(p1, 0xAA, 20);

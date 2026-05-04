@@ -4,11 +4,8 @@
 #include <cassert>
 
 int main() {
-  oo_alloc::BuddyAllocator buddy;
-  buddy.init(64 * 1024 * 1024);
-
+  oo_alloc::BuddyAllocator buddy(64 * 1024 * 1024);
   oo_alloc::SlabAllocator slab(&buddy);
-  slab.init(oo_alloc::utils::page_size());
 
   void* p1 = slab.alloc(16, 8);
   assert(p1 != nullptr && "Failed standard small allocation");

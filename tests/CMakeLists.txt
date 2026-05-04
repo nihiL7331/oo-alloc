@@ -30,7 +30,7 @@ add_allocator_suite(free   free_ooo free_recover free_merge free_realloc)
 add_allocator_suite(rbtree rbtree_basic rbtree_insert rbtree_remove)
 add_allocator_suite(tree   tree_init tree_alloc tree_coal tree_realloc)
 add_allocator_suite(buddy  buddy_init_clear buddy_alloc buddy_free buddy_realloc)
-add_allocator_suite(slab   slab_init slab_alloc slab_free slab_realloc slab_clear)
+add_allocator_suite(slab   slab_alloc slab_free slab_realloc slab_clear)
 
 add_custom_target(test-all
     COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure

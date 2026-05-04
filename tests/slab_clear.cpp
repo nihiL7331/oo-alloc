@@ -4,11 +4,8 @@
 #include <vector>
 
 int main() {
-  oo_alloc::BuddyAllocator buddy;
-  buddy.init(1024 * 1024);
-
+  oo_alloc::BuddyAllocator buddy(1024 * 1024);
   oo_alloc::SlabAllocator slab(&buddy);
-  slab.init(4096);
 
   for (int i = 0; i < 100; ++i)
     slab.alloc(16, 8);
