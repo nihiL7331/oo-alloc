@@ -9,7 +9,8 @@
 namespace oo_alloc {
 
 SlabAllocator::SlabAllocator(IAllocator* base_allocator) 
-  : m_total_size(0), m_page_size(0), m_base_allocator(base_allocator) {
+  : m_page_size(utils::page_size())
+  , m_base_allocator(base_allocator) {
   // initialize the caches with powers of 2,
   // starting at '1 << MIN_CACHE_ORDER'
   std::size_t curr_size = 1 << MIN_CACHE_ORDER;
@@ -132,22 +133,6 @@ void SlabAllocator::free(void* ptr) {
   }
 }
 
-bool SlabAllocator::init(std::size_t size) {
-  // grab the os page size
-  std::size_t os_page_size = utils::page_size();
-
-  // if a greater size is provided as an argument, then use it
-  std::size_t target_size = std::max(size, os_page_size);
-
-  // round it to the power of two, so that
-  // its a multiple of os page size
-  m_page_size = std::bit_ceil(target_size);
-
-  this->clear();
-
-  return true;
-}
-
 void SlabAllocator::clear() {
   for (std::uint8_t i = 0; i < NUM_CACHES; ++i) {
     CacheManager& cache = m_caches[i];
@@ -155,8 +140,6 @@ void SlabAllocator::clear() {
     clear_slab_list(cache.partial_slabs);
     clear_slab_list(cache.empty_slabs);
   }
-
-  m_total_size = 0;
 }
 
 void* SlabAllocator::realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) {
@@ -244,10 +227,6 @@ SlabAllocator::SlabHeader* SlabAllocator::init_slab(std::uint8_t cache_idx) noex
   // mark the last object's 'next' as nullptr
   void** cast_free_ptr = static_cast<void **>(free_ptr);
   *cast_free_ptr = nullptr;
-
-  // add the page size to total size 
-  // to update the capacity correctly
-  m_total_size += m_page_size;
 
   return header_ptr;
 }

@@ -37,21 +37,19 @@ private:
   static constexpr std::uint8_t MIN_CACHE_ORDER = 3;
   static constexpr std::uint16_t SLAB_ID = 0x51AB; 
 
-  std::size_t m_total_size;
   std::size_t m_page_size;
   IAllocator* m_base_allocator;
   std::array<CacheManager, NUM_CACHES> m_caches;
 
 public:
-  SlabAllocator(IAllocator* base_allocator);
+  explicit SlabAllocator(IAllocator* base_allocator);
   ~SlabAllocator() override;
 
   void* alloc(std::size_t size, std::size_t align) override;
   void  free(void* ptr) override; 
-  bool  init(std::size_t size) override;
   void  clear() override;
   void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) override;
-  std::size_t capacity() const override { return m_total_size; }
+  std::size_t capacity() const override { return SIZE_MAX; }
 
 private: // helpers
   inline std::uint8_t size_to_cache_idx(std::size_t size) const noexcept {
