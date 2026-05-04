@@ -7,8 +7,19 @@
 
 namespace oo_alloc {
 
-StackAllocator::StackAllocator()
-  : m_start_ptr(nullptr), m_offset(0), m_total_size(0) {}
+StackAllocator::StackAllocator(std::size_t size)
+  : m_start_ptr(nullptr)
+  , m_offset(0)
+  , m_total_size(0) {
+  if (size == 0)
+    return;
+
+  m_total_size = utils::align_up(size, utils::page_size());
+  
+  m_start_ptr = utils::os_alloc(m_total_size);
+  if (m_start_ptr == nullptr)
+    m_total_size = 0;
+}
 
 StackAllocator::~StackAllocator() {
   if (m_start_ptr != nullptr) {
@@ -69,17 +80,6 @@ void StackAllocator::free(void* ptr) {
 
   std::size_t target_offset = *(reinterpret_cast<std::size_t *>(ptr) - 1);
   m_offset = target_offset;
-}
-
-bool StackAllocator::init(std::size_t size) {
-  m_total_size = utils::align_up(size, utils::page_size());
-  m_start_ptr = utils::os_alloc(m_total_size);
-  if (m_start_ptr == nullptr)
-    return false;
-
-  m_offset = 0;
-
-  return true;
 }
 
 /* exactly like in the arena allocator,
