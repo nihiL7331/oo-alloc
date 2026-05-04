@@ -72,6 +72,39 @@ The overview available below can help you do exactly that.
 <sub>\*Not yet available in this repository (in development).</sub><br>
 <sub>\*\*Freeing a specific block also frees all allocations made after it.</sub>
 
+## Core interface
+
+All allocators in this library inherit from the `IAllocator` base class. 
+It defines a simple virtual interface for raw memory management and provides C++20 templates for type-safe object construction and destruction.
+
+```cpp
+class IAllocator {
+public:
+  // ...
+
+  virtual void* alloc_raw(std::size_t size, std::size_t align) = 0;
+  virtual void free_raw(void* ptr) = 0;
+  virtual void clear() = 0;
+  virtual std::size_t capacity() const = 0;
+
+  // Handles object construction (placement-new)
+  // and destruction. Calls 'alloc_raw'/'free_raw' internally.
+  template<typename T, typename... Args>
+  requires (!std::is_array_v<T>)
+  T* make(Args&&... args);
+
+  template<typename T>
+  requires std::is_unbounded_array_v<T>
+  std::remove_extent_t<T>* make(std::size_t count);
+
+  template<typename T>
+  void destroy(T* ptr);
+
+  template<typename T>
+  void destroy(T* ptr, std::size_t count);
+};
+```
+
 ## Implementation
 
 ### Arena (linear) allocator
