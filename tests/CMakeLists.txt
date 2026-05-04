@@ -22,7 +22,7 @@ function(add_allocator_suite CATEGORY_NAME)
   )
 endfunction()
 
-add_allocator_suite(arena  arena_alphabet arena_align)
+add_allocator_suite(arena  arena_alphabet arena_align arena_make)
 add_allocator_suite(pool   pool_exhaust pool_recycle)
 add_allocator_suite(stack  stack_align stack_lifo stack_exhaust stack_clear)
 add_allocator_suite(track  track_pass track_peak track_clear)
