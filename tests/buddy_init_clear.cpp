@@ -2,10 +2,7 @@
 #include <cassert>
 
 int main() {
-  oo_alloc::BuddyAllocator buddy;
-
-  bool succ = buddy.init(100 * 1024 * 1024);
-  assert(succ && "Failed to initialize");
+  oo_alloc::BuddyAllocator buddy(100 * 1024 * 1024);
 
   std::size_t actual_cap = buddy.capacity();
   assert(actual_cap == (64 * 1024 * 1024) && "Failed to bit_floor to 64MB");

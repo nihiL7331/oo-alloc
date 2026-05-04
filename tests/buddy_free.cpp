@@ -3,9 +3,7 @@
 #include <vector>
 
 int main() {
-  oo_alloc::BuddyAllocator buddy;
-  bool succ = buddy.init(4 * 1024 * 1024);
-  assert(succ && "Failed to initialize");
+  oo_alloc::BuddyAllocator buddy(4 * 1024 * 1024);
 
   std::vector<void*> ptrs;
   for (int i = 0; i < 1024; ++i) {

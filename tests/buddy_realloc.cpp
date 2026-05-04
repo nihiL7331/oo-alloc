@@ -3,9 +3,7 @@
 #include <cstring>
 
 int main() {
-  oo_alloc::BuddyAllocator buddy;
-  bool succ = buddy.init(1024 * 1024);
-  assert(succ && "Failed to initialize");
+  oo_alloc::BuddyAllocator buddy(1024 * 1024);
 
   void* ptr1 = buddy.alloc(40, 8);
   assert(ptr1 != nullptr && "Initial alloc failed");

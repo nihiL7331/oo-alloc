@@ -2,9 +2,7 @@
 #include <cassert>
 
 int main() {
-  oo_alloc::BuddyAllocator buddy;
-  bool succ = buddy.init(1024 * 1024);
-  assert(succ && "Failed to initialize");
+  oo_alloc::BuddyAllocator buddy(1024 * 1024);
 
   void* small_ptr = buddy.alloc(4, 8);
   assert(small_ptr != nullptr && "Failed small allocation");
