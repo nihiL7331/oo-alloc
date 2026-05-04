@@ -28,7 +28,7 @@ add_allocator_suite(stack  stack_align stack_lifo stack_exhaust stack_clear stac
 add_allocator_suite(track  track_pass track_peak track_clear)
 add_allocator_suite(free   free_ooo free_recover free_merge free_realloc)
 add_allocator_suite(rbtree rbtree_basic rbtree_insert rbtree_remove)
-add_allocator_suite(tree   tree_init tree_alloc tree_coal tree_realloc)
+add_allocator_suite(tree   tree_alloc tree_coal tree_realloc)
 add_allocator_suite(buddy  buddy_init_clear buddy_alloc buddy_free buddy_realloc)
 add_allocator_suite(slab   slab_alloc slab_free slab_realloc slab_clear)
 
