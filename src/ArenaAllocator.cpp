@@ -23,6 +23,9 @@ ArenaAllocator::~ArenaAllocator() {
  * resulting in O(1) time complexity
  * */
 void *ArenaAllocator::alloc(std::size_t size, std::size_t align) {
+  if (align == 0 || (align & (align - 1)) != 0)
+    return nullptr;
+
   if (size == 0 || size > SIZE_MAX - align)
     return nullptr;
 
@@ -31,7 +34,7 @@ void *ArenaAllocator::alloc(std::size_t size, std::size_t align) {
 
   std::size_t pad = utils::calc_pad(curr_ptr, align);
 
-  if (m_offset + pad + size > m_total_size)
+  if (size + pad > m_total_size - m_offset)
     return nullptr;
 
   std::uintptr_t align_ptr = curr_ptr + pad;
