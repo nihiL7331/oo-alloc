@@ -74,7 +74,7 @@ void* StackAllocator::alloc_raw(std::size_t size, std::size_t align) {
  * because of LIFO it deallocates other data that was
  * allocated after freed data.
  */ 
-void StackAllocator::free(void* ptr) {
+void StackAllocator::free_raw(void* ptr) {
   if (ptr == nullptr)
     return;
 

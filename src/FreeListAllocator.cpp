@@ -127,7 +127,7 @@ void* FreeListAllocator::alloc_raw(std::size_t size, std::size_t align) {
   return nullptr;
 }
 
-void  FreeListAllocator::free(void* ptr) {
+void  FreeListAllocator::free_raw(void* ptr) {
   if (ptr == nullptr)
     return;
 

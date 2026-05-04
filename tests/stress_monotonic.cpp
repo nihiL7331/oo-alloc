@@ -59,7 +59,7 @@ void stress_test_stack(std::size_t heap_size, std::size_t iters) {
         std::abort();
       }
 
-      alloc.free(record.ptr);
+      alloc.free_raw(record.ptr);
       active_allocs.pop_back();
     }
   }

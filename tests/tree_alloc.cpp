@@ -16,6 +16,6 @@ int main() {
   void* ptr_overflow = tree.alloc_raw(tree.capacity() * 2, 8);
   assert(ptr_overflow == nullptr && "Failed to return nullptr on overflow");
 
-  tree.free(ptr1);
-  tree.free(ptr2);
+  tree.free_raw(ptr1);
+  tree.free_raw(ptr2);
 }

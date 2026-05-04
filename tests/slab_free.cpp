@@ -9,11 +9,11 @@ int main() {
 
   void* p1 = slab.alloc_raw(32, 8);
   assert(p1 != nullptr && "Alloc failed");
-  slab.free(p1);
+  slab.free_raw(p1);
 
   void* p2 = slab.alloc_raw(5000, 8);
   assert(p2 != nullptr && "Huge alloc failed");
-  slab.free(p2);
+  slab.free_raw(p2);
 
   std::vector<void *> ptrs;
   for (int i = 0; i < 63; ++i) {
@@ -25,5 +25,5 @@ int main() {
   assert(ptrs.size() > 0 && "Failed to allocate multiple blocks");
 
   for (void* p : ptrs)
-    slab.free(p);
+    slab.free_raw(p);
 }

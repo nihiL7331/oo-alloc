@@ -12,7 +12,7 @@ int main() {
   assert(track.active_allocs() == 2 && "Active count wrong");
   assert(track.peak_bytes() == 64 && "Peak bytes wrong");
 
-  track.free(p1);
+  track.free_raw(p1);
   assert(track.curr_bytes() == 32 && "Curr bytes wrong post free()");
   assert(track.active_allocs() == 1 && "Active count wrong post free()");
   assert(track.peak_bytes() == 64 && "Peak bytes wrong post free()");

@@ -65,7 +65,7 @@ void stress_test(std::size_t heap_size, std::size_t iters) {
         std::abort();
       }
 
-      alloc.free(record.ptr);
+      alloc.free_raw(record.ptr);
 
       active_allocs[idx] = active_allocs.back();
       active_allocs.pop_back();
@@ -78,7 +78,7 @@ void stress_test(std::size_t heap_size, std::size_t iters) {
       std::abort();
     }
 
-    alloc.free(record.ptr);
+    alloc.free_raw(record.ptr);
   }
 }
 

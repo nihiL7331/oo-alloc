@@ -46,7 +46,7 @@ public:
   ~SlabAllocator() override;
 
   void* alloc_raw(std::size_t size, std::size_t align) override;
-  void  free(void* ptr) override; 
+  void  free_raw(void* ptr) override; 
   void  clear() override;
   std::size_t capacity() const override { return SIZE_MAX; }
 
@@ -96,7 +96,7 @@ private: // helpers
 
     while (curr != nullptr) {
       next = curr->next;
-      m_base_allocator->free(curr);
+      m_base_allocator->free_raw(curr);
       curr = next;
     }
 

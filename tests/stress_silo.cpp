@@ -47,7 +47,7 @@ void stress_test(Allocator& alloc, std::size_t block_size, std::size_t align, st
         std::abort();
       }
 
-      alloc.free(ptr);
+      alloc.free_raw(ptr);
 
       active_allocs[idx] = active_allocs.back();
       active_allocs.pop_back();
@@ -60,7 +60,7 @@ void stress_test(Allocator& alloc, std::size_t block_size, std::size_t align, st
       std::abort();
     }
     
-    alloc.free(ptr);
+    alloc.free_raw(ptr);
   }
 }
 

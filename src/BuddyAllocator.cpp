@@ -153,7 +153,7 @@ void* BuddyAllocator::alloc_raw(std::size_t size, std::size_t align) {
   return reinterpret_cast<void *>(data_ptr);
 }
 
-void BuddyAllocator::free(void* ptr) {
+void BuddyAllocator::free_raw(void* ptr) {
   if (ptr == nullptr)
     return;
 

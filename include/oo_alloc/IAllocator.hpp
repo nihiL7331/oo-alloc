@@ -19,7 +19,7 @@ public:
   IAllocator& operator=(IAllocator&&) noexcept = default;
 
   virtual void* alloc_raw(std::size_t size, std::size_t align) = 0;
-  virtual void free(void* ptr) = 0;
+  virtual void free_raw(void* ptr) = 0;
   virtual void clear() = 0;
   virtual std::size_t capacity() const = 0;
 
@@ -58,7 +58,7 @@ public:
       return;
 
     ptr->~T();
-    this->free(ptr);
+    this->free_raw(ptr);
   }
 
   template<typename T>
@@ -69,7 +69,7 @@ public:
     for (std::size_t i = count; i > 0; --i)
       ptr[i - 1].~T();
 
-    this->free(ptr);
+    this->free_raw(ptr);
   }
 };
 

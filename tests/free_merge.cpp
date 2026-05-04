@@ -13,9 +13,9 @@ int main() {
   void* ptr_3 = free.alloc_raw(256, 8);
   assert(ptr_3 != nullptr && "Failed to allocate ptr_3");
 
-  free.free(ptr_1);
-  free.free(ptr_3);
-  free.free(ptr_2);
+  free.free_raw(ptr_1);
+  free.free_raw(ptr_3);
+  free.free_raw(ptr_2);
 
   void* ptr_4 = free.alloc_raw(800, 8);
   assert(ptr_4 != nullptr && "Failed coalescence");

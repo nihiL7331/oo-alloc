@@ -93,7 +93,7 @@ void* SlabAllocator::alloc_raw(std::size_t size, std::size_t align) {
   return user_ptr;
 }
 
-void SlabAllocator::free(void* ptr) {
+void SlabAllocator::free_raw(void* ptr) {
   if (ptr == nullptr)
     return;
 
@@ -105,7 +105,7 @@ void SlabAllocator::free(void* ptr) {
     // if the 'id' isnt 0x51AB, it means that
     // this data haven't went through the 'init_slab'
     // code, hence it was allocated by the 'm_base_allocator'
-    m_base_allocator->free(ptr);
+    m_base_allocator->free_raw(ptr);
     return;
   }
 

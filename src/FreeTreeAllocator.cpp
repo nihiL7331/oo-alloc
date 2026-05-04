@@ -197,7 +197,7 @@ void* FreeTreeAllocator::alloc_raw(std::size_t size, std::size_t align) {
 
 // thanks to the back_ptr,
 // the time complexity of free is O(1).
-void FreeTreeAllocator::free(void* ptr) {
+void FreeTreeAllocator::free_raw(void* ptr) {
   if (ptr == nullptr)
     return;
 

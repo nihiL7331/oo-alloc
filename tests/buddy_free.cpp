@@ -13,7 +13,7 @@ int main() {
   }
 
   for (auto it = ptrs.rbegin(); it != ptrs.rend(); ++it) {
-      buddy.free(*it);
+      buddy.free_raw(*it);
   }
 
   void* giant_ptr = buddy.alloc_raw((4 * 1024 * 1024) - 64, 8);

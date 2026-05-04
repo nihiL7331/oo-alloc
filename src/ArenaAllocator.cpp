@@ -55,7 +55,7 @@ void *ArenaAllocator::alloc_raw(std::size_t size, std::size_t align) {
  * since the size of each allocated block
  * is not stored.
  */
-void ArenaAllocator::free(void *ptr) { (void)ptr; }
+void ArenaAllocator::free_raw(void *ptr) { (void)ptr; }
 
 /* clear just places the 'm_offset' to 0,
  * making the stored data 'garbage' that can be overridden

@@ -17,7 +17,7 @@ int main() {
   }
 
   for (void* ptr : ptrs)
-    slab.free(ptr);
+    slab.free_raw(ptr);
 
   slab.clear();
   

@@ -32,7 +32,7 @@ void* TrackingAllocator::alloc_raw(std::size_t size, std::size_t align) {
 
 /* reverts the data changes done by the allocation
  */
-void TrackingAllocator::free(void* ptr) {
+void TrackingAllocator::free_raw(void* ptr) {
   if (ptr == nullptr)
     return;
 
@@ -45,7 +45,7 @@ void TrackingAllocator::free(void* ptr) {
   m_curr_alloced_bytes -= ptr_size;
   m_active_allocs.erase(got);
 
-  m_base_allocator.free(ptr);
+  m_base_allocator.free_raw(ptr);
 }
 
 void TrackingAllocator::clear() {

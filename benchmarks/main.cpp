@@ -25,16 +25,16 @@ static void bm_frag_search(benchmark::State& state) {
   }
 
   for (void* p : to_free)
-    alloc.free(p);
+    alloc.free_raw(p);
 
   for (auto _ : state) {
     void* ptr = alloc.alloc_raw(64, 8);
     benchmark::DoNotOptimize(ptr);
-    alloc.free(ptr);
+    alloc.free_raw(ptr);
   }
 
   for (void* p : to_keep)
-    alloc.free(p);
+    alloc.free_raw(p);
 
   state.SetComplexityN(N);
 }
@@ -54,16 +54,16 @@ static void bm_frag_search_slab(benchmark::State& state) {
   }
 
   for (void* p : to_free)
-    slab.free(p);
+    slab.free_raw(p);
 
   for (auto _ : state) {
     void* ptr = slab.alloc_raw(64, 8);
     benchmark::DoNotOptimize(ptr);
-    slab.free(ptr);
+    slab.free_raw(ptr);
   }
 
   for (void* p : to_keep)
-    slab.free(p);
+    slab.free_raw(p);
 
   state.SetComplexityN(N);
 }
@@ -93,7 +93,7 @@ static void bm_recycle_dynamic(benchmark::State& state) {
     for (auto _ : state) {
       void* ptr = alloc.alloc_raw(64, 8);
       benchmark::DoNotOptimize(ptr);
-      alloc.free(ptr);
+      alloc.free_raw(ptr);
     }
 }
 
@@ -104,7 +104,7 @@ static void bm_recycle_pool(benchmark::State& state) {
     for (auto _ : state) {
       void* ptr = alloc.alloc_raw(64, 8);
       benchmark::DoNotOptimize(ptr);
-      alloc.free(ptr);
+      alloc.free_raw(ptr);
     }
 }
 
@@ -115,7 +115,7 @@ static void bm_recycle_slab(benchmark::State& state) {
   for (auto _ : state) { 
     void* ptr = slab.alloc_raw(64, 8);
     benchmark::DoNotOptimize(ptr);
-    slab.free(ptr);
+    slab.free_raw(ptr);
   }
 }
 

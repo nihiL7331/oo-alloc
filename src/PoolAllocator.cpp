@@ -70,7 +70,7 @@ void* PoolAllocator::alloc_raw(std::size_t size, std::size_t align) {
  * of the free list, stores it in the 
  * free data chunk itself (intrusive approach)
  */
-void PoolAllocator::free(void* ptr) {
+void PoolAllocator::free_raw(void* ptr) {
   if (ptr == nullptr)
     return;
 
