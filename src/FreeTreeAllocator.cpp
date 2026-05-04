@@ -79,8 +79,15 @@ FreeTreeAllocator::AllocHeader* FreeTreeAllocator::coalesce(AllocHeader* header_
  * if free:      [ header ] [ tree node ] [ garbage ] [ footer ]
  */
 void* FreeTreeAllocator::alloc(std::size_t size, std::size_t align) {
+  if (align == 0 || (align & (align - 1)) != 0)
+    return nullptr;
+
   if (align < alignof(void*))
     align = alignof(void*);
+
+  if (size == 0 || size > SIZE_MAX - align - sizeof(AllocHeader*))
+    return nullptr;
+
   // calculate worst case size
   std::size_t search_size = size + (align - 1) + sizeof(AllocHeader*);
   search_size = utils::align_up(search_size, alignof(AllocHeader));
