@@ -15,7 +15,9 @@ BuddyAllocator::BuddyAllocator(std::size_t size)
     return;
 
   // force the size to be a power of 2
-  std::size_t target_size = std::bit_floor(size);
+  std::size_t target_size = std::bit_ceil(size);
+  if (target_size == 0)
+    return;
 
   // ensure that 'm_total_size' is a multiple of 'page_size'.
   // page sizes themselves are powers of two, 
