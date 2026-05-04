@@ -25,8 +25,7 @@ bool verify_mem(void* ptr, std::size_t size, uint8_t pattern) {
 
 template <class Allocator>
 void stress_test(std::size_t heap_size, std::size_t iters) {
-  Allocator alloc;
-  alloc.init(heap_size);
+  Allocator alloc(heap_size);
 
   std::mt19937 rng(7331);
   std::uniform_int_distribution<int> action_dist(0, 100);

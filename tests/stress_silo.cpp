@@ -70,13 +70,10 @@ int main() {
   constexpr std::size_t TEST_ALIGN = 8;
   constexpr std::size_t ITERS = 1000000;
 
-  oo_alloc::PoolAllocator pool(TEST_SIZE, TEST_ALIGN);
-  pool.init(64 * MB);
+  oo_alloc::PoolAllocator pool(TEST_SIZE, TEST_ALIGN, MB);
   stress_test(pool, TEST_SIZE, TEST_ALIGN, ITERS);
 
-  oo_alloc::BuddyAllocator buddy;
-  buddy.init(128 * MB);
+  oo_alloc::BuddyAllocator buddy(128 * MB);
   oo_alloc::SlabAllocator slab(&buddy);
-  slab.init(4096); // goes to 16384 on macos arm
   stress_test(slab, TEST_SIZE, TEST_ALIGN, ITERS);
 }
