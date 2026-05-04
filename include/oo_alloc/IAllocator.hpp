@@ -5,6 +5,7 @@ namespace oo_alloc {
 
 class IAllocator {
 public:
+  IAllocator() = default;
   virtual ~IAllocator() = default;
 
   IAllocator(const IAllocator&) = delete;
