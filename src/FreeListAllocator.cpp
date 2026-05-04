@@ -7,6 +7,24 @@
 
 namespace oo_alloc {
 
+FreeListAllocator::FreeListAllocator(std::size_t size) 
+  : m_start_ptr(nullptr)
+  , m_total_size(0)
+  , m_free_list_head(nullptr) {
+  if (size == 0)
+    return;
+
+  m_total_size = utils::align_up(size, utils::page_size());
+
+  m_start_ptr = utils::os_alloc(m_total_size);
+  if (m_start_ptr == nullptr) {
+    m_total_size = 0;
+    return;
+  }
+
+  this->clear();
+}
+
 FreeListAllocator::~FreeListAllocator() {
   if (m_start_ptr != nullptr) {
     utils::os_free(m_start_ptr, m_total_size);
@@ -147,20 +165,6 @@ void  FreeListAllocator::free(void* ptr) {
 
   // coalescence
   coalesce(prev_ptr, new_free_ptr);
-}
-
-bool FreeListAllocator::init(std::size_t size) {
-  if (size < sizeof(FreeBlock)) // too small to allocate anything
-    return false;
-
-  m_total_size = utils::align_up(size, utils::page_size());
-  m_start_ptr = utils::os_alloc(m_total_size);
-  if (m_start_ptr == nullptr)
-    return false;
-
-  clear();
-
-  return true;
 }
 
 // initializes the whole memory as a large free block
