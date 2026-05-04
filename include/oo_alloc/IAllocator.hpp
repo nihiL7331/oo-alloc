@@ -7,6 +7,12 @@ class IAllocator {
 public:
   virtual ~IAllocator() = default;
 
+  IAllocator(const IAllocator&) = delete;
+  IAllocator& operator=(const IAllocator&) = delete;
+
+  IAllocator(IAllocator&&) noexcept = default;
+  IAllocator& operator=(IAllocator&&) noexcept = default;
+
   virtual void* alloc(std::size_t size, std::size_t align) = 0;
   virtual void free(void* ptr) = 0;
   virtual bool init(std::size_t size) = 0;
