@@ -3,10 +3,7 @@
 #include <cstdint>
 
 int main() {
-  oo_alloc::PoolAllocator pool(sizeof(uint64_t), alignof(uint64_t));
-
-  bool succ = pool.init(32);
-  assert(succ && "Failed to initialize");
+  oo_alloc::PoolAllocator pool(sizeof(uint64_t), alignof(uint64_t), 4);
 
   void* p1 = pool.alloc(sizeof(uint64_t), alignof(uint64_t));
   pool.alloc(sizeof(uint64_t), alignof(uint64_t));
