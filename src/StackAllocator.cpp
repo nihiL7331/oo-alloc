@@ -38,6 +38,7 @@ void* StackAllocator::alloc(std::size_t size, std::size_t align) {
   constexpr std::size_t header_align = alignof(std::size_t);
   constexpr std::size_t header_size = sizeof(std::size_t);
 
+  // ensures that both the data and the header will be aligned
   std::size_t actual_align = std::max(align, header_align);
 
   std::uintptr_t unalign_ptr = curr_ptr + header_size;
