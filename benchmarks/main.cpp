@@ -5,7 +5,6 @@
 #include "oo_alloc/FreeTreeAllocator.hpp"
 #include "oo_alloc/BuddyAllocator.hpp"
 #include "oo_alloc/SlabAllocator.hpp"
-#include "oo_alloc/utils.hpp"
 #include <benchmark/benchmark.h>
 #include <vector>
 
@@ -14,8 +13,7 @@ constexpr std::size_t MB = 1024 * 1024;
 
 template <class Allocator>
 static void bm_frag_search(benchmark::State& state) {
-  Allocator alloc;
-  alloc.init(512 * MB);
+  Allocator alloc(512 * MB);
   const size_t N = state.range(0);
 
   std::vector<void *> to_keep;
@@ -42,10 +40,8 @@ static void bm_frag_search(benchmark::State& state) {
 }
 
 static void bm_frag_search_slab(benchmark::State& state) {
-  BuddyAllocator buddy;
-  buddy.init(512 * MB);
+  BuddyAllocator buddy(512 * MB);
   SlabAllocator slab(&buddy);
-  slab.init(utils::page_size());
   
   const size_t N = state.range(0);
 
@@ -75,8 +71,7 @@ static void bm_frag_search_slab(benchmark::State& state) {
 // measures the raw overhead of pointer arithmetic in bump allocators
 template <class Allocator>
 static void bm_seq_bump(benchmark::State& state) {
-    Allocator alloc;
-    alloc.init(256 * MB);
+    Allocator alloc(256 * MB);
 
     for (auto _ : state) {
       void* ptr = alloc.alloc(64, 8);
@@ -93,8 +88,7 @@ static void bm_seq_bump(benchmark::State& state) {
 // measures how fast can allocate and free the exact same size
 template <class Allocator>
 static void bm_recycle_dynamic(benchmark::State& state) {
-    Allocator alloc;
-    alloc.init(64 * MB);
+    Allocator alloc(64 * MB);
 
     for (auto _ : state) {
       void* ptr = alloc.alloc(64, 8);
@@ -105,8 +99,7 @@ static void bm_recycle_dynamic(benchmark::State& state) {
 
 // pool allocator gets its own signature since it requires block size constructor
 static void bm_recycle_pool(benchmark::State& state) {
-    PoolAllocator alloc(64, 64);
-    alloc.init(64 * MB); 
+    PoolAllocator alloc(64, 64, 1024);
 
     for (auto _ : state) {
       void* ptr = alloc.alloc(64, 8);
@@ -116,10 +109,8 @@ static void bm_recycle_pool(benchmark::State& state) {
 }
 
 static void bm_recycle_slab(benchmark::State& state) {
-  BuddyAllocator buddy;
-  buddy.init(64 * MB);
+  BuddyAllocator buddy(64 * MB);
   SlabAllocator slab(&buddy);
-  slab.init(utils::page_size());
 
   for (auto _ : state) { 
     void* ptr = slab.alloc(64, 8);
