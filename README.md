@@ -605,6 +605,9 @@ If it maps to a different cache - or crosses the boundary between slab and base 
 
 * [ ] Implement a size segregated free list allocator.
 * [ ] Add a benchmark/performance README section.
+* [ ] remove `realloc` completely
+* [ ] move `alloc` to `raw_alloc` and make a inline template `alloc`
+* [x] move `init` logic to constructors
 * [x] Move from hand-written tests to proper stress testing.
 * [x] Implement a slab allocator.
 * [x] Implement a pow-of-two buddy allocator.
