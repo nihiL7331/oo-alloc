@@ -13,13 +13,12 @@ private:
   std::size_t m_peak_alloced_bytes = 0;
 
 public:
-  TrackingAllocator(IAllocator& base_allocator)
+  explicit TrackingAllocator(IAllocator& base_allocator)
     : m_base_allocator(base_allocator) {}
   ~TrackingAllocator() override;
 
   void* alloc(std::size_t size, std::size_t align) override;
   void  free(void* ptr) override;
-  bool  init(std::size_t size) override;
   void clear() override;
   void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) override;
   std::size_t capacity() const override { return m_base_allocator.capacity(); }
