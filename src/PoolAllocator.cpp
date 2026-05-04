@@ -20,7 +20,10 @@ PoolAllocator::~PoolAllocator() {
  * any additional searches/list traversals.
  */
 void* PoolAllocator::alloc(std::size_t size, std::size_t align) {
-  if (size > m_chunk_size || align > m_chunk_align)
+  if (align == 0 || (align & (align - 1)) != 0)
+    return nullptr;
+
+  if (size == 0 || size > m_chunk_size || align > m_chunk_align)
     return nullptr;
   if (m_free_list_head == nullptr)
     return nullptr;
