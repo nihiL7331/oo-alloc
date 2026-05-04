@@ -26,6 +26,12 @@ StackAllocator::~StackAllocator() {
  * this allocation, allowing for free capabilities
  */
 void* StackAllocator::alloc(std::size_t size, std::size_t align) {
+  if (align == 0 || (align & (align - 1)) != 0)
+    return nullptr;
+
+  if (size == 0 || size > SIZE_MAX - align - sizeof(std::size_t))
+    return nullptr;
+
   std::uintptr_t base_ptr = reinterpret_cast<std::uintptr_t>(m_start_ptr);
   std::uintptr_t curr_ptr = base_ptr + m_offset;
 
@@ -39,7 +45,7 @@ void* StackAllocator::alloc(std::size_t size, std::size_t align) {
   std::uintptr_t data_ptr = unalign_ptr + pad;
 
   std::size_t alloc_size = header_size + pad + size;
-  if (m_offset + alloc_size > m_total_size)
+  if (alloc_size > m_total_size - m_offset)
     return nullptr;
 
   // store the offset in header
