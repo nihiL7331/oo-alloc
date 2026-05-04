@@ -7,6 +7,26 @@
 
 namespace oo_alloc {
 
+FreeTreeAllocator::FreeTreeAllocator(std::size_t size)
+  : m_start_ptr(nullptr)
+  , m_total_size(0)
+  , m_free_tree(nullptr) {
+  if (size == 0)
+    return;
+
+  m_total_size = utils::align_up(size, utils::page_size());
+
+  m_start_ptr = utils::os_alloc(m_total_size);
+  if (m_start_ptr == nullptr) {
+    m_total_size = 0;
+    return;
+  }
+
+  m_free_tree = new (m_start_ptr) internal::RBTree();
+
+  this->clear();
+}
+
 FreeTreeAllocator::~FreeTreeAllocator() {
   if (m_start_ptr != nullptr) {
     utils::os_free(m_start_ptr, m_total_size);
@@ -195,30 +215,6 @@ void FreeTreeAllocator::free(void* ptr) {
 
   // insert new free block
   m_free_tree->insert(tree_node);
-}
-
-bool FreeTreeAllocator::init(std::size_t size) {
-  // this allocator needs additional data
-  // for holding the red-black tree structure.
-  // this data will be allocated on the beginning
-  // of the initialized memory page.
-  constexpr std::size_t min_size = sizeof(internal::RBTree)
-    + sizeof(AllocHeader) + sizeof(internal::RBTree::Node)
-    + sizeof(AllocFooter);
-  // too small to allocate anything
-  if (size < min_size) 
-    return false;
-
-  m_total_size = utils::align_up(size, utils::page_size());
-  m_start_ptr = utils::os_alloc(m_total_size);
-  if (m_start_ptr == nullptr)
-    return false;
-
-  m_free_tree = new (m_start_ptr) internal::RBTree();
-
-  clear();
-
-  return true;
 }
 
 void FreeTreeAllocator::clear() {

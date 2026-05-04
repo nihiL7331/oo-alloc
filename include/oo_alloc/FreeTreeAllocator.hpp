@@ -17,13 +17,11 @@ private:
   internal::RBTree* m_free_tree;
 
 public:
-  FreeTreeAllocator() 
-    : m_start_ptr(nullptr), m_total_size(0), m_free_tree(nullptr) {}
+  explicit FreeTreeAllocator(std::size_t size);
   ~FreeTreeAllocator() override;
 
   void* alloc(std::size_t size, std::size_t align) override;
   void  free(void* ptr) override;
-  bool  init(std::size_t size) override;
   void  clear() override;
   void* realloc(void* ptr, std::size_t old_size, std::size_t new_size, std::size_t align) override;
 
