@@ -48,7 +48,13 @@ void FreeListAllocator::coalesce(FreeBlock* prev_block, FreeBlock* free_block) {
  * requires a list traversal to find a block to allocate in.
  */
 void* FreeListAllocator::alloc(std::size_t size, std::size_t align) {
-  std::size_t header_size = sizeof(AllocHeader);
+  if (align == 0 || (align & (align - 1)) != 0)
+    return nullptr;
+
+  if (size == 0 || size > SIZE_MAX - align - sizeof(AllocHeader))
+    return nullptr;
+
+  constexpr std::size_t header_size = sizeof(AllocHeader);
 
   FreeBlock* prev_ptr = nullptr;
   FreeBlock* curr_ptr = m_free_list_head;
