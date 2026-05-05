@@ -25,6 +25,7 @@
   - [Tracking allocator](#tracking-allocator)
   - [Buddy allocator](#buddy-allocator)
   - [Slab allocator](#slab-allocator)
+- [The standard library](#the-standard-library)
 - [Roadmap](#roadmap)
 - [Sources](#sources)
 
@@ -108,6 +109,7 @@ public:
   void destroy(T* ptr, std::size_t count);
 };
 ```
+<sub>You can find the full definition [here](include/oo_alloc/IAllocator.hpp).</sub>
 
 ## Implementation
 
@@ -131,9 +133,10 @@ public:
   explicit ArenaAllocator(std::size_t size);
   ~ArenaAllocator();
 
-  void* alloc_raw(std::size_t size, std::size_t align);
-  void  clear();
-  std::size_t capacity() const;
+  void* alloc_raw(std::size_t size, std::size_t align) override;
+  void  free_raw(void* ptr) override { /* NOOP */ }
+  void  clear() override;
+  std::size_t capacity() const override;
 };
 ```
 
@@ -177,10 +180,10 @@ public:
   explicit StackAllocator(std::size_t size);
   ~StackAllocator();
 
-  void* alloc_raw(std::size_t size, std::size_t align);
-  void  free_raw(void* ptr);
-  void  clear();
-  std::size_t capacity() const;
+  void* alloc_raw(std::size_t size, std::size_t align) override;
+  void  free_raw(void* ptr) override;
+  void  clear() override;
+  std::size_t capacity() const override;
 };
 ```
 
@@ -226,10 +229,10 @@ public:
   explicit PoolAllocator(std::size_t chunk_size, std::size_t chunk_align, std::size_t chunk_count);
   ~PoolAllocator();
 
-  void* alloc_raw(std::size_t size, std::size_t align);
-  void  free_raw(void* ptr);
-  void  clear();
-  std::size_t capacity() const;
+  void* alloc_raw(std::size_t size, std::size_t align) override;
+  void  free_raw(void* ptr) override;
+  void  clear() override;
+  std::size_t capacity() const override;
 };
 ```
 
@@ -285,10 +288,10 @@ public:
   explicit FreeListAllocator(std::size_t size);
   ~FreeListAllocator();
 
-  void* alloc_raw(std::size_t size, std::size_t align);
-  void  free_raw(void* ptr);
-  void  clear();
-  std::size_t capacity() const;
+  void* alloc_raw(std::size_t size, std::size_t align) override;
+  void  free_raw(void* ptr) override;
+  void  clear() override;
+  std::size_t capacity() const override;
 };
 ```
 <sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/FreeListAllocator.hpp).</sub>
@@ -351,10 +354,10 @@ public:
   explicit FreeTreeAllocator(std::size_t size);
   ~FreeTreeAllocator();
 
-  void* alloc_raw(std::size_t size, std::size_t align);
-  void  free_raw(void* ptr);
-  void  clear();
-  std::size_t capacity() const;
+  void* alloc_raw(std::size_t size, std::size_t align) override;
+  void  free_raw(void* ptr) override;
+  void  clear() override;
+  std::size_t capacity() const override;
 };
 ```
 <sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/FreeTreeAllocator.hpp).</sub>
@@ -405,10 +408,10 @@ public:
   explicit TrackingAllocator(IAllocator& base_allocator);
   ~TrackingAllocator();
 
-  void* alloc_raw(std::size_t size, std::size_t align);
-  void  free_raw(void* ptr);
-  void  clear();
-  std::size_t capacity() const;
+  void* alloc_raw(std::size_t size, std::size_t align) override;
+  void  free_raw(void* ptr) override;
+  void  clear() override;
+  std::size_t capacity() const override;
 
   std::size_t curr_bytes() const { return m_curr_alloced_bytes; }
   std::size_t peak_bytes() const { return m_peak_alloced_bytes; }
@@ -456,10 +459,10 @@ public:
   explicit BuddyAllocator(std::size_t size);
   ~BuddyAllocator();
 
-  void* alloc_raw(std::size_t size, std::size_t align);
-  void  free_raw(void* ptr);
-  void  clear();
-  std::size_t capacity() const;
+  void* alloc_raw(std::size_t size, std::size_t align) override;
+  void  free_raw(void* ptr) override;
+  void  clear() override;
+  std::size_t capacity() const override;
 };
 ```
 <sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/BuddyAllocator.hpp).</sub>
@@ -550,10 +553,10 @@ public:
   explicit SlabAllocator(std::size_t size);
   ~SlabAllocator();
 
-  void* alloc_raw(std::size_t size, std::size_t align);
-  void  free_raw(void* ptr); 
-  void  clear();
-  std::size_t capacity() const;
+  void* alloc_raw(std::size_t size, std::size_t align) override;
+  void  free_raw(void* ptr) override;
+  void  clear() override;
+  std::size_t capacity() const override;
 
 };
 ```
