@@ -121,15 +121,33 @@ void SegregatedAllocator::free_raw(void* ptr) {
 }
 
 void SegregatedAllocator::clear() {
+  // similarly to the slab allocator,
+  // first need to clear the buckets
   for (std::uint8_t i = 0; i < NUM_BUCKETS; ++i)
     m_buckets[i] = nullptr;
 
-  FreeBlock* init_block = static_cast<FreeBlock*>(m_start_ptr);
+  // get the bucket order
+  std::uint8_t target_bucket = size_to_bucket(m_total_size);
+  std::uint8_t order = target_bucket + MIN_BUCKET_ORDER;
 
-  init_block->header.size = m_total_size;
+  // write the header
+  std::uintptr_t start_addr = reinterpret_cast<std::uintptr_t>(m_start_ptr);
+  AllocHeader* header = reinterpret_cast<AllocHeader *>(start_addr);
+  header->order = order;
+  header->is_prev_free = false;
+
+  // but then we initialize a new block taking up the available space
+  // immediately after the header
+  FreeBlock* init_block = reinterpret_cast<FreeBlock *>(start_addr + sizeof(AllocHeader));
+  init_block->prev = nullptr;
   init_block->next = nullptr;
 
-  std::uint8_t target_bucket = size_to_bucket(m_total_size);
+  // write the footer
+  std::uintptr_t end_addr = start_addr + m_total_size;
+  AllocFooter* footer = reinterpret_cast<AllocFooter *>(end_addr - sizeof(AllocFooter));
+  footer->order = order;
+
+  // place it in the according bucket
   m_buckets[target_bucket] = init_block;
 }
 
