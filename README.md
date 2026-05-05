@@ -91,6 +91,7 @@ public:
   virtual void free_raw(void* ptr) = 0;
   virtual void clear() = 0;
   virtual std::size_t capacity() const = 0;
+  virtual bool owns(void* ptr) const = 0;
 
   // Handles object construction (placement-new)
   // and destruction. Calls 'alloc_raw'/'free_raw' internally.
@@ -137,6 +138,7 @@ public:
   void  free_raw(void* ptr) override { /* NOOP */ }
   void  clear() override;
   std::size_t capacity() const override;
+  bool owns(void* ptr) const override;
 };
 ```
 
@@ -184,6 +186,7 @@ public:
   void  free_raw(void* ptr) override;
   void  clear() override;
   std::size_t capacity() const override;
+  bool owns(void* ptr) const override;
 };
 ```
 
@@ -233,6 +236,7 @@ public:
   void  free_raw(void* ptr) override;
   void  clear() override;
   std::size_t capacity() const override;
+  bool owns(void* ptr) const override;
 };
 ```
 
@@ -292,6 +296,7 @@ public:
   void  free_raw(void* ptr) override;
   void  clear() override;
   std::size_t capacity() const override;
+  bool owns(void* ptr) const override;
 };
 ```
 <sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/FreeListAllocator.hpp).</sub>
@@ -358,6 +363,7 @@ public:
   void  free_raw(void* ptr) override;
   void  clear() override;
   std::size_t capacity() const override;
+  bool owns(void* ptr) const override;
 };
 ```
 <sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/FreeTreeAllocator.hpp).</sub>
@@ -412,6 +418,7 @@ public:
   void  free_raw(void* ptr) override;
   void  clear() override;
   std::size_t capacity() const override;
+  bool owns(void* ptr) const override;
 
   std::size_t curr_bytes() const { return m_curr_alloced_bytes; }
   std::size_t peak_bytes() const { return m_peak_alloced_bytes; }
@@ -463,6 +470,7 @@ public:
   void  free_raw(void* ptr) override;
   void  clear() override;
   std::size_t capacity() const override;
+  bool owns(void* ptr) const override;
 };
 ```
 <sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/BuddyAllocator.hpp).</sub>
@@ -557,7 +565,7 @@ public:
   void  free_raw(void* ptr) override;
   void  clear() override;
   std::size_t capacity() const override;
-
+  bool owns(void* ptr) const override;
 };
 ```
 <sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/SlabAllocator.hpp).</sub>
@@ -655,6 +663,7 @@ arena.destroy(thing);
 
 * [ ] Implement a size segregated free list allocator.
 * [ ] Add a benchmark/performance README section.
+* [x] Add owns method.
 * [x] Update readme after changes
 * [x] Move `alloc` to `alloc_raw` and make a inline template `make`
 * [x] remove `realloc` completely
