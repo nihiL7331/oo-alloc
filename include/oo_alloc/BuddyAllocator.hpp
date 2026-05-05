@@ -45,6 +45,7 @@ public:
   void  free_raw(void* ptr) override;
   void clear() override;
   std::size_t capacity() const override { return m_total_size; }
+  bool owns(void* ptr) const override;
 
 private: // helpers
   inline std::uint8_t size_to_order(std::size_t size) const noexcept {

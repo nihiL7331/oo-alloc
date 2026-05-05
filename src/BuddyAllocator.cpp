@@ -236,4 +236,11 @@ void BuddyAllocator::clear() {
   m_free_lists[max_order] = parent_block;
 }
 
+bool BuddyAllocator::owns(void* ptr) const {
+  std::uintptr_t cast_ptr = reinterpret_cast<std::uintptr_t>(ptr);
+  std::uintptr_t start_ptr = reinterpret_cast<std::uintptr_t>(m_start_ptr);
+
+  return cast_ptr >= start_ptr && cast_ptr < start_ptr + m_total_size;
+}
+
 }
