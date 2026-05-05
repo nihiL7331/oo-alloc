@@ -26,7 +26,10 @@ SegregatedAllocator::SegregatedAllocator(std::size_t size)
 }
 
 SegregatedAllocator::~SegregatedAllocator() {
-
+  if (m_start_ptr != nullptr) {
+    utils::os_free(m_start_ptr, m_total_size);
+    m_start_ptr = nullptr;
+  }
 }
 
 /* on alloc_raw, find the smallest bucket that fits
