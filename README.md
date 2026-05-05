@@ -22,6 +22,7 @@
   - [Pool allocator](#pool-allocator)
   - [Free list allocator](#free-list-allocator)
   - [Free tree allocator](#free-tree-allocator)
+  - [Segregated allocator](#segregated-allocator)
   - [Tracking allocator](#tracking-allocator)
   - [Buddy allocator](#buddy-allocator)
   - [Slab allocator](#slab-allocator)
@@ -46,7 +47,7 @@ cmake  --build . --target test-arena
 # test-arena, test-pool, test-stack, 
 # test-free, test-track, test-rbtree, 
 # test-tree, test-buddy, test-slab,
-# test-all
+# test-seg, test-all
 ```
 
 ## Introduction
@@ -62,16 +63,15 @@ The overview available below can help you do exactly that.
 | Type             | `alloc_raw` | `free_raw` | `clear`   | Overhead | Best for          | Constraints             |
 | :---             | :---:       | :---:      | :---:     | :---:    | :---              | :---                    |
 | **Arena**        | `O(1)`      | *N/A*      | `O(1)`    | 0B       | Bulk allocations  | No individual frees     |
-| **Stack**        | `O(1)`      | `O(1)`**   | `O(1)`    | ~8B      | Temporary data    | Strict LIFO             |
+| **Stack**        | `O(1)`      | `O(1)`*    | `O(1)`    | ~8B      | Temporary data    | Strict LIFO             |
 | **Pool**         | `O(1)`      | `O(1)`     | `O(1)`    | 0B       | Identical objects | Fixed sizes             |
 | **Free List**    | `O(n)`      | `O(n)`     | `O(1)`    | ~16B     | General purpose   | Slow search / coalesce  |
 | **Free Tree**    | `O(log n)`  | `O(log n)` | `O(1)`    | ~32B     | General purpose   | High block overhead     |
-| **Segregated***  | `O(1)`      | `O(1)`     | `O(1)`    | ~16B     | General purpose   | Complex to tune         |
+| **Segregated**   | `O(1)`      | `O(1)`     | `O(1)`    | ~16B     | General purpose   | Complex to tune         |
 | **Buddy**        | `O(1)`      | `O(1)`     | `O(1)`    | ~1-8B    | OS memory         | Fragmentation (in)      |
 | **Slab**         | `O(1)`      | `O(1)`     | `O(1)`    | 0B       | Object caching    | Small objects           |
 
-<sub>\*Not yet available in this repository (in development).</sub><br>
-<sub>\*\*Freeing a specific block also frees all allocations made after it.</sub>
+<sub>\*Freeing a specific block also frees all allocations made after it.</sub>
 
 <p><em>
   <strong>Note</strong>: The time complexities above reflect the underlying raw memory algorithms (alloc_raw / free_raw). The type-safe make and destroy templates call these methods internally with near-zero overhead.
@@ -124,7 +124,7 @@ Minimal fragmentation is achieved due to the sequential allocation - the only sp
 #### Internal structure
 
 ```cpp
-class ArenaAllocator {
+class ArenaAllocator: public IAllocator {
 private:
   void*       m_start_ptr;
   std::size_t m_total_size;
@@ -172,7 +172,7 @@ What differs is that each allocated block has a header before it, which stores t
 #### Internal structure
 
 ```cpp
-class StackAllocator {
+class StackAllocator: public IAllocator {
 private:
   void*       m_start_ptr;
   std::size_t m_offset;
@@ -220,7 +220,7 @@ When it is allocated, that pointer is overwritten by the users data.
 #### Internal structure
 
 ```cpp
-class PoolAllocator {
+class PoolAllocator: public IAllocator {
 private:
   std::size_t m_chunk_size;
   std::size_t m_chunk_align;
@@ -274,7 +274,7 @@ When a chunk of memory is allocated, it is prefixed with a `AllocHeader`, which 
 #### Internal structure
 
 ```cpp
-class FreeListAllocator {
+class FreeListAllocator: public IAllocator {
 private:
   struct FreeBlock {
     std::size_t size;
@@ -393,6 +393,63 @@ It then uses the boundary tags (header and footer) to check the left and right n
   <em><sub>After coalescing, the target block and the left free block are merged into a single space and inserted into the red-black tree as a new node.</sub></em>
 </p>
 
+### Segregated allocator
+
+The Segregated allocator is a high-performance, general-purpose memory manager. 
+It solves the *O(n)* traversal problem of the standard Free list allocator by maintaining an array of distinct free lists, called **buckets**. 
+Each bucket strictly holds memory blocks of a specific size class (in this case, powers of **two**).
+
+By combining size segregation with an intrusive doubly-linked list and a buddy-style splitting algorithm, it guarantees a strict *O(1)* time complexity for both allocation and deallocation, making it ideal for real-time systems like game engines.
+
+To avoid the "floating header" problem and ensure instant *O(1)* coalescing, it anchors a 1-byte `AllocHeader` at the physical start of the block, and drops a 1-byte back-pointer offset exactly behind user's aligned memory.
+
+#### Internal structure
+
+```cpp
+class SegregatedAllocator: public IAllocator {
+private:
+  struct AllocHeader {
+    std::uint8_t order : 6;
+    std::uint8_t is_free : 1;
+    std::uint8_t is_prev_free : 1;
+  };
+  struct AllocFooter {
+    std::uint8_t order;
+  };
+  struct FreeBlock {
+    FreeBlock* prev;
+    FreeBlock* next;
+  };
+
+  static constexpr std::uint8_t NUM_BUCKETS = 24;
+  static constexpr std::uint8_t MIN_BUCKET_ORDER = 5;
+
+  void*       m_start_ptr;
+  std::size_t m_total_size;
+
+  std::array<FreeBlock*, NUM_BUCKETS> m_buckets;
+
+public:
+  explicit SegregatedAllocator(std::size_t size);
+  ~SegregatedAllocator() override;
+
+  void* alloc_raw(std::size_t size, std::size_t align) override;
+  void  free_raw(void* ptr) override;
+  void clear() override;
+  std::size_t capacity() const override;
+  bool owns(void* ptr) const override;
+};
+```
+<sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/SegregatedAllocator.hpp).</sub>
+
+When `alloc_raw` is called, it calculates the required size and uses a bitwise operation (`std::countr_zero`) to find the target bucket. 
+If the bucket is empty, it scans upwards for a larger block, recursively splitting it down in a **buddy**-style cascade until the target bucket is populated. 
+It then pops the block from the intrusive list in *O(1)* time, aligns the data pointer, and writes the offset back pointer right behind the data.
+
+When `free_raw` is called, it steps back exactly one byte from the payload to read the offset, allowing it to instantly jump to the true start of the block.
+It then checks the `is_prev_free` flag and reads the boundary footers/headers of its neighbors. 
+Because it utilizes a doubly-linked list (`prev` and `next`), it can cleanly extract neighbors from their respective buckets and merge them with a *O(1)* time complexity until no more merges are mathematically possible.
+
 ### Tracking allocator
 
 Unlike the previous allocators, the Tracking allocator does not manage memory directly. Instead, it acts as a wrapper around any other existing allocator. Its primary purpose is debugging. 
@@ -402,7 +459,7 @@ It intercepts calls to `alloc_raw` and `free_raw`, records memory metrics, and t
 #### Internal structure
 
 ```cpp
-class TrackingAllocator {
+class TrackingAllocator: public IAllocator {
 private:
   IAllocator& m_base_allocator;
 
@@ -443,7 +500,7 @@ Its biggest advantage is its very fast coalescence, achieved through bitwise ari
 
 #### Internal structure
 ```cpp
-class BuddyAllocator {
+class BuddyAllocator: public IAllocator {
 private:
   struct AllocHeader {
     std::uint8_t data; // MSB - is_free, rest - order
@@ -524,7 +581,7 @@ Because it operates on fixed-size slots within page-aligned boundaries, it requi
 
 #### Internal structure
 ```cpp
-class SlabAllocator {
+class SlabAllocator: public IAllocator {
 private:
   struct SlabHeader {
     SlabHeader* prev;
@@ -661,8 +718,9 @@ arena.destroy(thing);
 
 ## Roadmap
 
-* [ ] Implement a size segregated free list allocator.
+* [ ] Ensure cohesive naming between allocators.
 * [ ] Add a benchmark/performance README section.
+* [x] Implement a size segregated free list allocator.
 * [x] Add `owns` method.
 * [x] Update readme after changes
 * [x] Move `alloc` to `alloc_raw` and make a inline template `make`
