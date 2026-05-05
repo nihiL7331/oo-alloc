@@ -663,7 +663,7 @@ arena.destroy(thing);
 
 * [ ] Implement a size segregated free list allocator.
 * [ ] Add a benchmark/performance README section.
-* [x] Add owns method.
+* [x] Add `owns` method.
 * [x] Update readme after changes
 * [x] Move `alloc` to `alloc_raw` and make a inline template `make`
 * [x] remove `realloc` completely
