@@ -23,8 +23,8 @@ public:
   void* alloc_raw(std::size_t size, std::size_t align) override;
   void  free_raw(void* ptr) override;
   void  clear() override;
-
   std::size_t capacity() const noexcept override { return m_total_size; }
+  bool owns(void* ptr) const override;
 
 private: // metadata management
   struct BlockMetadata {
