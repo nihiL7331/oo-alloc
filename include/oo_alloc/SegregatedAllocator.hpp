@@ -1,6 +1,7 @@
 #include "oo_alloc/IAllocator.hpp"
 #include <array>
 #include <cstddef>
+#include <cstdint>
 
 namespace oo_alloc {
 
@@ -32,6 +33,20 @@ public:
   void clear() override;
   std::size_t capacity() const override { return m_total_size; }
   bool owns(void* ptr) const override;
+
+private: //helpers
+  inline std::uint8_t size_to_bucket(std::size_t size) const noexcept {
+    if (size <= (1 << MIN_BUCKET_ORDER))
+      return 0;
+
+    std::size_t round_size = std::bit_ceil(size);
+    std::uint8_t order = static_cast<std::uint8_t>(std::countr_zero(round_size));
+
+    return order - MIN_BUCKET_ORDER;
+  }
+  inline std::size_t bucket_to_size(std::uint8_t bucket) const noexcept {
+    return 1ULL << (MIN_BUCKET_ORDER + bucket);
+  }
 };
 
 }
