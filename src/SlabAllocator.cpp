@@ -33,7 +33,7 @@ void* SlabAllocator::alloc_raw(std::size_t size, std::size_t align) {
     return nullptr;
 
   // calculate maximum size that can be stored in cache
-  constexpr std::size_t MAX_CACHE_SIZE = 1 << (MIN_CACHE_ORDER + NUM_CACHES - 1);
+  constexpr std::size_t MAX_CACHE_SIZE = 1ULL << (MIN_CACHE_ORDER + NUM_CACHES - 1);
 
   // if the allocated space is larger, then route to base
   // if the alignment is larger, then it also needs to be routed
