@@ -450,6 +450,30 @@ When `free_raw` is called, it steps back exactly one byte from the payload to re
 It then checks the `is_prev_free` flag and reads the boundary footers/headers of its neighbors. 
 Because it utilizes a doubly-linked list (`prev` and `next`), it can cleanly extract neighbors from their respective buckets and merge them with a *O(1)* time complexity until no more merges are mathematically possible.
 
+<p align="center">
+  <img src="docs/assets/seg_split.svg" alt="segregated allocator splitting">
+  <br>
+  <em><sub>To serve a request, a 256B block (order = 8) is split. The left buddy is claimed, and the right buddy is pushed to the Order-7 free list.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/seg_align.svg" alt="segregated allocator alignment and back pointer">
+  <br>
+  <em><sub>After calculating alignment padding, a 1-byte back-pointer offset is dropped exactly behind the user's payload to allow O(1) backtracking.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/seg_coal.svg" alt="segregated allocator boundary check">
+  <br>
+  <em><sub>On free_raw, the allocator steps back to read the physical header and checks its neighbors. It finds its original buddy from step 1 and unlinks it.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/seg_merge.svg" alt="segregated allocator coalescing">
+  <br>
+  <em><sub>The buddies merge back into a single, contiguous 256B block, which is instantly pushed to the higher-order free list.</sub></em>
+</p>
+
 ### Tracking allocator
 
 Unlike the previous allocators, the Tracking allocator does not manage memory directly. Instead, it acts as a wrapper around any other existing allocator. Its primary purpose is debugging. 
