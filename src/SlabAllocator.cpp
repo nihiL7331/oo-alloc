@@ -97,17 +97,17 @@ void SlabAllocator::free_raw(void* ptr) {
   if (ptr == nullptr)
     return;
 
-  // get the header by masking ptr
-  std::uintptr_t raw_header_ptr = reinterpret_cast<std::uintptr_t>(ptr) & ~(m_page_size - 1);
-  SlabHeader* header_ptr = reinterpret_cast<SlabHeader *>(raw_header_ptr);
-
-  if (header_ptr->id != SLAB_ID) {
+  if (!this->owns(ptr)) {
     // if the 'id' isnt 0x51AB, it means that
     // this data haven't went through the 'init_slab'
     // code, hence it was allocated by the 'm_base_allocator'
     m_base_allocator->free_raw(ptr);
     return;
   }
+
+  // get the header by masking ptr
+  std::uintptr_t raw_header_ptr = reinterpret_cast<std::uintptr_t>(ptr) & ~(m_page_size - 1);
+  SlabHeader* header_ptr = reinterpret_cast<SlabHeader *>(raw_header_ptr);
 
   // push 'ptr' onto the intrusive free list
   void** list_ptr = static_cast<void **>(ptr);
@@ -185,6 +185,14 @@ SlabAllocator::SlabHeader* SlabAllocator::init_slab(std::uint8_t cache_idx) noex
   *cast_free_ptr = nullptr;
 
   return header_ptr;
+}
+
+bool SlabAllocator::owns(void* ptr) const {
+  std::uintptr_t page_start = reinterpret_cast<std::uintptr_t>(ptr) & ~(m_page_size - 1);
+
+  SlabHeader* header = reinterpret_cast<SlabHeader *>(page_start);
+
+  return header->id == SLAB_ID;
 }
 
 }
