@@ -1,11 +1,25 @@
 #include "oo_alloc/SegregatedAllocator.hpp"
+#include "oo_alloc/utils.hpp"
 #include <cassert>
 #include <cstdint>
 
 namespace oo_alloc {
 
-SegregatedAllocator::SegregatedAllocator(std::size_t size) {
-  (void)size;
+SegregatedAllocator::SegregatedAllocator(std::size_t size) 
+  : m_start_ptr(nullptr)
+  , m_total_size(0) {
+  if (size == 0)
+    return;
+
+  m_total_size = utils::align_up(size, utils::page_size());
+
+  m_start_ptr = utils::os_alloc(m_total_size);
+  if (m_start_ptr == nullptr) {
+    m_total_size = 0;
+    return;
+  }
+
+  this->clear();
 }
 
 SegregatedAllocator::~SegregatedAllocator() {
