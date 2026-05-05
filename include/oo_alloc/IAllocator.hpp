@@ -14,9 +14,8 @@ public:
 
   IAllocator(const IAllocator&) = delete;
   IAllocator& operator=(const IAllocator&) = delete;
-
-  IAllocator(IAllocator&&) noexcept = default;
-  IAllocator& operator=(IAllocator&&) noexcept = default;
+  IAllocator(IAllocator&&) = delete;
+  IAllocator& operator=(IAllocator&&) = delete;
 
   virtual void* alloc_raw(std::size_t size, std::size_t align) = 0;
   virtual void free_raw(void* ptr) = 0;
