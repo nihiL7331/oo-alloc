@@ -1,5 +1,6 @@
 #include "oo_alloc/IAllocator.hpp"
 #include <array>
+#include <bit>
 #include <cstddef>
 #include <cstdint>
 
