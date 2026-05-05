@@ -50,6 +50,8 @@ private: //helpers
   inline std::size_t bucket_to_size(std::uint8_t bucket) const noexcept {
     return 1ULL << (MIN_BUCKET_ORDER + bucket);
   }
+
+  void split_block(std::uint8_t bucket) noexcept;
 };
 
 }
