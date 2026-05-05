@@ -598,6 +598,56 @@ If the ID does not match, the allocator immediately delegates the `free_raw` ope
   <em><sub>If a memory request exceeds the maximum cache size, the slab structure is completely bypassed, and the allocation is routed directly to the base allocator.</sub></em>
 </p>
 
+## The standard library
+
+While `oo-alloc` is meant for educational purposes, the standard library contains a great production-grade alternative.
+This is how `oo-alloc` maps to `std::pmr`:
+
+| `oo-alloc` concept     | `std::pmr` equivalent                | Description                                                       |
+| :--                    | :--                                  | :--                                                               |
+| `IAllocator`           | `std::pmr::memory_resource`          | The abstract base class representing a memory pool.               |
+| `alloc_raw`/`free_raw` | `allocate`/`deallocate`              | Public interface for raw byte management.                         |
+| `make<T>`/`destroy<T>` | `std::pmr::polymorphic_allocator<T>` | The mechanism that bridges raw bytes to the C++ object lifecycle. |
+
+### Example
+
+#### `std::pmr`
+
+```cpp
+#include <memory_resource>
+
+// create the raw buffer memory resource
+std::pmr::monotonic_buffer_resource resource(1024);
+
+// create a typed wrapper bound to the resource
+std::pmr::polymorphic_allocator<Thing> alloc(&resource);
+
+// allocate raw memory
+Thing* thing = alloc.allocate(1);
+
+// construct the object
+alloc.construct(thing, 4562);
+
+// destroy and deallocate
+alloc.destroy(thing);
+alloc.deallocate(thing, 1);
+```
+
+#### `oo-alloc`
+
+```cpp
+#include <oo_alloc/ArenaAllocator.hpp>
+
+// create the allocator
+oo_alloc::ArenaAllocator arena(1024);
+
+// allocate and construct
+Thing* thing = arena.make<Thing>(4562);
+
+// destroy and deallocate
+arena.destroy(thing);
+```
+
 ## Roadmap
 
 * [ ] Implement a size segregated free list allocator.
