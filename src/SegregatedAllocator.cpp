@@ -243,6 +243,7 @@ void SegregatedAllocator::clear() {
   AllocHeader* header = reinterpret_cast<AllocHeader *>(start_addr);
   header->order = order;
   header->is_prev_free = false;
+  header->is_free = true;
 
   // but then we initialize a new block taking up the available space
   // immediately after the header
