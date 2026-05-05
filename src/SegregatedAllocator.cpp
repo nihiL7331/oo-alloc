@@ -122,9 +122,110 @@ void* SegregatedAllocator::alloc_raw(std::size_t size, std::size_t align) {
   return reinterpret_cast<void *>(data_addr);
 }
 
+/* free_raw utilizes the back pointer stored
+ * on each alloc_raw call. it retrieves the
+ * start data ptr from it, and then merges up if possible
+ */
 void SegregatedAllocator::free_raw(void* ptr) {
-  (void)ptr;
-  assert(false && "TODO");
+  if (ptr == nullptr)
+    return;
+
+  // retrieve the back ptr by going back 1 byte,
+  // calculate the base address
+  std::uintptr_t data_addr = reinterpret_cast<std::uintptr_t>(ptr);
+  std::uint8_t offset = *reinterpret_cast<std::uint8_t *>(data_addr - 1);
+  std::uintptr_t curr_addr = data_addr - offset;
+
+  AllocHeader* header = reinterpret_cast<AllocHeader *>(curr_addr);
+  std::uint8_t curr_order = header->order;
+
+  std::uintptr_t heap_end = reinterpret_cast<std::uintptr_t>(m_start_ptr) + m_total_size;
+
+  // coalesce,
+  // loop until no merges are possible
+  while (curr_order < MIN_BUCKET_ORDER + NUM_BUCKETS - 1) {
+    AllocHeader* curr_header = reinterpret_cast<AllocHeader *>(curr_addr);
+
+    // merge left
+    if (curr_header->is_prev_free) {
+      AllocFooter* left_footer = reinterpret_cast<AllocFooter *>(curr_addr - sizeof(AllocFooter));
+
+      if (left_footer->order == curr_order) {
+        std::size_t neighbor_size = 1ULL << curr_order;
+        std::uintptr_t left_addr = curr_addr - neighbor_size;
+
+        // pop left neighbor from bucket
+        std::uint8_t bucket = curr_order - MIN_BUCKET_ORDER;
+        FreeBlock* left_block = reinterpret_cast<FreeBlock *>(left_addr + sizeof(AllocHeader));
+        remove_from_bucket(left_block, bucket);
+
+        // absorb it - move current address to the left, increase order
+        curr_addr -= (1ULL << left_footer->order);
+        curr_order++;
+
+        // might be able to merge left again, so continue
+        continue;
+      }
+    }
+
+    // merge right
+    std::size_t curr_size = 1ULL << curr_order;
+    std::uintptr_t right_addr = curr_addr + curr_size;
+
+    // check bounds to ensure it is inside the heap
+    if (right_addr < heap_end) {
+      AllocHeader* right_header = reinterpret_cast<AllocHeader *>(right_addr);
+
+      // only merge if its free and of the same size
+      if (right_header->is_free && right_header->order == curr_order) {
+        // pop right neighbor from bucket
+        std::uint8_t bucket = curr_order - MIN_BUCKET_ORDER;
+        FreeBlock* right_block = reinterpret_cast<FreeBlock *>(right_addr + sizeof(AllocHeader));
+        remove_from_bucket(right_block, bucket);
+
+        // absorb it - increase order
+        curr_order++;
+        
+        continue;
+      }
+    }
+
+    // if the loop got here,
+    // it means no merges occured,
+    // so the coalescing is finished
+    break;
+  }
+
+  std::uint8_t target_bucket = curr_order - MIN_BUCKET_ORDER;
+  std::size_t final_size = 1ULL << curr_order;
+
+  // update header
+  AllocHeader* final_header = reinterpret_cast<AllocHeader *>(curr_addr);
+  final_header->order = curr_order;
+  final_header->is_free = true;
+
+  // update footer
+  std::uintptr_t footer_addr = curr_addr + final_size - sizeof(AllocFooter);
+  AllocFooter* final_footer = reinterpret_cast<AllocFooter *>(footer_addr);
+  final_footer->order = curr_order;
+
+  // update free block pointers
+  FreeBlock* final_block = reinterpret_cast<FreeBlock *>(curr_addr + sizeof(AllocHeader));
+  final_block->prev = nullptr;
+  final_block->next = m_buckets[target_bucket];
+
+  // push to the bucket
+  if (m_buckets[target_bucket] != nullptr)
+    m_buckets[target_bucket]->prev = final_block;
+  m_buckets[target_bucket] = final_block;
+
+  // update new right neighbor
+  std::uintptr_t final_right_addr = curr_addr + final_size;
+
+  if (final_right_addr < heap_end) {
+    AllocHeader* new_right_header = reinterpret_cast<AllocHeader *>(final_right_addr);
+    new_right_header->is_prev_free = true;
+  }
 }
 
 void SegregatedAllocator::clear() {
