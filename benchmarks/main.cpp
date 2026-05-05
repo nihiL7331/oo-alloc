@@ -5,6 +5,7 @@
 #include "oo_alloc/FreeTreeAllocator.hpp"
 #include "oo_alloc/BuddyAllocator.hpp"
 #include "oo_alloc/SlabAllocator.hpp"
+#include "oo_alloc/SegregatedAllocator.hpp"
 #include <benchmark/benchmark.h>
 #include <vector>
 
@@ -123,6 +124,7 @@ BENCHMARK(bm_frag_search<FreeListAllocator>)->RangeMultiplier(10)->Range(10, 100
 BENCHMARK(bm_frag_search<FreeTreeAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oLogN);
 BENCHMARK(bm_frag_search<BuddyAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::o1);
 BENCHMARK(bm_frag_search_slab)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::o1);
+BENCHMARK(bm_frag_search<SegregatedAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::o1);
 
 BENCHMARK(bm_seq_bump<ArenaAllocator>);
 BENCHMARK(bm_seq_bump<StackAllocator>);
@@ -131,6 +133,7 @@ BENCHMARK(bm_recycle_pool);
 BENCHMARK(bm_recycle_dynamic<FreeListAllocator>);
 BENCHMARK(bm_recycle_dynamic<FreeTreeAllocator>);
 BENCHMARK(bm_recycle_dynamic<BuddyAllocator>);
+BENCHMARK(bm_recycle_dynamic<SegregatedAllocator>);
 BENCHMARK(bm_recycle_slab);
 
 BENCHMARK_MAIN();
