@@ -21,6 +21,7 @@ public:
   void  free_raw(void* ptr) override;
   void clear() override;
   std::size_t capacity() const override { return m_base_allocator.capacity(); }
+  bool owns(void* ptr) const override { return m_base_allocator.owns(ptr); }
 
   std::size_t curr_bytes() const { return m_curr_alloced_bytes; }
   std::size_t peak_bytes() const { return m_peak_alloced_bytes; }
