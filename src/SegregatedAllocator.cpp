@@ -26,10 +26,93 @@ SegregatedAllocator::~SegregatedAllocator() {
 
 }
 
+/* on alloc_raw, find the smallest bucket that fits
+ * the requested size. if the bucket is empty,
+ * split bigger-sized buckets until 
+ * the wanted bucket size is nonempty.
+ * if there's no bigger sizes, then return nullptr
+ */
 void* SegregatedAllocator::alloc_raw(std::size_t size, std::size_t align) {
-  (void)size; (void)align;
-  assert(false && "TODO");
-  return nullptr;
+  // alignment must be a power of two
+  if (align == 0 || (align & (align - 1)) != 0)
+    return nullptr;
+
+  // ensure there's no integer overflow
+  if (size == 0 || size > SIZE_MAX - align - sizeof(AllocHeader))
+    return nullptr;
+
+  constexpr std::size_t MAX_BUCKET_SIZE = 1ULL << (MIN_BUCKET_ORDER + NUM_BUCKETS - 1);
+  constexpr std::size_t header_size = sizeof(AllocHeader);
+
+  if (size > MAX_BUCKET_SIZE - header_size || align > MAX_BUCKET_SIZE - header_size)
+    return nullptr;
+
+  // worst case size
+  // 1 byte header + worst case alignment + requested size
+  std::size_t actual_size = header_size + (align - 1) + size;
+
+  std::uint8_t bucket_idx = size_to_bucket(actual_size);
+  FreeBlock* head = m_buckets[bucket_idx];
+
+  // if the bucket is empty,
+  // find a larger block and split it down
+  if (head == nullptr) {
+    std::uint8_t curr_bucket = bucket_idx;
+
+    // search for bigger block
+    while (curr_bucket < NUM_BUCKETS && m_buckets[curr_bucket] == nullptr)
+      curr_bucket++;
+
+    // if there's none, there's not enough space
+    if (curr_bucket == NUM_BUCKETS)
+      return nullptr;
+
+    // split it down
+    while (curr_bucket != bucket_idx) {
+      split_block(curr_bucket);
+      curr_bucket--;
+    }
+
+    head = m_buckets[bucket_idx];
+  } 
+
+  // pop the head
+  m_buckets[bucket_idx] = head->next;
+  if (m_buckets[bucket_idx] != nullptr)
+    m_buckets[bucket_idx]->prev = nullptr;
+
+  // get the start addr of whole block
+  std::uintptr_t start_addr = reinterpret_cast<std::uintptr_t>(head) - header_size;
+
+  AllocHeader* header = reinterpret_cast<AllocHeader *>(start_addr);
+  std::uint8_t order = header->order;
+
+  // 1 byte for the back pointer
+  std::uintptr_t min_data_addr = start_addr + header_size + sizeof(std::uint8_t);
+
+  // get the aligned addr
+  std::uintptr_t data_addr = utils::align_up(min_data_addr, align);
+
+  // calculate how far the data needed to be padded to be aligned,
+  // drop that value into the back pointer.
+  // 'free_raw' relies on reading that byte
+  std::uint8_t offset = static_cast<std::uint8_t>(data_addr - start_addr);
+  std::uint8_t* back_ptr = reinterpret_cast<std::uint8_t *>(data_addr - 1);
+  *back_ptr = offset;
+
+  // update the right neighbor
+  std::size_t block_size = 1ULL << order;
+  std::uintptr_t right_neighbor = start_addr + block_size;
+
+  std::uintptr_t heap_end = reinterpret_cast<std::uintptr_t>(m_start_ptr) + m_total_size;
+
+  // only update it if the right neighbor exists (is in bounds)
+  if (right_neighbor < heap_end) {
+    AllocHeader* right_header = reinterpret_cast<AllocHeader *>(right_neighbor);
+    right_header->is_prev_free = false;
+  }
+
+  return reinterpret_cast<void *>(data_addr);
 }
 
 void SegregatedAllocator::free_raw(void* ptr) {
