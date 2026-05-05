@@ -31,6 +31,7 @@ add_allocator_suite(rbtree rbtree_basic rbtree_insert rbtree_remove)
 add_allocator_suite(tree   tree_alloc tree_coal)
 add_allocator_suite(buddy  buddy_init_clear buddy_alloc buddy_free)
 add_allocator_suite(slab   slab_alloc slab_free slab_clear)
+add_allocator_suite(seg    seg_basic)
 
 add_custom_target(test-all
     COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
