@@ -21,6 +21,7 @@ public:
   virtual void free_raw(void* ptr) = 0;
   virtual void clear() = 0;
   virtual std::size_t capacity() const = 0;
+  virtual bool owns(void* ptr) const = 0;
 
   template<typename T, typename... Args>
   requires (!std::is_array_v<T>)
