@@ -72,6 +72,10 @@ The overview available below can help you do exactly that.
 <sub>\*Not yet available in this repository (in development).</sub><br>
 <sub>\*\*Freeing a specific block also frees all allocations made after it.</sub>
 
+<p><em>
+  <strong>Note</strong>: The time complexities above reflect the underlying raw memory algorithms (alloc_raw / free_raw). The type-safe make and destroy templates call these methods internally with near-zero overhead.
+</em></p>
+
 ## Core interface
 
 All allocators in this library inherit from the `IAllocator` base class. 
