@@ -11,7 +11,10 @@ SegregatedAllocator::SegregatedAllocator(std::size_t size)
   if (size == 0)
     return;
 
-  m_total_size = utils::align_up(size, utils::page_size());
+  // size needs to be a power of two
+  std::size_t align_size = std::bit_ceil(size);
+
+  m_total_size = utils::align_up(align_size, utils::page_size());
 
   m_start_ptr = utils::os_alloc(m_total_size);
   if (m_start_ptr == nullptr) {
