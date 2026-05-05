@@ -1,6 +1,7 @@
 #include "oo_alloc/FreeListAllocator.hpp"
 #include "oo_alloc/FreeTreeAllocator.hpp"
 #include "oo_alloc/BuddyAllocator.hpp"
+#include "oo_alloc/SegregatedAllocator.hpp"
 #include <cstdint>
 #include <cstdlib>
 #include <vector>
@@ -89,4 +90,5 @@ int main() {
   stress_test<oo_alloc::FreeListAllocator>(64 * MB, ITERS);
   stress_test<oo_alloc::FreeTreeAllocator>(64 * MB, ITERS);
   stress_test<oo_alloc::BuddyAllocator>(64 * MB, ITERS);
+  stress_test<oo_alloc::SegregatedAllocator>(64 * MB, ITERS);
 }
