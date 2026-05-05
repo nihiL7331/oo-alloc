@@ -38,7 +38,16 @@ void SegregatedAllocator::free_raw(void* ptr) {
 }
 
 void SegregatedAllocator::clear() {
-  assert(false && "TODO");
+  for (std::uint8_t i = 0; i < NUM_BUCKETS; ++i)
+    m_buckets[i] = nullptr;
+
+  FreeBlock* init_block = static_cast<FreeBlock*>(m_start_ptr);
+
+  init_block->header.size = m_total_size;
+  init_block->next = nullptr;
+
+  std::uint8_t target_bucket = size_to_bucket(m_total_size);
+  m_buckets[target_bucket] = init_block;
 }
 
 bool SegregatedAllocator::owns(void* ptr) const {
