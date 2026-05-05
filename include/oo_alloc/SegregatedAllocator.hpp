@@ -6,13 +6,13 @@ namespace oo_alloc {
 
 class SegregatedAllocator: public IAllocator {
 private:
-  struct FreeBlock {
-    std::size_t size;
-    FreeBlock *next;
-  };
   struct AllocHeader {
     std::size_t size;
     std::size_t pad;
+  };
+  struct FreeBlock {
+    AllocHeader header;
+    FreeBlock* next;
   };
 
   static constexpr std::size_t NUM_BUCKETS = 9;
