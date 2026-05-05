@@ -8,11 +8,14 @@ namespace oo_alloc {
 class SegregatedAllocator: public IAllocator {
 private:
   struct AllocHeader {
-    std::size_t size;
-    std::size_t pad;
+    std::uint8_t order : 7;
+    std::uint8_t is_prev_free : 1;
+  };
+  struct AllocFooter {
+    std::uint8_t order;
   };
   struct FreeBlock {
-    AllocHeader header;
+    FreeBlock* prev;
     FreeBlock* next;
   };
 
