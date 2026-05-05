@@ -15,8 +15,8 @@ private:
     FreeBlock* next;
   };
 
-  static constexpr std::size_t NUM_BUCKETS = 9;
-  static constexpr std::size_t MIN_BUCKET_ORDER = 3;
+  static constexpr std::uint8_t NUM_BUCKETS = 9;
+  static constexpr std::uint8_t MIN_BUCKET_ORDER = 3;
 
   void*       m_start_ptr;
   std::size_t m_total_size;
