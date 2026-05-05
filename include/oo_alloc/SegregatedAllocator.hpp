@@ -8,7 +8,8 @@ namespace oo_alloc {
 class SegregatedAllocator: public IAllocator {
 private:
   struct AllocHeader {
-    std::uint8_t order : 7;
+    std::uint8_t order : 6;
+    std::uint8_t is_free : 1;
     std::uint8_t is_prev_free : 1;
   };
   struct AllocFooter {

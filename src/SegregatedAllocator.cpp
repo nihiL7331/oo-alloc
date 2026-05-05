@@ -86,6 +86,7 @@ void* SegregatedAllocator::alloc_raw(std::size_t size, std::size_t align) {
 
   AllocHeader* header = reinterpret_cast<AllocHeader *>(start_addr);
   std::uint8_t order = header->order;
+  header->is_free = false;
 
   // 1 byte for the back pointer
   std::uintptr_t min_data_addr = start_addr + header_size + sizeof(std::uint8_t);
@@ -179,6 +180,7 @@ void SegregatedAllocator::split_block(std::uint8_t bucket) noexcept {
   // update left half metadata
   AllocHeader* left_header = reinterpret_cast<AllocHeader *>(left_start);
   left_header->order = new_order;
+  left_header->is_free = true;
 
   AllocFooter* left_footer = reinterpret_cast<AllocFooter *>(right_start - sizeof(AllocFooter));
   left_footer->order = new_order;
@@ -189,6 +191,7 @@ void SegregatedAllocator::split_block(std::uint8_t bucket) noexcept {
   AllocHeader* right_header = reinterpret_cast<AllocHeader *>(right_start);
   right_header->order = new_order;
   right_header->is_prev_free = true;
+  right_header->is_free = true;
 
   AllocFooter* right_footer = reinterpret_cast<AllocFooter *>(left_start + (2 * half_size) - sizeof(AllocFooter));
   right_footer->order = new_order;
