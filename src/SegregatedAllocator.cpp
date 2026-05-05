@@ -216,4 +216,18 @@ void SegregatedAllocator::split_block(std::uint8_t bucket) noexcept {
   m_buckets[new_bucket] = left_block;
 }
 
+void SegregatedAllocator::remove_from_bucket(FreeBlock* block, std::uint8_t bucket) noexcept {
+  // update the previous node/head
+  if (block->prev != nullptr)
+    block->prev->next = block->next;
+  else
+    m_buckets[bucket] = block->next;
+
+  if (block->next != nullptr)
+    block->next->prev = block->prev;
+
+  block->prev = nullptr;
+  block->next = nullptr;
+}
+
 }
