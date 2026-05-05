@@ -27,6 +27,7 @@ public:
   void  free_raw(void* ptr) override;
   void  clear() override;
   std::size_t capacity() const override { return m_total_size; }
+  bool owns(void* ptr) const override;
 
 private: // helpers
   inline AllocHeader* get_header(void* data_ptr) const noexcept {
