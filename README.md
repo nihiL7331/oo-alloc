@@ -58,16 +58,16 @@ The overview available below can help you do exactly that.
 
 ## Overview
 
-| Type             | `alloc`    | `free`     | `clear`   | Overhead | Best for          | Constraints             |
-| :---             | :---:      | :---:      | :---:     | :---:    | :---              | :---                    |
-| **Arena**        | `O(1)`     | *N/A*      | `O(1)`    | 0B       | Bulk allocations  | No individual frees     |
-| **Stack**        | `O(1)`     | `O(1)`**   | `O(1)`    | ~8B      | Temporary data    | Strict LIFO             |
-| **Pool**         | `O(1)`     | `O(1)`     | `O(1)`    | 0B       | Identical objects | Fixed sizes             |
-| **Free List**    | `O(n)`     | `O(n)`     | `O(1)`    | ~16B     | General purpose   | Slow search / coalesce  |
-| **Free Tree**    | `O(log n)` | `O(log n)` | `O(1)`    | ~32B     | General purpose   | High block overhead     |
-| **Segregated***  | `O(1)`     | `O(1)`     | `O(1)`    | ~16B     | General purpose   | Complex to tune         |
-| **Buddy**        | `O(1)`     | `O(1)`     | `O(1)`    | ~1-8B    | OS memory         | Fragmentation (in)      |
-| **Slab**         | `O(1)`     | `O(1)`     | `O(1)`    | 0B       | Object caching    | Small objects           |
+| Type             | `alloc_raw` | `free_raw` | `clear`   | Overhead | Best for          | Constraints             |
+| :---             | :---:       | :---:      | :---:     | :---:    | :---              | :---                    |
+| **Arena**        | `O(1)`      | *N/A*      | `O(1)`    | 0B       | Bulk allocations  | No individual frees     |
+| **Stack**        | `O(1)`      | `O(1)`**   | `O(1)`    | ~8B      | Temporary data    | Strict LIFO             |
+| **Pool**         | `O(1)`      | `O(1)`     | `O(1)`    | 0B       | Identical objects | Fixed sizes             |
+| **Free List**    | `O(n)`      | `O(n)`     | `O(1)`    | ~16B     | General purpose   | Slow search / coalesce  |
+| **Free Tree**    | `O(log n)`  | `O(log n)` | `O(1)`    | ~32B     | General purpose   | High block overhead     |
+| **Segregated***  | `O(1)`      | `O(1)`     | `O(1)`    | ~16B     | General purpose   | Complex to tune         |
+| **Buddy**        | `O(1)`      | `O(1)`     | `O(1)`    | ~1-8B    | OS memory         | Fragmentation (in)      |
+| **Slab**         | `O(1)`      | `O(1)`     | `O(1)`    | 0B       | Object caching    | Small objects           |
 
 <sub>\*Not yet available in this repository (in development).</sub><br>
 <sub>\*\*Freeing a specific block also frees all allocations made after it.</sub>
@@ -109,11 +109,9 @@ public:
 
 ### Arena (linear) allocator
 
-The simplest allocator.
-It keeps a pointer to the starting address of the large, contiguous block allocated on `init`.
-Also stores an `m_offset` integer, which holds the relative position of the last allocated memory from the pointer.
+The simplest allocator. It allocates a large, contiguous block on construction and uses `m_offset` to track the next available address. It is exceptionally fast but does not support individual `free_raw` operations.
 
-Each time `alloc` is called, size of said allocation is added to the `m_offset`.
+Each time `alloc_raw` is called, size of said allocation is added to the `m_offset`.
 Minimal fragmentation is achieved due to the sequential allocation - the only space wasted is used for alignment.
 
 #### Internal structure
@@ -135,8 +133,8 @@ public:
 };
 ```
 
-When `alloc` is called, it calculates the memory alignment, adds the requested `size` plus the alignment to the `m_offset`, and returns the previous address.
-This makes `alloc` an instant *O(1)* operation.
+When `alloc_raw` is called, it calculates the memory alignment, adds the requested `size` plus the alignment to the `m_offset`, and returns the previous address.
+This makes `alloc_raw` an instant *O(1)* operation.
 
 Because it only tracks a single forward-moving offset, you can't free individual objects.
 You can only clear the entire arena, which is done by resetting `m_offset` to zero, resulting in a *O(1)* `clear` time complexity.
@@ -157,9 +155,9 @@ You can only clear the entire arena, which is done by resetting `m_offset` to ze
 
 As the name suggests, it treats the memory as a stack. 
 It builds upon the Arena allocator. 
-Contrary to the Arena, it supports individual `free` operations, but due to the strict Last-In First-Out (LIFO) restrictions, you can only "pop" the most recently allocated element. 
+Contrary to the Arena, it supports individual `free_raw` operations, but due to the strict Last-In First-Out (LIFO) restrictions, you can only "pop" the most recently allocated element. 
 
-Its definition is practically identical to the arena allocator, but it has an additional method `free`.
+Its definition is practically identical to the Arena allocator, but it has an implemented method `free_raw`.
 What differs is that each allocated block has a header before it, which stores the previous `m_offset`.
 
 #### Internal structure
@@ -182,9 +180,9 @@ public:
 };
 ```
 
-When `alloc` is called, the allocator calculates the required padding for alignment, reserves space for both the header and the requested `size`, and writes the previous `m_offset` into the header just behind the returned pointer. This makes `alloc` an instant *O(1)* operation.
+When `alloc_raw` is called, the allocator calculates the required padding for alignment, reserves space for both the header and the requested `size`, and writes the previous `m_offset` into the header just behind the returned pointer. This makes `alloc` an instant *O(1)* operation.
 
-On `free`, the allocator simply reads the header immediately before the given pointer and restores `m_offset` to the value stored in it, hence deallocating the block. Since we don't need to search for the data, it's also an *O(1)* operation.
+On `free_raw`, the allocator simply reads the header immediately before the given pointer and restores `m_offset` to the value stored in it, hence deallocating the block. Since we don't need to search for the data, it's also an *O(1)* operation.
 
 <p align="center">
   <img src="docs/assets/stack_active.svg" alt="stack allocator active state">
@@ -231,10 +229,10 @@ public:
 };
 ```
 
-When `alloc` is called, it pops the `m_free_list_head`, updates the head to point to the next free chunk in the list, and returns the popped address.
+When `alloc_raw` is called, it pops the `m_free_list_head`, updates the head to point to the next free chunk in the list, and returns the popped address.
 Since there is no list traversal required, this is an instant *O(1)* operation.
 
-On `free`, it casts the passed `ptr` into a list node, sets its "next" pointer to the current `m_free_list_head`, and then updates `m_free_list_head` to point to `ptr`. This frees the chunk in *O(1)* time.
+On `free_raw`, it casts the passed `ptr` into a list node, sets its "next" pointer to the current `m_free_list_head`, and then updates `m_free_list_head` to point to `ptr`. This frees the chunk in *O(1)* time.
 
 <p align="center">
   <img src="docs/assets/pool_active.svg" alt="pool allocator active state">
@@ -245,14 +243,14 @@ On `free`, it casts the passed `ptr` into a list node, sets its "next" pointer t
 <p align="center">
   <img src="docs/assets/pool_free.svg" alt="pool allocator after free">
   <br>
-  <em><sub>After calling free() on data 1, it gets pushed to the front of the intrusive linked list. The head pointer is updated in O(1) time.</sub></em>
+  <em><sub>After calling free_raw() on data 1, it gets pushed to the front of the intrusive linked list. The head pointer is updated in O(1) time.</sub></em>
 </p>
 
 ### Free list allocator
 
 It's a specific type of general-purpose dynamic allocator, widely used under the hood for heap memory management. General-purpose allocators gained popularity due to having essentially no restrictions on allocation size or order. However, their performance varies greatly based on the underlying data structure used to track the free blocks:
 - **Free List**: Achieves *O(n)* time complexity using a singly-linked or doubly-linked list.
-- **Free Tree**: Achieves *O(log n)* time complexity using a bin search tree (e.g, Red-black tree).
+- **Free Tree**: Achieves *O(log n)* time complexity using a bin search tree (e.g., Red-black tree).
 - **Segregated Fits**: Achieves (mostly) *O(1)* time complexity using an array of size-segregated free lists (buckets).
 
 The implementation below details the **singly-linked free list**. 
@@ -291,16 +289,16 @@ public:
 ```
 <sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/FreeListAllocator.hpp).</sub>
 
-When `alloc` is called, it traverses through the list of free blocks, picking one matching the wanted size the closest (**best-fit**), or the first that can contain the memory to allocate (**first-fit**), and allocates the data with the hidden header before it. 
+When `alloc_raw` is called, it traverses through the list of free blocks, picking one matching the wanted size the closest (**best-fit**), or the first that can contain the memory to allocate (**first-fit**), and allocates the data with the hidden header before it. 
 Due to the required list traversal, the time complexity is *O(n)*.
 
-When `free` is called, reads the `size` and `pad` from the hidden header, and casts the memory back into a `FreeBlock`.
+When `free_raw` is called, reads the `size` and `pad` from the hidden header, and casts the memory back into a `FreeBlock`.
 To prevent external fragmentation, it then **coalesces** neighboring free memory blocks.
 
 Coalescence is achieved by checking if the end of one free block perfectly touches the start of the next. 
 If they touch, their sizes are summed together, and the second block is physically removed from the linked list. 
 To prevent pointer invalidation bugs, it is best practice to always coalesce a block with its next neighbor before coalescing with its previous neighbor. 
-Because finding the correct insertion point in the address-sorted list requires traversal, `free` also carries an *O(n)* time complexity.
+Because finding the correct insertion point in the address-sorted list requires traversal, `free_raw` also carries an *O(n)* time complexity.
 
 <p align="center">
   <img src="docs/assets/free_active.svg" alt="free list allocator active state">
@@ -311,13 +309,13 @@ Because finding the correct insertion point in the address-sorted list requires 
 <p align="center">
   <img src="docs/assets/free_split.svg" alt="free list allocator block splitting">
   <br>
-  <em><sub>After calling alloc() for 20B, the allocator uses "first-fit" to slice 50B (header + data 3) off free 1. The remainder of free 1 shrinks to 70B.</sub></em>
+  <em><sub>After calling alloc_raw() for 20B, the allocator uses "first-fit" to slice 50B (header + data 3) off free 1. The remainder of free 1 shrinks to 70B.</sub></em>
 </p>
 
 <p align="center">
   <img src="docs/assets/free_coal.svg" alt="free list allocator coalescing">
   <br>
-  <em><sub>After calling free() on data 2, the allocator detects that free 2, the newly freed block, and free 3 are adjacent. It coalesces them into a single 250B block.</sub></em>
+  <em><sub>After calling free_raw() on data 2, the allocator detects that free 2, the newly freed block, and free 3 are adjacent. It coalesces them into a single 250B block.</sub></em>
 </p>
 
 ### Free tree allocator
@@ -329,7 +327,7 @@ Instead of free blocks storing a simple `next` pointer, they store the metadata 
 This drops the time complexity for finding a **best-fit** block down to *O(log n)*.
 
 To achieve *O(1)* neighbor coalescence without list traversal, this allocator implements **boundary tags** (used also e.g. in `dlmalloc`) around every block. 
-It also utilizes a hidden **back pointer** stored in the alignment padding, allowing it to locate a block's metadata instantly during a `free` operation.
+It also utilizes a hidden **back pointer** stored in the alignment padding, allowing it to locate a block's metadata instantly during a `free_raw` operation.
 
 #### Internal structure
 ```cpp
@@ -346,20 +344,22 @@ private:
   internal::RBTree* m_free_tree;
 
 public:
-  void* alloc(std::size_t size, std::size_t align);
-  void  free(void* ptr);
-  bool  init(std::size_t size);
+  explicit FreeTreeAllocator(std::size_t size);
+  ~FreeTreeAllocator();
+
+  void* alloc_raw(std::size_t size, std::size_t align);
+  void  free_raw(void* ptr);
   void  clear();
   std::size_t capacity() const;
 };
 ```
 <sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/FreeTreeAllocator.hpp).</sub>
 
-When `alloc` is called, it searches the red-black tree for the best-fitting block in *O(log n)* time.
+When `alloc_raw` is called, it searches the red-black tree for the best-fitting block in *O(log n)* time.
 If the block is significantly larger than requested, it is split, and the remainder is re-inserted into the tree. 
 A pointer is then aligned, and a hidden back pointer is written into the padding exactly behind the returned address.
 
-When `free` is called, it steps back exactly `sizeof(void*)`B to read the back pointer, instantly locating the `AllocHeader`.
+When `free_raw` is called, it steps back exactly `sizeof(void*)`B to read the back pointer, instantly locating the `AllocHeader`.
 It then uses the boundary tags (header and footer) to check the left and right neighbors in *O(1)* time, coalesces them if they are free, removes them from the tree, and inserts the newly merged block into the tree.
 
 <p align="center">
@@ -384,7 +384,7 @@ It then uses the boundary tags (header and footer) to check the left and right n
 
 Unlike the previous allocators, the Tracking allocator does not manage memory directly. Instead, it acts as a wrapper around any other existing allocator. Its primary purpose is debugging. 
 
-It intercepts calls to `alloc` and `free`, records memory metrics, and then forwards the request to the allocator. It is a great tool for profiling memory usage, detecting leaks, and measuring peak memory consumption during app runtime.
+It intercepts calls to `alloc_raw` and `free_raw`, records memory metrics, and then forwards the request to the allocator. It is a great tool for profiling memory usage, detecting leaks, and measuring peak memory consumption during app runtime.
 
 #### Internal structure
 
@@ -412,9 +412,9 @@ public:
 };
 ```
 
-When `alloc` is called, it increments its internal counters, calculates if a new `m_peak_alloced_bytes` has been reached, and then simply returns the result of `m_base_allocator->alloc()`.
+When `alloc_raw` is called, it increments its internal counters, calculates if a new `m_peak_alloced_bytes` has been reached, and then simply returns the result of `m_base_allocator->alloc()`.
 
-When `free` is called, it decrements `m_curr_alloced_bytes` and forwards the pointer to `m_base_allocator->free()`. Because it only performs basic arithmetic before delegating the actual work, the overhead is extremely minimal, maintaining the time complexity of the underlying allocator.
+When `free_raw` is called, it decrements `m_curr_alloced_bytes` and forwards the pointer to `m_base_allocator->free()`. Because it only performs basic arithmetic before delegating the actual work, the overhead is extremely minimal, maintaining the time complexity of the underlying allocator.
 
 ### Buddy allocator
 
@@ -460,14 +460,14 @@ public:
 ```
 <sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/BuddyAllocator.hpp).</sub>
 
-When `alloc` is called, it calculates the total required size (including the alignment padding and the header) and determines the target order (power of two).
+When `alloc_raw` is called, it calculates the total required size (including the alignment padding and the header) and determines the target order (power of two).
 It then checks the free list for that specific order.
 If no blocks are available, it finds the next largest available block and recursevily splits it in half. Each split creates two **"buddies"**. 
 The left buddy is used for the allocation, and the right buddy is pushed onto the lower-order free list.
 To support strict alignment, a header is placed exactly behind the aligned data pointer, storing the offset back to the physical block start. 
 Because the max order is a constant, this operation is of *O(1)* time complexity.
 
-When `free` is called, it steps back to read the hidden header and uses the stored offset to locate the physical start of the block.
+When `free_raw` is called, it steps back to read the hidden header and uses the stored offset to locate the physical start of the block.
 To coalesce, it calculates the address of its "buddy" using a simple bitwise **XOR** operation on its relative memory address.
 If the buddy is also free and of the same order, they are instantly merged into a single, larger block.
 This process repeats recursively up the hierarchy.
@@ -488,7 +488,7 @@ This mathematical approach allows coalescence in *O(1)* time without traversing 
 <p align="center">
   <img src="docs/assets/buddy_free.svg" alt="buddy allocator free operation">
   <br>
-  <em><sub>After calling free, the allocator reads the hidden header. It uses a bitwise XOR operation to instantly locate the adjacent 32B buddy.</sub></em>
+  <em><sub>After calling free_raw, the allocator reads the hidden header. It uses a bitwise XOR operation to instantly locate the adjacent 32B buddy.</sub></em>
 </p>
 
 <p align="center">
@@ -546,8 +546,8 @@ public:
   explicit SlabAllocator(std::size_t size);
   ~SlabAllocator();
 
-  void* alloc(std::size_t size, std::size_t align);
-  void  free(void* ptr); 
+  void* alloc_raw(std::size_t size, std::size_t align);
+  void  free_raw(void* ptr); 
   void  clear();
   std::size_t capacity() const;
 
@@ -555,20 +555,20 @@ public:
 ```
 <sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/SlabAllocator.hpp).</sub>
 
-When `alloc` is called, the allocator first checks if the request exceeds its maximum cache size.
+When `alloc_raw` is called, the allocator first checks if the request exceeds its maximum cache size.
 If it does, the request is routed directly to the `m_base_allocator`.
 If the size is small, it determines the correct `CacheManager` and looks for an available slot in the `partial_slabs`, later checking the `empty_slabs` lists. 
 If a slab is found, it pops the head of the intrusive free list in *O(1)* time, increments the `used` counter, and promotes the slab to the `full_slabs` list if capacity is reached.
 If no slabs are available, it requests a new page from `m_base_allocator`, formats it with a `SlabHeader`, and carves the rest into new slots.
 
-When `free` is called, the allocator faces a unique problem - determining whether the pointer belongs to a Slab cache or is a huge block managed by `m_base_allocator`.
+When `free_raw` is called, the allocator faces a unique problem - determining whether the pointer belongs to a Slab cache or is a huge block managed by `m_base_allocator`.
 This issue is commonly solved by passing the size of an allocation as an argument, and checking if it exceeds the maximum cache size.
 The implementation in this codebase however, doesn't pass size as an argument, so it requires a different approach.
 Because slab pages are strictly aligned to `m_page_size`, the allocator applies a bitmask to the pointer to instantly find the start of memory page.
 It then checks the `id` field of the struct sitting there.
 If the ID matches the predefined `SLAB_ID` (`0x51AB`, standing for 'slab' obviously), it is a slab block, and the pointer is pushed back into the slab's internal free list.
 The slab is transitioned between the full/partial/empty lists as needed.
-If the ID does not match, the allocator immediately delegates the `free` operation to `m_base_allocator`.
+If the ID does not match, the allocator immediately delegates the `free_raw` operation to `m_base_allocator`.
 
 <p align="center">
   <img src="docs/assets/slab_init.svg" alt="slab allocator initialization">
@@ -585,7 +585,7 @@ If the ID does not match, the allocator immediately delegates the `free` operati
 <p align="center">
   <img src="docs/assets/slab_free.svg" alt="slab allocator free operation">
   <br>
-  <em><sub>On free, the allocator applies a bitmask to the pointer to instantly jump back to the page-aligned header. It checks the ID to confirm it belongs to a slab.</sub></em>
+  <em><sub>On free_raw, the allocator applies a bitmask to the pointer to instantly jump back to the page-aligned header. It checks the ID to confirm it belongs to a slab.</sub></em>
 </p>
 
 <p align="center">
@@ -596,10 +596,10 @@ If the ID does not match, the allocator immediately delegates the `free` operati
 
 ## Roadmap
 
-* [ ] Update readme after changes
 * [ ] Implement a size segregated free list allocator.
 * [ ] Add a benchmark/performance README section.
-* [ ] Move `alloc` to `raw_alloc` and make a inline template `alloc`
+* [x] Update readme after changes
+* [x] Move `alloc` to `alloc_raw` and make a inline template `make`
 * [x] remove `realloc` completely
 * [x] move `init` logic to constructors
 * [x] Move from hand-written tests to proper stress testing.
