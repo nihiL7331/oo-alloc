@@ -1,5 +1,6 @@
 #include "oo_alloc/SegregatedAllocator.hpp"
 #include "oo_alloc/utils.hpp"
+#include <algorithm>
 #include <bit>
 #include <cassert>
 #include <cstdint>
@@ -71,6 +72,15 @@ void* SegregatedAllocator::alloc_raw(std::size_t size, std::size_t align) {
 
     // if the mask is 0,
     // no larger buckets are left
+    if (search_mask == 0) {
+      this->coalesce_all();
+
+      search_mask = m_active_buckets & (~0U << bucket_idx);
+    }
+
+    // if after coalescing there's
+    // still no larger buckets,
+    // return
     if (search_mask == 0)
       return nullptr;
 
@@ -146,61 +156,6 @@ void SegregatedAllocator::free_raw(void* ptr) {
   std::uint8_t curr_order = header->order;
 
   std::uintptr_t heap_end = reinterpret_cast<std::uintptr_t>(m_start_ptr) + m_total_size;
-
-  // coalesce,
-  // loop until no merges are possible
-  while (curr_order < MIN_BUCKET_ORDER + NUM_BUCKETS - 1) {
-    AllocHeader* curr_header = reinterpret_cast<AllocHeader *>(curr_addr);
-
-    // merge left
-    if (curr_header->is_prev_free) {
-      AllocFooter* left_footer = reinterpret_cast<AllocFooter *>(curr_addr - sizeof(AllocFooter));
-
-      if (left_footer->order == curr_order) {
-        std::size_t neighbor_size = 1ULL << curr_order;
-        std::uintptr_t left_addr = curr_addr - neighbor_size;
-
-        // pop left neighbor from bucket
-        std::uint8_t bucket = curr_order - MIN_BUCKET_ORDER;
-        FreeBlock* left_block = reinterpret_cast<FreeBlock *>(left_addr + sizeof(AllocHeader));
-        remove_from_bucket(left_block, bucket);
-
-        // absorb it - move current address to the left, increase order
-        curr_addr -= (1ULL << left_footer->order);
-        curr_order++;
-
-        // might be able to merge left again, so continue
-        continue;
-      }
-    }
-
-    // merge right
-    std::size_t curr_size = 1ULL << curr_order;
-    std::uintptr_t right_addr = curr_addr + curr_size;
-
-    // check bounds to ensure it is inside the heap
-    if (right_addr < heap_end) {
-      AllocHeader* right_header = reinterpret_cast<AllocHeader *>(right_addr);
-
-      // only merge if its free and of the same size
-      if (right_header->is_free && right_header->order == curr_order) {
-        // pop right neighbor from bucket
-        std::uint8_t bucket = curr_order - MIN_BUCKET_ORDER;
-        FreeBlock* right_block = reinterpret_cast<FreeBlock *>(right_addr + sizeof(AllocHeader));
-        remove_from_bucket(right_block, bucket);
-
-        // absorb it - increase order
-        curr_order++;
-        
-        continue;
-      }
-    }
-
-    // if the loop got here,
-    // it means no merges occured,
-    // so the coalescing is finished
-    break;
-  }
 
   std::uint8_t target_bucket = curr_order - MIN_BUCKET_ORDER;
   std::size_t final_size = 1ULL << curr_order;
@@ -349,6 +304,83 @@ void SegregatedAllocator::remove_from_bucket(FreeBlock* block, std::uint8_t buck
 
   if (m_buckets[bucket] == nullptr)
     this->set_bucket_bit(bucket, false);
+}
+
+/* this function is called,
+ * whenever on 'alloc_raw' there's not a bigger bucket.
+ * its only responsible for coalescing all of the blocks back,
+ * it's a deferred implementation contrary to one,
+ * where coalescing is called on every 'free_raw',
+ * this one is faster 99% of the times.
+ */
+void SegregatedAllocator::coalesce_all() noexcept {
+  bool merged_any;
+  do {
+    merged_any = false;
+
+    for (std::uint8_t bucket_idx = 0; bucket_idx < NUM_BUCKETS - 1; ++bucket_idx) {
+      FreeBlock* curr = m_buckets[bucket_idx];
+
+      while (curr != nullptr) {
+        FreeBlock* next_block = curr->next;
+
+        std::uintptr_t curr_addr = reinterpret_cast<std::uintptr_t>(curr) - sizeof(AllocHeader);
+        std::uint8_t order = bucket_idx + MIN_BUCKET_ORDER;
+        std::size_t size = 1ULL << order;
+
+        // use XOR buddy logic to find the buddy
+        std::uintptr_t offset = curr_addr - reinterpret_cast<std::uintptr_t>(m_start_ptr);
+        std::uintptr_t buddy_offset = offset ^ size;
+        std::uintptr_t buddy_addr = reinterpret_cast<std::uintptr_t>(m_start_ptr) + buddy_offset;
+
+        std::uintptr_t heap_end = reinterpret_cast<std::uintptr_t>(m_start_ptr) + m_total_size;
+
+        // if the buddy actually exists, then try to coalesce
+        if (buddy_addr < heap_end) {
+          AllocHeader* buddy_header = reinterpret_cast<AllocHeader *>(buddy_addr);
+
+          // if the buddy is free and of the same size, coalesce
+          if (buddy_header->is_free && buddy_header->order == order) {
+            FreeBlock* buddy_block = reinterpret_cast<FreeBlock*>(buddy_addr + sizeof(AllocHeader));
+
+            // remove both buddies from the buckets
+            remove_from_bucket(curr, bucket_idx);
+            remove_from_bucket(buddy_block, bucket_idx);
+
+            std::uintptr_t left_addr = std::min(curr_addr, buddy_addr);
+            std::uint8_t new_order = order + 1;
+
+            // create a new, bigger block
+            AllocHeader* left_h = reinterpret_cast<AllocHeader*>(left_addr);
+            left_h->order = new_order;
+            
+            AllocFooter* left_f = reinterpret_cast<AllocFooter*>(left_addr + (size * 2) - sizeof(AllocFooter));
+            left_f->order = new_order;
+            
+            std::uint8_t new_bucket = bucket_idx + 1;
+            FreeBlock* merged_block = reinterpret_cast<FreeBlock*>(left_addr + sizeof(AllocHeader));
+            merged_block->prev = nullptr;
+            merged_block->next = m_buckets[new_bucket];
+            if (m_buckets[new_bucket] != nullptr) 
+              m_buckets[new_bucket]->prev = merged_block;
+            
+            // push it onto the bucket
+            m_buckets[new_bucket] = merged_block;
+            this->set_bucket_bit(new_bucket, true);
+            
+            std::uintptr_t right_neighbor = left_addr + (size * 2);
+            if (right_neighbor < heap_end) {
+              reinterpret_cast<AllocHeader*>(right_neighbor)->is_prev_free = true;
+            }
+            
+            merged_any = true;
+            break;
+          }
+        }
+      curr = next_block;
+      }
+    }
+  } while (merged_any);
 }
 
 }

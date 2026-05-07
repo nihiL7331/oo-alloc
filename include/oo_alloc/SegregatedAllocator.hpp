@@ -63,6 +63,7 @@ private: //helpers
 
   void split_block(std::uint8_t bucket) noexcept;
   void remove_from_bucket(FreeBlock* block, std::uint8_t bucket) noexcept;
+  void coalesce_all() noexcept;
 };
 
 }
