@@ -393,16 +393,16 @@ auto* b_rec_slab     = benchmark::RegisterBenchmark("recycle/slab", bm_recycle_s
 auto* b_rec_buddy    = benchmark::RegisterBenchmark("recycle/buddy", bm_recycle_dynamic<BuddyAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
 auto* b_rec_malloc   = benchmark::RegisterBenchmark("recycle/malloc", bm_recycle_malloc)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
 
-auto* b_var_buddy    = benchmark::RegisterBenchmark("var_size/buddy", bm_variable_sizes<BuddyAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
 auto* b_var_seg      = benchmark::RegisterBenchmark("var_size/segregated", bm_variable_sizes<SegregatedAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
 auto* b_var_freetree = benchmark::RegisterBenchmark("var_size/free_tree", bm_variable_sizes<FreeTreeAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
 auto* b_var_freelist = benchmark::RegisterBenchmark("var_size/free_list", bm_variable_sizes<FreeListAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
+auto* b_var_buddy    = benchmark::RegisterBenchmark("var_size/buddy", bm_variable_sizes<BuddyAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
 auto* b_var_malloc   = benchmark::RegisterBenchmark("var_size/malloc", bm_variable_sizes_malloc)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
 
-auto* b_churn_buddy    = benchmark::RegisterBenchmark("churn/buddy", bm_random_churn<BuddyAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
 auto* b_churn_seg      = benchmark::RegisterBenchmark("churn/segregated", bm_random_churn<SegregatedAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
 auto* b_churn_freetree = benchmark::RegisterBenchmark("churn/free_tree", bm_random_churn<FreeTreeAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
 auto* b_churn_freelist = benchmark::RegisterBenchmark("churn/free_list", bm_random_churn<FreeListAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
+auto* b_churn_buddy    = benchmark::RegisterBenchmark("churn/buddy", bm_random_churn<BuddyAllocator>)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
 auto* b_churn_malloc   = benchmark::RegisterBenchmark("churn/malloc", bm_random_churn_malloc)->RangeMultiplier(10)->Range(10, 10000)->Complexity(benchmark::oAuto);
 
 BENCHMARK_MAIN();
