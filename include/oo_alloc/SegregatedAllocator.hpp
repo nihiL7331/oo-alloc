@@ -28,6 +28,7 @@ private:
   std::size_t m_total_size;
 
   std::array<FreeBlock*, NUM_BUCKETS> m_buckets;
+  std::uint32_t m_active_buckets;
 
 public:
   explicit SegregatedAllocator(std::size_t size);
@@ -51,6 +52,13 @@ private: //helpers
   }
   inline std::size_t bucket_to_size(std::uint8_t bucket) const noexcept {
     return 1ULL << (MIN_BUCKET_ORDER + bucket);
+  }
+
+  inline void set_bucket_bit(std::uint8_t bucket, bool set) noexcept {
+    if (set)
+      m_active_buckets |= (1U << bucket);
+    else
+      m_active_buckets &= ~(1U << bucket);
   }
 
   void split_block(std::uint8_t bucket) noexcept;

@@ -1,5 +1,6 @@
 #include "oo_alloc/SegregatedAllocator.hpp"
 #include "oo_alloc/utils.hpp"
+#include <bit>
 #include <cassert>
 #include <cstdint>
 
@@ -7,7 +8,8 @@ namespace oo_alloc {
 
 SegregatedAllocator::SegregatedAllocator(std::size_t size) 
   : m_start_ptr(nullptr)
-  , m_total_size(0) {
+  , m_total_size(0)
+  , m_active_buckets(0) {
   if (size == 0)
     return;
 
@@ -63,15 +65,17 @@ void* SegregatedAllocator::alloc_raw(std::size_t size, std::size_t align) {
   // if the bucket is empty,
   // find a larger block and split it down
   if (head == nullptr) {
-    std::uint8_t curr_bucket = bucket_idx;
+    // create a mask that zeroes out all the
+    // bits below the wanted 'bucket_idx'
+    std::uint32_t search_mask = m_active_buckets & (~0U << bucket_idx);
 
-    // search for bigger block
-    while (curr_bucket < NUM_BUCKETS && m_buckets[curr_bucket] == nullptr)
-      curr_bucket++;
-
-    // if there's none, there's not enough space
-    if (curr_bucket == NUM_BUCKETS)
+    // if the mask is 0,
+    // no larger buckets are left
+    if (search_mask == 0)
       return nullptr;
+
+    // find the index of the lowest bit that is set to 1
+    std::uint8_t curr_bucket = static_cast<std::uint8_t>(std::countr_zero(search_mask));
 
     // split it down
     while (curr_bucket != bucket_idx) {
@@ -86,6 +90,8 @@ void* SegregatedAllocator::alloc_raw(std::size_t size, std::size_t align) {
   m_buckets[bucket_idx] = head->next;
   if (m_buckets[bucket_idx] != nullptr)
     m_buckets[bucket_idx]->prev = nullptr;
+  else
+    this->set_bucket_bit(bucket_idx, false);
 
   // get the start addr of whole block
   std::uintptr_t start_addr = reinterpret_cast<std::uintptr_t>(head) - header_size;
@@ -219,6 +225,8 @@ void SegregatedAllocator::free_raw(void* ptr) {
     m_buckets[target_bucket]->prev = final_block;
   m_buckets[target_bucket] = final_block;
 
+  this->set_bucket_bit(target_bucket, true);
+
   // update new right neighbor
   std::uintptr_t final_right_addr = curr_addr + final_size;
 
@@ -229,6 +237,8 @@ void SegregatedAllocator::free_raw(void* ptr) {
 }
 
 void SegregatedAllocator::clear() {
+  m_active_buckets = 0;
+
   // similarly to the slab allocator,
   // first need to clear the buckets
   for (std::uint8_t i = 0; i < NUM_BUCKETS; ++i)
@@ -258,6 +268,8 @@ void SegregatedAllocator::clear() {
 
   // place it in the according bucket
   m_buckets[target_bucket] = init_block;
+
+  this->set_bucket_bit(target_bucket, true);
 }
 
 bool SegregatedAllocator::owns(void* ptr) const {
@@ -273,6 +285,8 @@ void SegregatedAllocator::split_block(std::uint8_t bucket) noexcept {
   m_buckets[bucket] = block->next;
   if (m_buckets[bucket] != nullptr)
     m_buckets[bucket]->prev = nullptr;
+  else
+    this->set_bucket_bit(bucket, false);
 
   // calculate orders and sizes
   std::uint8_t order = bucket + MIN_BUCKET_ORDER;
@@ -316,6 +330,8 @@ void SegregatedAllocator::split_block(std::uint8_t bucket) noexcept {
   left_block->next = right_block;
   right_block->prev = left_block;
   m_buckets[new_bucket] = left_block;
+
+  this->set_bucket_bit(new_bucket, true);
 }
 
 void SegregatedAllocator::remove_from_bucket(FreeBlock* block, std::uint8_t bucket) noexcept {
@@ -330,6 +346,9 @@ void SegregatedAllocator::remove_from_bucket(FreeBlock* block, std::uint8_t buck
 
   block->prev = nullptr;
   block->next = nullptr;
+
+  if (m_buckets[bucket] == nullptr)
+    this->set_bucket_bit(bucket, false);
 }
 
 }
