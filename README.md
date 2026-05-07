@@ -478,12 +478,6 @@ If an allocation fails because no contiguous blocks are logically available, the
   <em><sub>On free_raw, the allocator steps back to read the physical header and checks its neighbors. It finds its original buddy from step 1 and unlinks it.</sub></em>
 </p>
 
-<p align="center">
-  <img src="docs/assets/seg_merge.svg" alt="segregated allocator coalescing">
-  <br>
-  <em><sub>The buddies merge back into a single, contiguous 256B block, which is instantly pushed to the higher-order free list.</sub></em>
-</p>
-
 ### Tracking allocator
 
 Unlike the previous allocators, the Tracking allocator does not manage memory directly. Instead, it acts as a wrapper around any other existing allocator. Its primary purpose is debugging. 
