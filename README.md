@@ -749,10 +749,42 @@ Thing* thing = arena.make<Thing>(4562);
 arena.destroy(thing);
 ```
 
+## Benchmarks
+
+<p align="center">
+  <img src="docs/assets/bench_churn.svg" alt="bench: random churn">
+  <br>
+  <em><sub>Simulates a highly fragmented workload. While std::malloc collapses into an O(N²) death spiral, and the Free tree struggles with rebalancing overhead, the Segregated allocator processes memory churn over 13x faster than the OS standard.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/bench_recycle.svg" alt="bench: shuffled recycle">
+  <br>
+  <em><sub>Tests worst-case linear traversal by freeing objects in a completely randomized order. The Free list catastrophically fails (O(N³)), while the Buddy and Segregated allocators rival the raw speed of fixed-size Pool/Slab allocators by instantly merging neighbors via math.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/bench_frag.svg" alt="bench: frag search">
+  <br>
+  <em><sub>Measures allocation time as heap fragmentation scales. The Free list scales linearly and the Free Tree scales logarithmically, but the Segregated allocator demonstrates a mathematically perfect O(1) flatline regardless of heap complexity.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/bm_bump.svg" alt="bench: seq bump">
+  <br>
+  <em><sub>Measures raw allocation throughput. By utilizing hardware-level bitwise instructions (std::countr_zero) to bypass branch mispredictions, the Segregated allocator pushes over 180 million items/second, nearing the theoretical speed limit of the Stack and Arena allocators.</sub></em>
+</p>
+
+<p align="center">
+  <img src="docs/assets/bench_var.svg" alt="bench: var sizes">
+  <br>
+  <em><sub>Evaluates throughput when requesting completely random block sizes. The Buddy allocator struggles heavily here due to constant power-of-two splitting, but the Segregated allocators deferred coalescing bypasses this thrash entirely, maintaining great speeds.</sub></em>
+</p>
+
 ## Roadmap
 
 * [ ] Ensure cohesive naming between allocators.
-* [ ] Add a benchmark/performance README section.
+* [x] Add a benchmark/performance README section.
 * [x] Implement a size segregated free list allocator.
 * [x] Add `owns` method.
 * [x] Update readme after changes
