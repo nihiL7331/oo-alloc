@@ -21,7 +21,7 @@ private:
     FreeBlock* next;
   };
 
-  static constexpr std::uint8_t NUM_BUCKETS = 24;
+  static constexpr std::uint8_t NUM_BUCKETS = 25;
   static constexpr std::uint8_t MIN_BUCKET_ORDER = 5;
 
   void*       m_start_ptr;
