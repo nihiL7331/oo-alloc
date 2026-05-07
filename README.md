@@ -755,7 +755,7 @@ arena.destroy(thing);
 <p align="center">
   <img src="docs/assets/bench_churn.svg" alt="bench: random churn">
   <br>
-  <em><sub>Simulates a highly fragmented workload. While std::malloc collapses into an O(N²) death spiral, and the Free tree struggles with rebalancing overhead, the Segregated allocator processes memory churn over 13x faster than the OS standard.</sub></em>
+  <em><sub>Simulates a highly fragmented workload. While std::malloc collapses into an O(N²) death spiral, and the Free tree struggles with rebalancing overhead, the Segregated allocator processes memory churn over 5x faster than the OS standard.</sub></em>
 </p>
 
 <p align="center">
