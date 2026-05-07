@@ -27,6 +27,7 @@
   - [Buddy allocator](#buddy-allocator)
   - [Slab allocator](#slab-allocator)
 - [The standard library](#the-standard-library)
+- [Benchmarks](#benchmarks)
 - [Roadmap](#roadmap)
 - [Sources](#sources)
 
@@ -770,7 +771,7 @@ arena.destroy(thing);
 </p>
 
 <p align="center">
-  <img src="docs/assets/bm_bump.svg" alt="bench: seq bump">
+  <img src="docs/assets/bench_bump.svg" alt="bench: seq bump">
   <br>
   <em><sub>Measures raw allocation throughput. By utilizing hardware-level bitwise instructions (std::countr_zero) to bypass branch mispredictions, the Segregated allocator pushes over 180 million items/second, nearing the theoretical speed limit of the Stack and Arena allocators.</sub></em>
 </p>
