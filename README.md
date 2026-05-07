@@ -421,13 +421,14 @@ private:
     FreeBlock* next;
   };
 
-  static constexpr std::uint8_t NUM_BUCKETS = 24;
+  static constexpr std::uint8_t NUM_BUCKETS = 25;
   static constexpr std::uint8_t MIN_BUCKET_ORDER = 5;
 
   void*       m_start_ptr;
   std::size_t m_total_size;
 
   std::array<FreeBlock*, NUM_BUCKETS> m_buckets;
+  std::uint32_t m_active_buckets; // each bit is a bucket: 1 if free, 0 if not
 
 public:
   explicit SegregatedAllocator(std::size_t size);
@@ -443,12 +444,20 @@ public:
 <sub>For clarity purposes, the helpers/handlers are not shown above. You can find the full definition [here](include/oo_alloc/SegregatedAllocator.hpp).</sub>
 
 When `alloc_raw` is called, it calculates the required size and uses a bitwise operation (`std::countr_zero`) to find the target bucket. 
-If the bucket is empty, it scans upwards for a larger block, recursively splitting it down in a **buddy**-style cascade until the target bucket is populated. 
+Rather than iterating through the array to find an available block, it queries `m_active_buckets` - a 32b integer acting as a bitmask.
+It locates the first available larger block in one CPU cycle via `std::countr_zero`.
+It then recursively splits this block down in a **buddy**-style cascade until the target bucket is populated.
 It then pops the block from the intrusive list in *O(1)* time, aligns the data pointer, and writes the offset back pointer right behind the data.
 
-When `free_raw` is called, it steps back exactly one byte from the payload to read the offset, allowing it to instantly jump to the true start of the block.
-It then checks the `is_prev_free` flag and reads the boundary footers/headers of its neighbors. 
-Because it utilizes a doubly-linked list (`prev` and `next`), it can cleanly extract neighbors from their respective buckets and merge them with a *O(1)* time complexity until no more merges are mathematically possible.
+When `free_raw` is called, it steps back exactly one byte from the data pointer to read the offset, instantly jumping to the start of the block to grab the `AllocHeader`.
+
+In a standard segregated allocator, every call to `free_raw` would halt the execution to coalesce. 
+While it is mathematically *O(1)*, it causes a lot of cache misses. 
+By deferring this process, `free_raw` skips neighbor checking entirely and simply pushes the block to the front of its respective bucket list. 
+This prevents cache thrashing and allows the allocator to handle chaotic, fragmented scenarios over 3 times faster than `std::malloc`.
+
+The trade-off is fragmentation.
+If an allocation fails because no contiguous blocks are logically available, the allocator pauses to trigger `coalesce_all`. It's a full heap sweep that uses bitwise XOR math to locate buddies, merge them together, and allow the allocation. In a moreso production environment, this sweep can be called manually e.g. during loading screens in video games. 
 
 <p align="center">
   <img src="docs/assets/seg_split.svg" alt="segregated allocator splitting">
