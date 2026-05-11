@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <type_traits>
 #include <utility>
-#include <new>
 #include <cstdint>
 
 namespace oo_alloc {
@@ -68,6 +67,8 @@ public:
 
   template<typename T>
   void destroy(T* ptr) {
+    static_assert(std::is_nothrow_destructible_v<T>, "oo-alloc requires nothrow destructors");
+
     if (ptr == nullptr)
       return;
 
@@ -77,6 +78,8 @@ public:
 
   template<typename T>
   void destroy(T* ptr, std::size_t count) {
+    static_assert(std::is_nothrow_destructible_v<T>, "oo-alloc requires nothrow destructors");
+
     if (ptr == nullptr)
       return;
 
