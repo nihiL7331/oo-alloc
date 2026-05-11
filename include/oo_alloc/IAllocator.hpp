@@ -31,7 +31,12 @@ public:
     if (raw_mem == nullptr)
       return nullptr;
 
-    return new (raw_mem) T(std::forward<Args>(args)...);
+    try {
+      return new (raw_mem) T(std::forward<Args>(args)...);
+    } catch (...) {
+      this->free_raw(raw_mem);
+      throw;
+    }
   }
 
   template<typename T>
@@ -47,8 +52,16 @@ public:
       return nullptr;
 
     ElemType* elem_ptr = static_cast<ElemType *>(raw_mem);
-    for (std::size_t i = 0; i < count; ++i)
-      new (&elem_ptr[i]) ElemType();
+    std::size_t constructed = 0;
+    try {
+      for (; constructed < count; ++constructed)
+        new (&elem_ptr[constructed]) ElemType();
+    } catch (...) {
+      while (constructed > 0)
+        elem_ptr[--constructed].~ElemType();
+      this->free_raw(raw_mem);
+      throw;
+    }
 
     return elem_ptr;
   }
