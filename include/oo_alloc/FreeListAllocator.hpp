@@ -1,3 +1,5 @@
+#pragma once
+
 #include "oo_alloc/IAllocator.hpp"
 #include <cstdint>
 
