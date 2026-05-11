@@ -50,7 +50,7 @@ public:
   void* alloc_raw(std::size_t size, std::size_t align) override;
   void  free_raw(void* ptr) override; 
   void  clear() override;
-  std::size_t capacity() const override { return SIZE_MAX; }
+  std::size_t capacity() const override { return m_base_allocator->capacity(); }
   bool owns(void* ptr) const override;
 
 private: // helpers
