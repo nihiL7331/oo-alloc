@@ -746,39 +746,45 @@ arena.destroy(thing);
 
 ## Benchmarks
 
+All measurements are single-threaded and run on [google/benchmark](https://github.com/google/benchmark).
+`std::malloc` is included as a reference baseline; note that it is thread-safe,
+which the allocators in this library are not — the comparison reflects raw
+algorithmic cost under specific workloads, not equivalent guarantees.
+Numbers below are from one machine (ARM M4), your results may vary.
+
 <p align="center">
   <img src="docs/assets/bench_churn.svg" alt="bench: random churn">
   <br>
-  <em><sub>Simulates a highly fragmented workload. While std::malloc collapses into an O(N²) death spiral, and the Free tree struggles with rebalancing overhead, the Segregated allocator processes memory churn over 5x faster than the OS standard.</sub></em>
+  <em><sub> Mixed alloc/free workload designed to fragment the heap. std::malloc and the Free tree slow down as the heap fragments — malloc because internal coalescing scans grow with allocation count, the Free tree because of rebalancing overhead. The Segregated allocator runs ~5× faster than std::malloc on this workload thanks to per-size-class free lists and deferred coalescing.</sub></em>
 </p>
 
 <p align="center">
   <img src="docs/assets/bench_recycle.svg" alt="bench: shuffled recycle">
   <br>
-  <em><sub>Tests worst-case linear traversal by freeing objects in a completely randomized order. The Free list catastrophically fails (O(N³)), while the Buddy and Segregated allocators rival the raw speed of fixed-size Pool/Slab allocators by instantly merging neighbors via math.</sub></em>
+  <em><sub>Frees objects in random order, forcing the Free list to repeatedly traverse the address-sorted free list — quadratic in the number of live blocks. The Buddy and Segregated allocators stay close to Pool/Slab throughput here because their coalescing is constant-time (XOR-based buddy lookup), independent of free-list length.</sub></em>
 </p>
 
 <p align="center">
   <img src="docs/assets/bench_frag.svg" alt="bench: frag search">
   <br>
-  <em><sub>Measures allocation time as heap fragmentation scales. The Free list scales linearly and the Free Tree scales logarithmically, but the Segregated allocator demonstrates a mathematically perfect O(1) flatline regardless of heap complexity.</sub></em>
+  <em><sub>Allocation latency as a function of heap fragmentation. The Free list scales linearly with the number of free blocks (search cost), the Free tree logarithmically (RBTree lookup), and the Segregated allocator stays flat — the bucket lookup via std::countr_zero is constant-time and independent of how fragmented the heap is.</sub></em>
 </p>
 
 <p align="center">
   <img src="docs/assets/bench_bump.svg" alt="bench: seq bump">
   <br>
-  <em><sub>Measures raw allocation throughput. By utilizing hardware-level bitwise instructions (std::countr_zero) to bypass branch mispredictions, the Segregated allocator pushes over 180 million items/second, nearing the theoretical speed limit of the Stack and Arena allocators.</sub></em>
+  <em><sub>Sequential allocation throughput with no frees. Arena and Stack set the upper bound — both reduce to a pointer bump. The Segregated allocator reaches ~180M allocations/second, within the same order of magnitude as the bump allocators because its hot path is a bitmask lookup and a free-list pop.</sub></em>
 </p>
 
 <p align="center">
   <img src="docs/assets/bench_var.svg" alt="bench: var sizes">
   <br>
-  <em><sub>Evaluates throughput when requesting completely random block sizes. The Buddy allocator struggles heavily here due to constant power-of-two splitting, but the Segregated allocators deferred coalescing bypasses this thrash entirely, maintaining great speeds.</sub></em>
+  <em><sub>Throughput on uniformly random block sizes. The Buddy allocator spends most of its time recursively splitting and coalescing power-of-two blocks. The Segregated allocator defers coalescing until an allocation fails, avoiding the per-call overhead and maintaining higher throughput on this mix.</sub></em>
 </p>
 
 ## Roadmap
 
-* [ ] Ensure cohesive naming between allocators.
+* [ ] Handle thread safety.
 * [x] Add a benchmark/performance README section.
 * [x] Implement a size segregated free list allocator.
 * [x] Add `owns` method.
